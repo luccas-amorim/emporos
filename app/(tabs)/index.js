@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, TextInput, TouchableOpacity, ScrollView, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
+import { StyleSheet, Text, View, TextInput, TouchableOpacity, ScrollView, ActivityIndicator, KeyboardAvoidingView, Platform, Linking } from 'react-native';
 
 // --- Lógica de IOF fora do componente para carregar IMEDIATAMENTE ---
 const getIOFPorAno = () => {
@@ -41,9 +41,30 @@ export default function App() {
 
   // Parceiros (Banners)
   const parceiros = [
-    { id: 1, nome: 'Wise', desconto: 'Primeira transferência grátis', cor: '#9fe870', texto: '#163300' },
-    { id: 2, nome: 'Nomad', desconto: 'Cashback de 2% no app', cor: '#000000', texto: '#ffffff' },
-    { id: 3, nome: 'Western Union', desconto: 'Taxa zero no 1º envio', cor: '#ffda00', texto: '#000000' }
+    { 
+      id: 1, 
+      nome: 'Wise', 
+      desconto: 'Primeira transferência grátis', //TODO <-- PROPAGANDA AQUI
+      cor: '#9fe870', 
+      texto: '#163300',
+      link: 'https://wise.com/' // TODO: Trocar este link pelo meu link de afiliado real antes de publicar!
+    },
+    { 
+      id: 2, 
+      nome: 'Nomad Global', 
+      desconto: 'Ganhe até US$ 20 de cashback', //TODO <-- PROPAGANDA AQUI
+      cor: '#000000', 
+      texto: '#ffffff',
+      link: 'https://nomadglobal.com/' // TODO: Trocar este link pelo meu link de afiliado real antes de publicar!
+    },
+    { 
+      id: 3, 
+      nome: 'Western Union', 
+      desconto: 'Taxa zero no 1º envio', //TODO <-- PROPAGANDA AQUI
+      cor: '#ffda00', 
+      texto: '#000000',
+      link: 'https://westernunion.com' // TODO: Trocar este link pelo meu link de afiliado real antes de publicar!
+    }
   ];
   const [parceiroAtivo, setParceiroAtivo] = useState(parceiros[0]);
 
@@ -228,7 +249,7 @@ export default function App() {
           <Text style={styles.calcButtonText}>CALCULAR</Text>
         </TouchableOpacity>
 
-        {/* Banner de Parceiros */}
+        {/* Banner de Parceiros com Link */}
         <View style={[styles.bannerContainer, { backgroundColor: parceiroAtivo.cor }]}>
           <View style={{flex: 1}}>
             <Text style={[styles.bannerTitle, { color: parceiroAtivo.texto }]}>
@@ -238,8 +259,13 @@ export default function App() {
               {parceiroAtivo.desconto}
             </Text>
           </View>
-          <TouchableOpacity style={styles.bannerButton}>
-            <Text style={styles.bannerButtonText}>VER</Text>
+
+          {/* Agora o botão abre o link! */}
+          <TouchableOpacity 
+            style={styles.bannerButton}
+            onPress={() => Linking.openURL(parceiroAtivo.link)}
+          >
+            <Text style={styles.bannerButtonText}>ABRIR</Text>
           </TouchableOpacity>
         </View>
 

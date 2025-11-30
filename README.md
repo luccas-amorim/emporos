@@ -64,5 +64,10 @@ Copyright (c) 2025 Luccas de Amorim Rêgo Cavicchioli.
 * Qualquer cópia, modificação, redistribuição, uso comercial ou sublicenciamento deste Software, no todo ou em parte, é estritamente **PROIBIDA** sem a permissão expressa e por escrito do autor.
 * Para solicitações de uso comercial ou parcerias, entre em contato com o autor.
 
+## ⚖️ Termos e Privacidade
+
+* **Política de Privacidade:** [Clique aqui para ler](https://gist.github.com/amorim-rc/b2fee294fdd1c734825f064f8cb2cc79)
+* **Termos de Uso:** O uso deste aplicativo é regido pela licença proprietária incluída neste repositório.
+
 ---
 Desenvolvido por **Luccas de Amorim Rêgo Cavicchioli**.
