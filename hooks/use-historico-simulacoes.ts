@@ -1,7 +1,8 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useCallback, useEffect, useState } from 'react';
 
-import type { FormaPagamento, Moeda } from '@/core/calculadora';
+import type { CurrencyCode } from '@/constants/currencies';
+import type { FormaPagamento } from '@/core/calculadora';
 
 export interface SimulacaoSalva {
   id: string;
@@ -11,7 +12,7 @@ export interface SimulacaoSalva {
   precoBR: number;
   parcelasBR: number;
   precoExt: number;
-  moeda: Moeda;
+  moeda: CurrencyCode;
   pgto: FormaPagamento;
   spread: number;
   valeImportar: boolean;

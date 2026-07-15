@@ -2,6 +2,7 @@ import React from 'react';
 import { FlatList, Linking, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 import { FlagIcon } from '@/components/flag-icon';
+import { moedaPorCodigo } from '@/constants/currencies';
 import { useHistoricoSimulacoes, type SimulacaoSalva } from '@/hooks/use-historico-simulacoes';
 
 function formatarData(iso: string): string {
@@ -36,10 +37,13 @@ function ItemHistorico({ item }: { item: SimulacaoSalva }) {
           </Text>
         </TouchableOpacity>
       )}
-      <Text style={styles.cardLine}>
-        BR: R$ {item.precoBR.toFixed(2)} em {item.parcelasBR}x · Ext: {item.moeda} {item.precoExt.toFixed(2)} (
-        {item.pgto}, spread {item.spread}%)
-      </Text>
+      <View style={styles.cardLineRow}>
+        <Text style={styles.cardLine}>BR: R$ {item.precoBR.toFixed(2)} em {item.parcelasBR}x · Ext: </Text>
+        <FlagIcon code={moedaPorCodigo(item.moeda).bandeira} size={11} style={{ marginRight: 3 }} />
+        <Text style={styles.cardLine}>
+          {item.moeda} {item.precoExt.toFixed(2)} ({item.pgto}, spread {item.spread}%)
+        </Text>
+      </View>
       <View style={styles.divider} />
       <Text style={styles.cardLine}>Custo BR (VP): R$ {item.custoBR.toFixed(2)}</Text>
       <Text style={styles.cardLine}>Custo Ext: R$ {item.custoExt.toFixed(2)}</Text>
@@ -92,7 +96,8 @@ const styles = StyleSheet.create({
   cardSubMsg: { fontSize: 12, color: '#666', marginBottom: 4 },
   cardData: { fontSize: 11, color: '#999' },
   cardLink: { fontSize: 12, color: '#1a73e8', marginBottom: 4 },
-  cardLine: { fontSize: 13, color: '#333', marginTop: 2 },
+  cardLineRow: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', marginTop: 2 },
+  cardLine: { fontSize: 13, color: '#333' },
   cardEconomia: { fontSize: 14, fontWeight: 'bold', color: '#1a73e8', marginTop: 6 },
   divider: { height: 1, backgroundColor: 'rgba(0,0,0,0.08)', marginVertical: 8 },
 });

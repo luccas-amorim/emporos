@@ -1,13 +1,10 @@
-export type Moeda = 'USD' | 'EUR';
 export type FormaPagamento = 'Cartao' | 'Dinheiro';
 
 export interface CalculoInput {
   precoBR: number;
   parcelasBR: number;
   precoExt: number;
-  moeda: Moeda;
-  cotacaoDolar: number;
-  cotacaoEuro: number;
+  cotacao: number; // cotação comercial já resolvida da moeda escolhida (BRL por 1 unidade)
   spread: number;
   pgto: FormaPagamento;
   selicMensal: number;
@@ -34,22 +31,9 @@ export function getIOFPorAno(ano: number = new Date().getFullYear()): number {
 }
 
 export function calcularParidade(input: CalculoInput): CalculoResultado {
-  const {
-    precoBR,
-    parcelasBR,
-    precoExt,
-    moeda,
-    cotacaoDolar,
-    cotacaoEuro,
-    spread,
-    pgto,
-    selicMensal,
-    iofCartao,
-    iofDinheiro,
-  } = input;
+  const { precoBR, parcelasBR, precoExt, cotacao, spread, pgto, selicMensal, iofCartao, iofDinheiro } = input;
 
-  const cotacaoBase = moeda === 'USD' ? cotacaoDolar : cotacaoEuro;
-  const cotacaoFinal = cotacaoBase * (1 + spread / 100);
+  const cotacaoFinal = cotacao * (1 + spread / 100);
   const iofFinal = pgto === 'Dinheiro' ? iofDinheiro : iofCartao;
 
   const custoExt = precoExt * cotacaoFinal * (1 + iofFinal);
@@ -67,6 +51,6 @@ export function calcularParidade(input: CalculoInput): CalculoResultado {
     custoBR,
     custoExt,
     economia: Math.abs(diff),
-    msg: diff > 0 ? '✈️ COMPRE NO EXTERIOR' : '🇧🇷 COMPRE NO BRASIL',
+    msg: diff > 0 ? '✈️ COMPRE NO EXTERIOR' : 'COMPRE NO BRASIL',
   };
 }

@@ -11,24 +11,24 @@ import {
   View,
 } from 'react-native';
 
+import { CurrencySelect } from '@/components/currency-select';
 import { FlagIcon } from '@/components/flag-icon';
-import {
-  calcularParidade,
-  type CalculoResultado,
-  type FormaPagamento,
-  getIOFPorAno,
-  type Moeda,
-} from '@/core/calculadora';
+import { moedaPorCodigo, type CurrencyCode } from '@/constants/currencies';
+import { calcularParidade, type CalculoResultado, type FormaPagamento, getIOFPorAno } from '@/core/calculadora';
 import { useHistoricoSimulacoes } from '@/hooks/use-historico-simulacoes';
 import { buscarCotacoes } from '@/services/cambio';
 import { buscarSelic } from '@/services/selic';
 
 const IOF_CARTAO_ATUAL = getIOFPorAno();
 const IOF_DINHEIRO = 0.011;
+const CODIGOS_MOEDA: CurrencyCode[] = ['USD', 'EUR', 'GBP', 'JPY', 'ARS', 'CLP'];
+
+function formatarCotacao(valor: number): string {
+  return valor < 1 ? valor.toFixed(4) : valor.toFixed(2);
+}
 
 export default function App() {
-  const [cotacaoDolar, setCotacaoDolar] = useState(0);
-  const [cotacaoEuro, setCotacaoEuro] = useState(0);
+  const [cotacoes, setCotacoes] = useState<Record<CurrencyCode, number> | null>(null);
   const [cotacaoFallback, setCotacaoFallback] = useState(false);
   const [selicAnual, setSelicAnual] = useState(0);
   const [selicMensal, setSelicMensal] = useState(0.0089);
@@ -39,7 +39,7 @@ export default function App() {
   const [precoBR, setPrecoBR] = useState('');
   const [parcelasBR, setParcelasBR] = useState('1');
   const [precoExt, setPrecoExt] = useState('');
-  const [moeda, setMoeda] = useState<Moeda>('USD');
+  const [moeda, setMoeda] = useState<CurrencyCode>('USD');
   const [pgto, setPgto] = useState<FormaPagamento>('Cartao');
 
   const [nomeProduto, setNomeProduto] = useState('');
@@ -51,10 +51,9 @@ export default function App() {
 
   useEffect(() => {
     async function buscarDados() {
-      const [cotacoes, selic] = await Promise.all([buscarCotacoes(), buscarSelic()]);
-      setCotacaoDolar(cotacoes.cotacaoDolar);
-      setCotacaoEuro(cotacoes.cotacaoEuro);
-      setCotacaoFallback(cotacoes.usouFallback);
+      const [dadosCambio, selic] = await Promise.all([buscarCotacoes(CODIGOS_MOEDA), buscarSelic()]);
+      setCotacoes(dadosCambio.valores);
+      setCotacaoFallback(dadosCambio.usouFallback);
       setSelicAnual(selic.selicAnual);
       setSelicMensal(selic.selicMensal);
       setLoading(false);
@@ -63,6 +62,8 @@ export default function App() {
   }, []);
 
   const calcular = () => {
+    if (!cotacoes) return;
+
     const valPrecoBR = parseFloat(precoBR.replace(',', '.')) || 0;
     const valParcelasBR = parseInt(parcelasBR, 10) || 1;
     const valPrecoExt = parseFloat(precoExt.replace(',', '.')) || 0;
@@ -72,9 +73,7 @@ export default function App() {
       precoBR: valPrecoBR,
       parcelasBR: valParcelasBR,
       precoExt: valPrecoExt,
-      moeda,
-      cotacaoDolar,
-      cotacaoEuro,
+      cotacao: cotacoes[moeda],
       spread: valSpread,
       pgto,
       selicMensal,
@@ -99,29 +98,24 @@ export default function App() {
     });
   };
 
+  const moedaSelecionada = moedaPorCodigo(moeda);
+
   return (
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
       <ScrollView contentContainerStyle={styles.container}>
         <Text style={styles.titulo}>✈️ Vale importar?</Text>
 
-        {loading ? (
+        {loading || !cotacoes ? (
           <ActivityIndicator size="large" color="#1a73e8" style={{ marginBottom: 20 }} />
         ) : (
           <>
             <View style={styles.statusBox}>
               <View style={styles.statusRow}>
                 <View style={styles.statusLabelRow}>
-                  <FlagIcon code="US" size={12} />
-                  <Text style={styles.statusLabel}> USD</Text>
+                  <FlagIcon code={moedaSelecionada.bandeira} size={12} />
+                  <Text style={styles.statusLabel}> {moeda}</Text>
                 </View>
-                <Text style={styles.statusValue}>R$ {cotacaoDolar.toFixed(2)}</Text>
-              </View>
-              <View style={styles.statusRow}>
-                <View style={styles.statusLabelRow}>
-                  <FlagIcon code="EU" size={12} />
-                  <Text style={styles.statusLabel}> EUR</Text>
-                </View>
-                <Text style={styles.statusValue}>R$ {cotacaoEuro.toFixed(2)}</Text>
+                <Text style={styles.statusValue}>R$ {formatarCotacao(cotacoes[moeda])}</Text>
               </View>
               <View style={[styles.statusRow, { borderRightWidth: 0 }]}>
                 <Text style={styles.statusLabel}>📈 SELIC</Text>
@@ -173,20 +167,9 @@ export default function App() {
           />
 
           <View style={styles.row}>
-            <View style={{ flex: 1, marginRight: 10 }}>
+            <View style={{ flex: 1.4 }}>
               <Text style={styles.label}>Moeda</Text>
-              <View style={styles.rowSmall}>
-                <TouchableOpacity
-                  style={[styles.optionBtnSmall, moeda === 'USD' && styles.selectedOption]}
-                  onPress={() => setMoeda('USD')}>
-                  <Text style={[styles.optionText, moeda === 'USD' && styles.selectedText]}>USD</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.optionBtnSmall, moeda === 'EUR' && styles.selectedOption]}
-                  onPress={() => setMoeda('EUR')}>
-                  <Text style={[styles.optionText, moeda === 'EUR' && styles.selectedText]}>EUR</Text>
-                </TouchableOpacity>
-              </View>
+              <CurrencySelect value={moeda} onChange={setMoeda} />
             </View>
 
             <View style={{ flex: 1 }}>
@@ -251,9 +234,12 @@ export default function App() {
 
         {resultado && (
           <View style={[styles.resultBox, resultado.valeImportar ? styles.resExt : styles.resBr]}>
-            <Text style={[styles.resTitle, resultado.valeImportar ? { color: '#1967d2' } : { color: '#137333' }]}>
-              {resultado.msg}
-            </Text>
+            <View style={styles.resTituloRow}>
+              {!resultado.valeImportar && <FlagIcon code="BR" size={16} style={{ marginRight: 6 }} />}
+              <Text style={[styles.resTitle, resultado.valeImportar ? { color: '#1967d2' } : { color: '#137333' }]}>
+                {resultado.msg}
+              </Text>
+            </View>
             <Text style={styles.resSmall}>
               {resultado.valeImportar
                 ? `Economia real de R$ ${resultado.economia.toFixed(2)}`
@@ -285,12 +271,9 @@ const styles = StyleSheet.create({
   obs: { fontSize: 11, color: '#999', marginTop: 5, fontStyle: 'italic', textAlign: 'right' },
   input: { borderWidth: 1, borderColor: '#ddd', borderRadius: 8, padding: 10, fontSize: 16, backgroundColor: '#fff', height: 50 },
   row: { flexDirection: 'row', justifyContent: 'space-between', gap: 10 },
-  rowSmall: { flexDirection: 'row', gap: 5 },
 
   optionBtn: { flex: 1, padding: 10, borderWidth: 1, borderColor: '#ddd', borderRadius: 8, alignItems: 'center', justifyContent: 'center', backgroundColor: '#f9f9f9', minHeight: 60 },
-  optionBtnSmall: { flex: 1, padding: 10, borderWidth: 1, borderColor: '#ddd', borderRadius: 8, alignItems: 'center', backgroundColor: '#f9f9f9', height: 50, justifyContent: 'center' },
   selectedOption: { backgroundColor: '#e8f0fe', borderColor: '#1a73e8' },
-  optionText: { color: '#555', fontSize: 14 },
   optionTextBig: { color: '#555', fontSize: 14, fontWeight: 'bold' },
   optionTextSmall: { color: '#777', fontSize: 11, marginTop: 2 },
   selectedText: { color: '#1a73e8', fontWeight: 'bold' },
@@ -301,7 +284,8 @@ const styles = StyleSheet.create({
   resultBox: { width: '100%', padding: 20, borderRadius: 12, marginBottom: 30, borderWidth: 1 },
   resBr: { backgroundColor: '#e6f4ea', borderColor: '#34a853' },
   resExt: { backgroundColor: '#e8f0fe', borderColor: '#4285f4' },
-  resTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 5 },
+  resTituloRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 5 },
+  resTitle: { fontSize: 18, fontWeight: 'bold' },
   resSmall: { fontSize: 14, color: '#555', marginBottom: 10 },
   divider: { height: 1, backgroundColor: 'rgba(0,0,0,0.1)', marginVertical: 10 },
   resLine: { fontSize: 16, color: '#333' },
