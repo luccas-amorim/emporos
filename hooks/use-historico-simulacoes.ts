@@ -6,6 +6,8 @@ import type { FormaPagamento, Moeda } from '@/core/calculadora';
 export interface SimulacaoSalva {
   id: string;
   data: string; // ISO 8601
+  nomeProduto?: string;
+  link?: string;
   precoBR: number;
   parcelasBR: number;
   precoExt: number;

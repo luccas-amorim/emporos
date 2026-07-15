@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
-  Linking,
   Platform,
   ScrollView,
   StyleSheet,
@@ -12,6 +11,7 @@ import {
   View,
 } from 'react-native';
 
+import { FlagIcon } from '@/components/flag-icon';
 import {
   calcularParidade,
   type CalculoResultado,
@@ -23,48 +23,13 @@ import { useHistoricoSimulacoes } from '@/hooks/use-historico-simulacoes';
 import { buscarCotacoes } from '@/services/cambio';
 import { buscarSelic } from '@/services/selic';
 
-interface Parceiro {
-  id: number;
-  nome: string;
-  desconto: string;
-  cor: string;
-  texto: string;
-  link: string;
-}
-
-const PARCEIROS: Parceiro[] = [
-  {
-    id: 1,
-    nome: 'Wise',
-    desconto: 'Primeira transferência grátis', //TODO <-- PROPAGANDA AQUI
-    cor: '#9fe870',
-    texto: '#163300',
-    link: 'https://wise.com/', // TODO: Trocar este link pelo meu link de afiliado real antes de publicar!
-  },
-  {
-    id: 2,
-    nome: 'Nomad Global',
-    desconto: 'Ganhe até US$ 20 de cashback', //TODO <-- PROPAGANDA AQUI
-    cor: '#000000',
-    texto: '#ffffff',
-    link: 'https://nomadglobal.com/', // TODO: Trocar este link pelo meu link de afiliado real antes de publicar!
-  },
-  {
-    id: 3,
-    nome: 'Western Union',
-    desconto: 'Taxa zero no 1º envio', //TODO <-- PROPAGANDA AQUI
-    cor: '#ffda00',
-    texto: '#000000',
-    link: 'https://westernunion.com', // TODO: Trocar este link pelo meu link de afiliado real antes de publicar!
-  },
-];
-
 const IOF_CARTAO_ATUAL = getIOFPorAno();
 const IOF_DINHEIRO = 0.011;
 
 export default function App() {
   const [cotacaoDolar, setCotacaoDolar] = useState(0);
   const [cotacaoEuro, setCotacaoEuro] = useState(0);
+  const [cotacaoFallback, setCotacaoFallback] = useState(false);
   const [selicAnual, setSelicAnual] = useState(0);
   const [selicMensal, setSelicMensal] = useState(0.0089);
   const [loading, setLoading] = useState(true);
@@ -77,20 +42,19 @@ export default function App() {
   const [moeda, setMoeda] = useState<Moeda>('USD');
   const [pgto, setPgto] = useState<FormaPagamento>('Cartao');
 
-  const [resultado, setResultado] = useState<CalculoResultado | null>(null);
+  const [nomeProduto, setNomeProduto] = useState('');
+  const [link, setLink] = useState('');
 
-  const [parceiroAtivo, setParceiroAtivo] = useState<Parceiro>(PARCEIROS[0]);
+  const [resultado, setResultado] = useState<CalculoResultado | null>(null);
 
   const { adicionarSimulacao } = useHistoricoSimulacoes();
 
   useEffect(() => {
-    const indiceAleatorio = Math.floor(Math.random() * PARCEIROS.length);
-    setParceiroAtivo(PARCEIROS[indiceAleatorio]);
-
     async function buscarDados() {
       const [cotacoes, selic] = await Promise.all([buscarCotacoes(), buscarSelic()]);
       setCotacaoDolar(cotacoes.cotacaoDolar);
       setCotacaoEuro(cotacoes.cotacaoEuro);
+      setCotacaoFallback(cotacoes.usouFallback);
       setSelicAnual(selic.selicAnual);
       setSelicMensal(selic.selicMensal);
       setLoading(false);
@@ -120,6 +84,8 @@ export default function App() {
 
     setResultado(novoResultado);
     adicionarSimulacao({
+      nomeProduto: nomeProduto.trim() || undefined,
+      link: link.trim() || undefined,
       precoBR: valPrecoBR,
       parcelasBR: valParcelasBR,
       precoExt: valPrecoExt,
@@ -141,24 +107,41 @@ export default function App() {
         {loading ? (
           <ActivityIndicator size="large" color="#1a73e8" style={{ marginBottom: 20 }} />
         ) : (
-          <View style={styles.statusBox}>
-            <View style={styles.statusRow}>
-              <Text style={styles.statusLabel}>🇺🇸 USD</Text>
-              <Text style={styles.statusValue}>R$ {cotacaoDolar.toFixed(2)}</Text>
+          <>
+            <View style={styles.statusBox}>
+              <View style={styles.statusRow}>
+                <View style={styles.statusLabelRow}>
+                  <FlagIcon code="US" size={12} />
+                  <Text style={styles.statusLabel}> USD</Text>
+                </View>
+                <Text style={styles.statusValue}>R$ {cotacaoDolar.toFixed(2)}</Text>
+              </View>
+              <View style={styles.statusRow}>
+                <View style={styles.statusLabelRow}>
+                  <FlagIcon code="EU" size={12} />
+                  <Text style={styles.statusLabel}> EUR</Text>
+                </View>
+                <Text style={styles.statusValue}>R$ {cotacaoEuro.toFixed(2)}</Text>
+              </View>
+              <View style={[styles.statusRow, { borderRightWidth: 0 }]}>
+                <Text style={styles.statusLabel}>📈 SELIC</Text>
+                <Text style={styles.statusValue}>{selicAnual}% a.a.</Text>
+              </View>
             </View>
-            <View style={styles.statusRow}>
-              <Text style={styles.statusLabel}>🇪🇺 EUR</Text>
-              <Text style={styles.statusValue}>R$ {cotacaoEuro.toFixed(2)}</Text>
-            </View>
-            <View style={[styles.statusRow, { borderRightWidth: 0 }]}>
-              <Text style={styles.statusLabel}>📈 SELIC</Text>
-              <Text style={styles.statusValue}>{selicAnual}% a.a.</Text>
-            </View>
-          </View>
+            {cotacaoFallback && (
+              <Text style={styles.avisoFallback}>
+                ⚠️ Não foi possível obter a cotação em tempo real agora. Exibindo valor de referência —
+                confira antes de decidir.
+              </Text>
+            )}
+          </>
         )}
 
         <View style={styles.card}>
-          <Text style={styles.sectionTitle}>🇧🇷 Opção Brasil</Text>
+          <View style={styles.sectionTitleRow}>
+            <FlagIcon code="BR" size={14} />
+            <Text style={styles.sectionTitle}> Opção Brasil</Text>
+          </View>
           <Text style={styles.label}>Preço (R$)</Text>
           <TextInput
             style={styles.input}
@@ -242,22 +225,29 @@ export default function App() {
           </View>
         </View>
 
+        <View style={styles.card}>
+          <Text style={styles.sectionTitle}>🏷️ Identificação (opcional)</Text>
+          <Text style={styles.label}>Nome do produto</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Ex: iPhone 17 Pro 256GB"
+            value={nomeProduto}
+            onChangeText={setNomeProduto}
+          />
+          <Text style={styles.label}>Link</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="https://..."
+            autoCapitalize="none"
+            keyboardType="url"
+            value={link}
+            onChangeText={setLink}
+          />
+        </View>
+
         <TouchableOpacity style={styles.calcButton} onPress={calcular}>
           <Text style={styles.calcButtonText}>CALCULAR</Text>
         </TouchableOpacity>
-
-        <View style={[styles.bannerContainer, { backgroundColor: parceiroAtivo.cor }]}>
-          <View style={{ flex: 1 }}>
-            <Text style={[styles.bannerTitle, { color: parceiroAtivo.texto }]}>{parceiroAtivo.nome}</Text>
-            <Text style={[styles.bannerSubtitle, { color: parceiroAtivo.texto }]}>
-              {parceiroAtivo.desconto}
-            </Text>
-          </View>
-
-          <TouchableOpacity style={styles.bannerButton} onPress={() => Linking.openURL(parceiroAtivo.link)}>
-            <Text style={styles.bannerButtonText}>ABRIR</Text>
-          </TouchableOpacity>
-        </View>
 
         {resultado && (
           <View style={[styles.resultBox, resultado.valeImportar ? styles.resExt : styles.resBr]}>
@@ -282,12 +272,15 @@ export default function App() {
 const styles = StyleSheet.create({
   container: { padding: 20, paddingTop: 60, backgroundColor: '#f0f2f5', flexGrow: 1, alignItems: 'center' },
   titulo: { fontSize: 26, fontWeight: 'bold', color: '#1a73e8', marginBottom: 15 },
-  statusBox: { flexDirection: 'row', backgroundColor: '#fff', borderRadius: 12, marginBottom: 20, borderWidth: 1, borderColor: '#ddd', overflow: 'hidden' },
+  statusBox: { flexDirection: 'row', backgroundColor: '#fff', borderRadius: 12, marginBottom: 8, borderWidth: 1, borderColor: '#ddd', overflow: 'hidden', width: '100%' },
   statusRow: { flex: 1, alignItems: 'center', padding: 10, borderRightWidth: 1, borderRightColor: '#eee' },
+  statusLabelRow: { flexDirection: 'row', alignItems: 'center' },
   statusLabel: { fontSize: 10, color: '#666', fontWeight: 'bold', textTransform: 'uppercase' },
   statusValue: { fontSize: 13, color: '#333', fontWeight: 'bold', marginTop: 2 },
+  avisoFallback: { fontSize: 11, color: '#a35a00', backgroundColor: '#fff4e0', padding: 8, borderRadius: 8, marginBottom: 12, width: '100%', textAlign: 'center' },
   card: { backgroundColor: '#fff', width: '100%', padding: 15, borderRadius: 12, marginBottom: 15, shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 5, elevation: 2 },
   sectionTitle: { fontSize: 16, fontWeight: 'bold', color: '#333', marginBottom: 10, borderBottomWidth: 1, borderBottomColor: '#eee', paddingBottom: 5 },
+  sectionTitleRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 10, borderBottomWidth: 1, borderBottomColor: '#eee', paddingBottom: 5 },
   label: { fontSize: 14, color: '#666', marginTop: 10, marginBottom: 5, fontWeight: '600' },
   obs: { fontSize: 11, color: '#999', marginTop: 5, fontStyle: 'italic', textAlign: 'right' },
   input: { borderWidth: 1, borderColor: '#ddd', borderRadius: 8, padding: 10, fontSize: 16, backgroundColor: '#fff', height: 50 },
@@ -304,12 +297,6 @@ const styles = StyleSheet.create({
 
   calcButton: { backgroundColor: '#1a73e8', width: '100%', padding: 15, borderRadius: 10, alignItems: 'center', marginTop: 10, marginBottom: 20, shadowColor: '#1a73e8', shadowOpacity: 0.3, shadowRadius: 5, elevation: 4 },
   calcButtonText: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
-
-  bannerContainer: { width: '100%', padding: 15, borderRadius: 12, marginBottom: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 4, elevation: 3 },
-  bannerTitle: { fontSize: 16, fontWeight: 'bold' },
-  bannerSubtitle: { fontSize: 12, marginTop: 2, opacity: 0.9 },
-  bannerButton: { backgroundColor: 'rgba(255,255,255,0.25)', paddingVertical: 8, paddingHorizontal: 15, borderRadius: 20 },
-  bannerButtonText: { fontWeight: 'bold', fontSize: 12, color: '#333' },
 
   resultBox: { width: '100%', padding: 20, borderRadius: 12, marginBottom: 30, borderWidth: 1 },
   resBr: { backgroundColor: '#e6f4ea', borderColor: '#34a853' },
