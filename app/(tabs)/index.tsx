@@ -14,7 +14,13 @@ import {
 import { CurrencySelect } from '@/components/currency-select';
 import { FlagIcon } from '@/components/flag-icon';
 import { moedaPorCodigo, type CurrencyCode } from '@/constants/currencies';
-import { calcularParidade, type CalculoResultado, type FormaPagamento, getIOFPorAno } from '@/core/calculadora';
+import {
+  calcularParidade,
+  type CalculoResultado,
+  type FormaPagamento,
+  getIOFPorAno,
+  parseNumeroLocal,
+} from '@/core/calculadora';
 import { useHistoricoSimulacoes } from '@/hooks/use-historico-simulacoes';
 import { buscarCotacoes } from '@/services/cambio';
 import { buscarSelic } from '@/services/selic';
@@ -64,10 +70,10 @@ export default function App() {
   const calcular = () => {
     if (!cotacoes) return;
 
-    const valPrecoBR = parseFloat(precoBR.replace(',', '.')) || 0;
+    const valPrecoBR = parseNumeroLocal(precoBR);
     const valParcelasBR = parseInt(parcelasBR, 10) || 1;
-    const valPrecoExt = parseFloat(precoExt.replace(',', '.')) || 0;
-    const valSpread = parseFloat(spread.replace(',', '.')) || 0;
+    const valPrecoExt = parseNumeroLocal(precoExt);
+    const valSpread = parseNumeroLocal(spread);
 
     const novoResultado = calcularParidade({
       precoBR: valPrecoBR,
@@ -246,8 +252,14 @@ export default function App() {
                 : 'A longo prazo, parcelar no BR vale mais.'}
             </Text>
             <View style={styles.divider} />
-            <Text style={styles.resLine}>Custo BR (VP): R$ {resultado.custoBR.toFixed(2)}</Text>
-            <Text style={styles.resLine}>Custo Ext: R$ {resultado.custoExt.toFixed(2)}</Text>
+            <Text style={styles.resLine}>Custo Brasil (equivalente à vista): R$ {resultado.custoBR.toFixed(2)}</Text>
+            <Text style={styles.resLine}>Custo Exterior: R$ {resultado.custoExt.toFixed(2)}</Text>
+            {parseInt(parcelasBR, 10) > 1 && (
+              <Text style={styles.resObs}>
+                &ldquo;Equivalente à vista&rdquo; é quanto as parcelas do Brasil valem hoje,
+                descontadas pelo rendimento que esse dinheiro renderia investido na Selic.
+              </Text>
+            )}
           </View>
         )}
       </ScrollView>
@@ -289,4 +301,5 @@ const styles = StyleSheet.create({
   resSmall: { fontSize: 14, color: '#555', marginBottom: 10 },
   divider: { height: 1, backgroundColor: 'rgba(0,0,0,0.1)', marginVertical: 10 },
   resLine: { fontSize: 16, color: '#333' },
+  resObs: { fontSize: 11, color: '#777', fontStyle: 'italic', marginTop: 8 },
 });

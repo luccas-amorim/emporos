@@ -20,6 +20,26 @@ export interface CalculoResultado {
   msg: string;
 }
 
+// Aceita tanto "1500,50" / "1.500,00" (formato BR) quanto "1500.50" / "1,500.00" (formato
+// internacional): o último separador (, ou .) da string é tratado como decimal, o resto
+// como separador de milhar. Um simples replace(',', '.') quebra em "1.500,00" (vira 1.5).
+export function parseNumeroLocal(texto: string): number {
+  const limpo = texto.trim();
+  if (!limpo) return 0;
+
+  const ultimaVirgula = limpo.lastIndexOf(',');
+  const ultimoPonto = limpo.lastIndexOf('.');
+  const posDecimal = Math.max(ultimaVirgula, ultimoPonto);
+
+  const normalizado =
+    posDecimal === -1
+      ? limpo
+      : `${limpo.slice(0, posDecimal).replace(/[.,]/g, '')}.${limpo.slice(posDecimal + 1).replace(/[.,]/g, '')}`;
+
+  const valor = parseFloat(normalizado);
+  return Number.isNaN(valor) ? 0 : valor;
+}
+
 // Decreto nº 11.153/2022: redução gradual do IOF sobre operações com cartão no exterior.
 export function getIOFPorAno(ano: number = new Date().getFullYear()): number {
   if (ano === 2024) return 0.0438;

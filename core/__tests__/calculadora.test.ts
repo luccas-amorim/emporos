@@ -1,5 +1,34 @@
-import { calcularParidade, getIOFPorAno } from '@/core/calculadora';
+import { calcularParidade, getIOFPorAno, parseNumeroLocal } from '@/core/calculadora';
 import { taxaMensalEquivalente } from '@/services/selic';
+
+describe('parseNumeroLocal', () => {
+  it('lê números simples sem separador', () => {
+    expect(parseNumeroLocal('1500')).toBe(1500);
+  });
+
+  it('lê formato brasileiro com milhar e decimal (1.500,00)', () => {
+    expect(parseNumeroLocal('1.500,00')).toBe(1500);
+    expect(parseNumeroLocal('1.500,50')).toBe(1500.5);
+  });
+
+  it('lê decimal com vírgula sem separador de milhar (1500,50)', () => {
+    expect(parseNumeroLocal('1500,50')).toBe(1500.5);
+  });
+
+  it('lê formato internacional com milhar e decimal (1,500.00)', () => {
+    expect(parseNumeroLocal('1,500.00')).toBe(1500);
+  });
+
+  it('lê decimal com ponto sem separador de milhar (1500.50)', () => {
+    expect(parseNumeroLocal('1500.50')).toBe(1500.5);
+  });
+
+  it('retorna 0 para texto vazio ou inválido', () => {
+    expect(parseNumeroLocal('')).toBe(0);
+    expect(parseNumeroLocal('   ')).toBe(0);
+    expect(parseNumeroLocal('abc')).toBe(0);
+  });
+});
 
 describe('getIOFPorAno', () => {
   it('segue o cronograma do Decreto nº 11.153/2022', () => {

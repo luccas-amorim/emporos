@@ -45,8 +45,8 @@ function ItemHistorico({ item }: { item: SimulacaoSalva }) {
         </Text>
       </View>
       <View style={styles.divider} />
-      <Text style={styles.cardLine}>Custo BR (VP): R$ {item.custoBR.toFixed(2)}</Text>
-      <Text style={styles.cardLine}>Custo Ext: R$ {item.custoExt.toFixed(2)}</Text>
+      <Text style={styles.cardLine}>Custo Brasil (equiv. à vista): R$ {item.custoBR.toFixed(2)}</Text>
+      <Text style={styles.cardLine}>Custo Exterior: R$ {item.custoExt.toFixed(2)}</Text>
       <Text style={styles.cardEconomia}>Diferença: R$ {item.economia.toFixed(2)}</Text>
     </View>
   );
