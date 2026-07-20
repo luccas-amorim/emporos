@@ -1,0 +1,172 @@
+import {
+  calcularParidade,
+  type CalculoInput,
+  getIOFPorAno,
+  ICMS_ALIQUOTA,
+  parseNumeroLocal,
+} from '@/core/calculadora';
+import { taxaMensalEquivalente } from '@/services/selic';
+
+describe('parseNumeroLocal', () => {
+  it('lê números simples sem separador', () => {
+    expect(parseNumeroLocal('1500')).toBe(1500);
+  });
+
+  it('lê formato brasileiro com milhar e decimal (1.500,00)', () => {
+    expect(parseNumeroLocal('1.500,00')).toBe(1500);
+    expect(parseNumeroLocal('1.500,50')).toBe(1500.5);
+  });
+
+  it('lê decimal com vírgula sem separador de milhar (1500,50)', () => {
+    expect(parseNumeroLocal('1500,50')).toBe(1500.5);
+  });
+
+  it('lê formato internacional com milhar e decimal (1,500.00)', () => {
+    expect(parseNumeroLocal('1,500.00')).toBe(1500);
+  });
+
+  it('lê decimal com ponto sem separador de milhar (1500.50)', () => {
+    expect(parseNumeroLocal('1500.50')).toBe(1500.5);
+  });
+
+  it('retorna 0 para texto vazio ou inválido', () => {
+    expect(parseNumeroLocal('')).toBe(0);
+    expect(parseNumeroLocal('   ')).toBe(0);
+    expect(parseNumeroLocal('abc')).toBe(0);
+  });
+});
+
+describe('getIOFPorAno', () => {
+  it('segue o cronograma do Decreto nº 11.153/2022', () => {
+    expect(getIOFPorAno(2024)).toBeCloseTo(0.0438);
+    expect(getIOFPorAno(2025)).toBeCloseTo(0.0338);
+    expect(getIOFPorAno(2026)).toBeCloseTo(0.0238);
+    expect(getIOFPorAno(2027)).toBeCloseTo(0.0138);
+    expect(getIOFPorAno(2028)).toBe(0);
+    expect(getIOFPorAno(2030)).toBe(0);
+  });
+
+  it('usa o fallback de 4.38% para anos fora do cronograma conhecido', () => {
+    expect(getIOFPorAno(2023)).toBeCloseTo(0.0438);
+  });
+});
+
+const baseViagem: CalculoInput = {
+  precoBR: 5000,
+  parcelasBR: 12,
+  precoExt: 800,
+  freteExt: 0,
+  cenario: 'Viagem',
+  cotacao: 5.0,
+  cotacaoUSD: 5.0,
+  spread: 2.0,
+  pgto: 'Cartao',
+  selicMensal: taxaMensalEquivalente(11.25),
+  iofCartao: getIOFPorAno(2025),
+  iofDinheiro: 0.011,
+};
+
+describe('calcularParidade — cenário Viagem', () => {
+  // Cenário do docs/WHITEPAPER.md: smartphone R$5.000 em 12x vs US$800 no cartão.
+  it('reproduz o exemplo do whitepaper (vale importar)', () => {
+    const resultado = calcularParidade(baseViagem);
+
+    expect(resultado.custoExt).toBeCloseTo(4217.9, 1);
+    expect(resultado.valeImportar).toBe(true);
+    expect(resultado.economia).toBeCloseTo(resultado.custoBR - resultado.custoExt, 5);
+    expect(resultado.economia).toBeGreaterThan(400);
+  });
+
+  it('não aplica imposto de importação nem ICMS em viagem', () => {
+    const resultado = calcularParidade(baseViagem);
+    const labels = resultado.breakdown.map((item) => item.label).join(' | ');
+    expect(labels).not.toMatch(/Importação|ICMS/);
+  });
+
+  it('ignora frete no cenário Viagem', () => {
+    const comFrete = calcularParidade({ ...baseViagem, freteExt: 100 });
+    const semFrete = calcularParidade(baseViagem);
+    expect(comFrete.custoExt).toBeCloseTo(semFrete.custoExt, 5);
+  });
+
+  it('compra à vista no Brasil não é descontada a valor presente', () => {
+    const resultado = calcularParidade({ ...baseViagem, precoBR: 1000, parcelasBR: 1, precoExt: 100, spread: 0 });
+    expect(resultado.custoBR).toBe(1000);
+  });
+
+  it('usa o IOF de dinheiro em espécie quando o pagamento é em Dinheiro', () => {
+    const base = { ...baseViagem, precoBR: 1000, parcelasBR: 1, precoExt: 100, spread: 0 };
+    const noCartao = calcularParidade({ ...base, pgto: 'Cartao' as const });
+    const noDinheiro = calcularParidade({ ...base, pgto: 'Dinheiro' as const });
+
+    expect(noCartao.custoExt).toBeCloseTo(100 * 5.0 * 1.0338, 5);
+    expect(noDinheiro.custoExt).toBeCloseTo(100 * 5.0 * 1.011, 5);
+  });
+});
+
+describe('calcularParidade — cenário Encomenda (Remessa Conforme)', () => {
+  const baseEncomenda: CalculoInput = {
+    ...baseViagem,
+    cenario: 'Encomenda',
+    spread: 0,
+    parcelasBR: 1,
+  };
+
+  it('aplica II de 20% até US$50 e ICMS de 20% por dentro', () => {
+    // US$40 → aduaneiro R$200; II 20% = R$40; ICMS = (240/0.8)*0.2 = R$60
+    const resultado = calcularParidade({ ...baseEncomenda, precoExt: 40 });
+
+    const ii = resultado.breakdown.find((i) => i.label.includes('Importação'))!;
+    const icms = resultado.breakdown.find((i) => i.label.includes('ICMS'))!;
+
+    expect(ii.valor).toBeCloseTo(40, 5);
+    expect(icms.valor).toBeCloseTo(60, 5);
+    // pagamento 200 + IOF 3.38% (6.76) + II 40 + ICMS 60
+    expect(resultado.custoExt).toBeCloseTo(200 + 200 * 0.0338 + 40 + 60, 5);
+  });
+
+  it('aplica II de 60% com desconto de US$20 acima de US$50', () => {
+    // US$100 → aduaneiro R$500; II = 0.6*500 − 20*5 = R$200; ICMS = (700/0.8)*0.2 = R$175
+    const resultado = calcularParidade({ ...baseEncomenda, precoExt: 100 });
+
+    const ii = resultado.breakdown.find((i) => i.label.includes('Importação'))!;
+    const icms = resultado.breakdown.find((i) => i.label.includes('ICMS'))!;
+
+    expect(ii.valor).toBeCloseTo(200, 5);
+    expect(icms.valor).toBeCloseTo(175, 5);
+  });
+
+  it('inclui o frete no valor aduaneiro e no limite de US$50', () => {
+    // produto US$40 + frete US$20 = US$60 → cruza o limite e cai na alíquota de 60%
+    const resultado = calcularParidade({ ...baseEncomenda, precoExt: 40, freteExt: 20 });
+    const ii = resultado.breakdown.find((i) => i.label.includes('Importação'))!;
+    // aduaneiro R$300; II = 0.6*300 − 100 = R$80
+    expect(ii.valor).toBeCloseTo(80, 5);
+  });
+
+  it('usa a cotação do dólar para o limite quando a moeda não é USD', () => {
+    // produto 60 EUR × 6.0 = R$360 → em USD (cotação 5.0) = US$72 → alíquota alta
+    const resultado = calcularParidade({ ...baseEncomenda, precoExt: 60, cotacao: 6.0, cotacaoUSD: 5.0 });
+    const ii = resultado.breakdown.find((i) => i.label.includes('Importação'))!;
+    expect(ii.valor).toBeCloseTo(0.6 * 360 - 20 * 5.0, 5);
+  });
+
+  it('a soma do breakdown bate com o custo externo total', () => {
+    const resultado = calcularParidade({ ...baseEncomenda, precoExt: 100, freteExt: 10, spread: 2 });
+    const soma = resultado.breakdown.reduce((acc, item) => acc + item.valor, 0);
+    expect(soma).toBeCloseTo(resultado.custoExt, 5);
+  });
+});
+
+describe('calcularParidade — economia percentual', () => {
+  it('calcula o percentual sobre a opção mais cara', () => {
+    const resultado = calcularParidade({ ...baseViagem, precoBR: 1000, parcelasBR: 1, precoExt: 100, spread: 0, iofCartao: 0 });
+    // custoExt = 500; custoBR = 1000 → economia 500 = 50% de 1000
+    expect(resultado.economiaPct).toBeCloseTo(50, 5);
+  });
+
+  it('retorna 0% quando ambos os custos são zero', () => {
+    const resultado = calcularParidade({ ...baseViagem, precoBR: 0, parcelasBR: 1, precoExt: 0 });
+    expect(resultado.economiaPct).toBe(0);
+  });
+});

@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "Vale Importar?",
+    "name": "Paridade",
     "slug": "vale-importar",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "automatic",
     "splash": {
       "image": "./assets/images/splash-icon.png",
       "resizeMode": "contain",
@@ -29,6 +29,11 @@
       "eas": {
         "projectId": "8e3695f6-b56e-4eb3-91aa-ab088b18ba02"
       }
-    }
+    },
+    "plugins": [
+      "expo-font",
+      "expo-router",
+      "expo-web-browser"
+    ]
   }
 }
