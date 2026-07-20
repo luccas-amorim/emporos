@@ -16,9 +16,12 @@ import {
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+import { AlertasCambio } from '@/components/alertas-cambio';
 import { CurrencySelect } from '@/components/currency-select';
 import { FlagIcon } from '@/components/flag-icon';
+import { Paywall } from '@/components/paywall';
 import { moedaPorCodigo, parStatus, type CurrencyCode } from '@/constants/currencies';
+import { ALERTAS_CAMBIO_ATIVO } from '@/constants/feature-flags';
 import type { Paleta } from '@/constants/theme';
 import {
   calcularParidade,
@@ -66,7 +69,8 @@ export default function App() {
   const [resultado, setResultado] = useState<CalculoResultado | null>(null);
 
   const { adicionarSimulacao } = useHistoricoSimulacoes();
-  const { premium, carregado: premiumCarregado } = usePremium();
+  const { premium, carregado: premiumCarregado, desbloquear } = usePremium();
+  const [paywallVisivel, setPaywallVisivel] = useState(false);
   const moedaRestaurada = React.useRef(false);
 
   const buscarDados = useCallback(async () => {
@@ -352,7 +356,12 @@ export default function App() {
           <View style={styles.row}>
             <View style={{ flex: 1.4 }}>
               <Text style={styles.label}>Moeda</Text>
-              <CurrencySelect value={moeda} onChange={setMoeda} premiumDesbloqueado={premium} />
+              <CurrencySelect
+                value={moeda}
+                onChange={setMoeda}
+                premiumDesbloqueado={premium}
+                aoPedirPremium={() => setPaywallVisivel(true)}
+              />
             </View>
 
             <View style={{ flex: 1 }}>
@@ -477,12 +486,22 @@ export default function App() {
           </View>
         )}
 
+        {ALERTAS_CAMBIO_ATIVO && (
+          <AlertasCambio
+            premium={premium}
+            aoPedirPremium={() => setPaywallVisivel(true)}
+            cotacoes={dados?.cotacoes ?? null}
+          />
+        )}
+
         <Text style={styles.disclaimer}>
           O Paridade é uma ferramenta de estimativa e não constitui recomendação financeira. Impostos,
           câmbio e taxas são aproximações baseadas em fontes oficiais — confirme as condições reais
           antes de qualquer compra.
         </Text>
       </ScrollView>
+
+      <Paywall visivel={paywallVisivel} aoFechar={() => setPaywallVisivel(false)} aoComprado={desbloquear} />
     </KeyboardAvoidingView>
   );
 }

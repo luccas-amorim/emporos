@@ -1,18 +1,23 @@
 import React, { useMemo, useState } from 'react';
-import { FlatList, Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { FlatList, Modal, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 import { FlagIcon } from '@/components/flag-icon';
 import { MOEDAS, moedaPorCodigo, type CurrencyCode } from '@/constants/currencies';
 import type { Paleta } from '@/constants/theme';
 import { useTema } from '@/hooks/use-tema';
 
+// No react-native-web, Modal com animationType espera um evento de fim de animação
+// que nem sempre dispara, deixando o modal preso na tela após visible=false.
+const ANIMACAO_MODAL = Platform.OS === 'web' ? 'none' : 'fade';
+
 interface CurrencySelectProps {
   value: CurrencyCode;
   onChange: (codigo: CurrencyCode) => void;
   premiumDesbloqueado: boolean;
+  aoPedirPremium?: () => void;
 }
 
-export function CurrencySelect({ value, onChange, premiumDesbloqueado }: CurrencySelectProps) {
+export function CurrencySelect({ value, onChange, premiumDesbloqueado, aoPedirPremium }: CurrencySelectProps) {
   const { cores } = useTema();
   const styles = useMemo(() => criarStyles(cores), [cores]);
   const [aberto, setAberto] = useState(false);
@@ -38,7 +43,7 @@ export function CurrencySelect({ value, onChange, premiumDesbloqueado }: Currenc
         <Text style={styles.seta}>▾</Text>
       </TouchableOpacity>
 
-      <Modal visible={aberto} transparent animationType="fade" onRequestClose={fechar}>
+      <Modal visible={aberto} transparent animationType={ANIMACAO_MODAL} onRequestClose={fechar}>
         <TouchableOpacity style={styles.overlay} activeOpacity={1} onPress={fechar}>
           <View style={styles.modalBox}>
             <Text style={styles.modalTitulo}>Escolha a moeda</Text>
@@ -76,9 +81,18 @@ export function CurrencySelect({ value, onChange, premiumDesbloqueado }: Currenc
               }}
             />
             {avisoPremium && (
-              <Text style={styles.avisoPremium}>
-                🔒 Moedas adicionais fazem parte da versão completa do Paridade — em breve na loja.
-              </Text>
+              <TouchableOpacity
+                onPress={() => {
+                  fechar();
+                  aoPedirPremium?.();
+                }}
+                accessibilityRole="button"
+                accessibilityLabel="Conhecer a versão completa">
+                <Text style={styles.avisoPremium}>
+                  🔒 Moedas adicionais fazem parte da versão completa do Paridade.{'\n'}
+                  <Text style={styles.avisoPremiumLink}>Toque para conhecer →</Text>
+                </Text>
+              </TouchableOpacity>
             )}
           </View>
         </TouchableOpacity>
@@ -119,5 +133,6 @@ function criarStyles(cores: Paleta) {
       margin: 6,
       textAlign: 'center',
     },
+    avisoPremiumLink: { fontWeight: 'bold', color: cores.primary },
   });
 }
