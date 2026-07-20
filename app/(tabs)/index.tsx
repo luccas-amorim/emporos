@@ -14,9 +14,11 @@ import {
   View,
 } from 'react-native';
 
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 import { CurrencySelect } from '@/components/currency-select';
 import { FlagIcon } from '@/components/flag-icon';
-import { moedaPorCodigo, type CurrencyCode } from '@/constants/currencies';
+import { moedaPorCodigo, parStatus, type CurrencyCode } from '@/constants/currencies';
 import type { Paleta } from '@/constants/theme';
 import {
   calcularParidade,
@@ -28,12 +30,14 @@ import {
 } from '@/core/calculadora';
 import { formatarBRL, formatarCotacaoBR, formatarPct } from '@/core/formato';
 import { useHistoricoSimulacoes } from '@/hooks/use-historico-simulacoes';
+import { usePremium } from '@/hooks/use-premium';
 import { useTema } from '@/hooks/use-tema';
 import { carregarDadosMercado, type DadosMercado, descreverIdade } from '@/services/mercado';
 
 const IOF_CARTAO_ATUAL = getIOFPorAno();
 const IOF_DINHEIRO = 0.011;
 const CODIGOS_MOEDA: CurrencyCode[] = ['USD', 'EUR', 'GBP', 'JPY', 'ARS', 'CLP'];
+const CHAVE_MOEDA = '@paridade:moeda_selecionada';
 
 type ModoEntradaBR = 'total' | 'parcela';
 
@@ -62,6 +66,8 @@ export default function App() {
   const [resultado, setResultado] = useState<CalculoResultado | null>(null);
 
   const { adicionarSimulacao } = useHistoricoSimulacoes();
+  const { premium, carregado: premiumCarregado } = usePremium();
+  const moedaRestaurada = React.useRef(false);
 
   const buscarDados = useCallback(async () => {
     const carregados = await carregarDadosMercado(CODIGOS_MOEDA);
@@ -71,6 +77,28 @@ export default function App() {
   useEffect(() => {
     buscarDados();
   }, [buscarDados]);
+
+  // Restaura a última moeda escolhida (respeitando o gate premium) e passa a
+  // persistir as trocas seguintes.
+  useEffect(() => {
+    if (!premiumCarregado || moedaRestaurada.current) return;
+    AsyncStorage.getItem(CHAVE_MOEDA)
+      .then((salva) => {
+        const valida = salva && CODIGOS_MOEDA.includes(salva as CurrencyCode);
+        if (valida && (premium || !moedaPorCodigo(salva as CurrencyCode).premium)) {
+          setMoeda(salva as CurrencyCode);
+        }
+      })
+      .catch(() => {})
+      .finally(() => {
+        moedaRestaurada.current = true;
+      });
+  }, [premiumCarregado, premium]);
+
+  useEffect(() => {
+    if (!moedaRestaurada.current) return;
+    AsyncStorage.setItem(CHAVE_MOEDA, moeda).catch(() => {});
+  }, [moeda]);
 
   // Prefill vindo do Histórico ("Recalcular hoje").
   useEffect(() => {
@@ -176,13 +204,15 @@ export default function App() {
         ) : (
           <>
             <View style={styles.statusBox}>
-              <View style={styles.statusRow}>
-                <View style={styles.statusLabelRow}>
-                  <FlagIcon code={moedaSelecionada.bandeira} size={12} />
-                  <Text style={styles.statusLabel}> {moeda}</Text>
+              {parStatus(moeda).map((codigo) => (
+                <View key={codigo} style={styles.statusRow}>
+                  <View style={styles.statusLabelRow}>
+                    <FlagIcon code={moedaPorCodigo(codigo).bandeira} size={12} />
+                    <Text style={styles.statusLabel}> {codigo}</Text>
+                  </View>
+                  <Text style={styles.statusValue}>{formatarCotacaoBR(dados.cotacoes[codigo])}</Text>
                 </View>
-                <Text style={styles.statusValue}>{formatarCotacaoBR(dados.cotacoes[moeda])}</Text>
-              </View>
+              ))}
               <View style={[styles.statusRow, { borderRightWidth: 0 }]}>
                 <Text style={styles.statusLabel}>📈 SELIC</Text>
                 <Text style={styles.statusValue}>{formatarPct(dados.selicAnual, 2)} a.a.</Text>
@@ -322,7 +352,7 @@ export default function App() {
           <View style={styles.row}>
             <View style={{ flex: 1.4 }}>
               <Text style={styles.label}>Moeda</Text>
-              <CurrencySelect value={moeda} onChange={setMoeda} />
+              <CurrencySelect value={moeda} onChange={setMoeda} premiumDesbloqueado={premium} />
             </View>
 
             <View style={{ flex: 1 }}>
