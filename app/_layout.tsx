@@ -5,25 +5,33 @@ import { View } from 'react-native';
 import 'react-native-reanimated';
 
 import { Onboarding, useOnboarding } from '@/components/onboarding';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { TemaProvider, useTema } from '@/hooks/use-tema';
 
 export const unstable_settings = {
   anchor: '(tabs)',
 };
 
-export default function RootLayout() {
-  const colorScheme = useColorScheme();
+function ConteudoRaiz() {
+  const { escuro } = useTema();
   const onboarding = useOnboarding();
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+    <ThemeProvider value={escuro ? DarkTheme : DefaultTheme}>
       <View style={{ flex: 1 }}>
         <Stack>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         </Stack>
         <Onboarding visivel={onboarding.visivel} aoConcluir={onboarding.concluir} />
       </View>
-      <StatusBar style="auto" />
+      <StatusBar style={escuro ? 'light' : 'dark'} />
     </ThemeProvider>
+  );
+}
+
+export default function RootLayout() {
+  return (
+    <TemaProvider>
+      <ConteudoRaiz />
+    </TemaProvider>
   );
 }

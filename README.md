@@ -18,42 +18,29 @@ Esta calculadora não faz apenas conversão de moeda. Ela atua como um **Consult
 * **Histórico de Simulações:** Persistência local com nome do produto, link, cotação da época, recálculo com taxas atuais e compartilhamento.
 
 ## 🛠️ Tecnologias
-* **Core:** React Native (Expo)
-* **Lógica:** JavaScript (ES6+) com tratamento de datas e matemática financeira.
+* **Core:** React Native (Expo SDK 54) + TypeScript estrito, Expo Router.
+* **Arquitetura:** lógica financeira pura em `core/` (testada com Jest), consumo de APIs com cache em `services/`, estado persistente em `hooks/`, UI temática (claro/escuro) em `components/` + `constants/theme.ts`.
 * **APIs:**
-    * *Frankfurter API* (Câmbio Comercial).
-    * *Banco Central do Brasil - SGS* (Taxa Selic).
+    * *AwesomeAPI* (câmbio comercial, bid/ask em tempo quase real).
+    * *Banco Central do Brasil — SGS série 432* (Meta Selic).
+* **Monetização:** freemium — USD/EUR gratuitos; demais moedas e alertas na versão completa (compra única, IAP em `services/compras.ts`).
 
 ## 🚀 Como Rodar o Projeto
 
 Pré-requisitos: Node.js instalado.
 
-1.  **Instale as dependências:**
-    ```bash
-    npm install
-    ```
+```bash
+npm install        # dependências
+npx expo start     # inicia (QR Code p/ Expo Go, `a` Android, `i` iOS, `w` web)
+npm test           # testes unitários (core financeiro, formatação, services)
+npm run lint       # ESLint
+```
 
-2.  **Inicie o app:**
-    ```bash
-    npx expo start
-    ```
-
-3.  **Para testar:**
-    * Escaneie o QR Code com o app **Expo Go** (Android/iOS).
-    * Ou pressione `a` para abrir no Emulador Android / `i` para Simulador iOS.
-
-## 🗺️ Roadmap (Evolução)
-
-- [x] Versão Web (MVP HTML/JS)
-- [x] Migração para App Nativo (React Native)
-- [x] Integração API Banco Central (Selic Real)
-- [x] Lógica de IOF Temporal (Auto-update 2024-2028)
-- [x] Módulo de Parceiros (Banners)
-- [ ] **Próximo:** Publicação na Google Play Store e Apple App Store.
-- [ ] **Futuro:** Histórico de cotação com alerta de "Melhor Momento para Compra".
+## 🗺️ Roadmap
+O plano de evolução e os próximos passos rumo à publicação estão em **[docs/ROADMAP.md](docs/ROADMAP.md)** — incluindo o que depende de ações externas (contas de developer, beta da Play Store). O histórico do que já foi entregue está no **[CHANGELOG.md](CHANGELOG.md)**.
 
 ## 📄 Documentação Técnica
-Para detalhes profundos sobre a fórmula de Valor Presente e a lógica fiscal utilizada, consulte o [Whitepaper Técnico](docs/WHITEPAPER.md) incluído no projeto.
+Para detalhes sobre a fórmula de Valor Presente, a tributação de encomendas (Remessa Conforme) e a lógica fiscal, consulte o [Whitepaper Técnico](docs/WHITEPAPER.md).
 
 ## 🔒 Licença e Direitos Autorais
 
