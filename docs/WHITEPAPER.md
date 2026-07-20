@@ -1,9 +1,8 @@
-````markdown
-# 📄 Whitepaper: Calculadora de Paridade de Importação
+# 📄 Whitepaper: Paridade — Calculadora de Paridade de Importação
 
-**Versão:** 1.0 (MVP)  
-**Data:** 30/11/2025  
-**Stack:** React Native (Expo)
+**Versão:** 2.0  
+**Data:** 20/07/2026 (original: 30/11/2025)  
+**Stack:** React Native (Expo) + TypeScript
 
 ---
 
@@ -30,7 +29,7 @@ O aplicativo opera numa arquitetura *Serverless-Client*, consumindo dados direta
 graph TD
     A[Usuário Abre o App] --> B{Verificações Iniciais}
     B -->|Ano Fiscal| C[Define IOF Automático]
-    B -->|API Câmbio| D[Frankfurter API / ECB]
+    B -->|API Câmbio| D[AwesomeAPI - bid/ask comercial]
     B -->|API Juros| E[Banco Central do Brasil]
     
     C --> F[Cálculo Tributário]
@@ -39,13 +38,13 @@ graph TD
     
     F & G & H --> I[Motor de Cálculo Financeiro]
     I --> J[Resultado: Decisão de Compra]
-````
+```
 
 ### Fontes de Dados
 
-  * **Câmbio (FX):** *Frankfurter API* (Baseada no Banco Central Europeu). Garante taxas comerciais estáveis (fechamento do dia anterior).
+  * **Câmbio (FX):** *AwesomeAPI* (economia.awesomeapi.com.br) — cotação comercial em tempo quase real, calculada como média entre bid e ask. Suporta USD, EUR, GBP, JPY, ARS e CLP numa única chamada. A última carga bem-sucedida é cacheada localmente com timestamp: offline, o app usa o cache exibindo a idade do dado, nunca valores inventados.
   * **Taxa Livre de Risco ($R_f$):** *API do Banco Central do Brasil (Série 432)*. Coleta a Meta Selic oficial.
-  * **Legislação:** Lógica interna baseada no Decreto nº 11.153/2022 (Redução gradual do IOF).
+  * **Legislação:** Lógica interna baseada no Decreto nº 11.153/2022 (redução gradual do IOF) e no regime **Remessa Conforme** (tributação de encomendas internacionais — ver seção 3.4).
 
 -----
 
@@ -94,6 +93,23 @@ $$
   * $P_{BR}$: Preço total no Brasil.
   * $n$: Número de parcelas.
   * $i_{am}$: Taxa de desconto (Selic Mensal).
+
+### 3.4. Tributação de Encomendas (Remessa Conforme)
+
+A partir da v2.0, o app distingue dois cenários de compra no exterior:
+
+* **Viagem:** compra presencial trazida na bagagem — aplica apenas câmbio, spread e IOF (fórmula da seção 3.2). Compras acima da cota de isenção (US$ 1.000 em voos) pagam 50% sobre o excedente, o que é sinalizado ao usuário mas não incluído no cálculo.
+* **Encomenda:** compra em site internacional com entrega no Brasil — além do câmbio+spread+IOF sobre o pagamento (produto + frete), incidem os tributos do regime Remessa Conforme sobre o **valor aduaneiro** ($VA$ = produto + frete, convertido pela cotação comercial):
+
+$$
+II = \begin{cases} 0{,}20 \times VA & \text{se } VA \leq \text{US\$ } 50 \\ \max(0;\; 0{,}60 \times VA - \text{US\$ } 20 \times FX_{USD}) & \text{se } VA > \text{US\$ } 50 \end{cases}
+$$
+
+$$
+ICMS = \frac{VA + II}{1 - 0{,}20} \times 0{,}20 \quad \text{(alíquota de 20\%, "por dentro")}
+$$
+
+O limite de US$ 50 é aferido em dólar: para compras em outras moedas, o app converte via cotação cruzada ($VA_{USD} = VA_{BRL} / FX_{USD}$). O resultado exibe o *breakdown* de cada componente (pagamento, IOF, II, ICMS), e a soma dos componentes é validada por teste automatizado contra o custo total.
 
 -----
 
@@ -145,7 +161,5 @@ Imagine a compra de um Smartphone em **30/11/2025**.
 
 -----
 
-© 2025 - Documentação Técnica
-© 2025 - Desenvolvido por Luccas de Amorim Rêgo Cavicchioli
-```
-```
+© 2025–2026 - Documentação Técnica
+© 2025–2026 - Desenvolvido por Luccas de Amorim Rêgo Cavicchioli

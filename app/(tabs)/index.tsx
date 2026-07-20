@@ -44,8 +44,15 @@ const CHAVE_MOEDA = '@paridade:moeda_selecionada';
 
 type ModoEntradaBR = 'total' | 'parcela';
 
+const ROTULO_TEMA: Record<string, string> = { auto: '◐ Auto', claro: '☀️ Claro', escuro: '🌙 Escuro' };
+const PROXIMO_TEMA: Record<string, 'auto' | 'claro' | 'escuro'> = {
+  auto: 'claro',
+  claro: 'escuro',
+  escuro: 'auto',
+};
+
 export default function App() {
-  const { cores } = useTema();
+  const { cores, preferencia, definirPreferencia } = useTema();
   const styles = useMemo(() => criarStyles(cores), [cores]);
   const params = useLocalSearchParams<Record<string, string>>();
 
@@ -201,7 +208,16 @@ export default function App() {
         refreshControl={
           <RefreshControl refreshing={atualizando} onRefresh={aoAtualizar} tintColor={cores.primary} />
         }>
-        <Text style={styles.titulo}>⚖️ Paridade</Text>
+        <View style={styles.headerRow}>
+          <Text style={styles.titulo}>⚖️ Paridade</Text>
+          <TouchableOpacity
+            style={styles.temaChip}
+            onPress={() => definirPreferencia(PROXIMO_TEMA[preferencia])}
+            accessibilityRole="button"
+            accessibilityLabel={`Tema atual: ${preferencia}. Toque para alternar.`}>
+            <Text style={styles.temaChipTexto}>{ROTULO_TEMA[preferencia]}</Text>
+          </TouchableOpacity>
+        </View>
 
         {!dados ? (
           <ActivityIndicator size="large" color={cores.primary} style={{ marginBottom: 20 }} />
@@ -509,7 +525,10 @@ export default function App() {
 function criarStyles(cores: Paleta) {
   return StyleSheet.create({
     container: { padding: 20, paddingTop: 60, backgroundColor: cores.background, flexGrow: 1, alignItems: 'center' },
-    titulo: { fontSize: 26, fontWeight: 'bold', color: cores.primary, marginBottom: 15 },
+    headerRow: { width: '100%', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 15 },
+    titulo: { fontSize: 26, fontWeight: 'bold', color: cores.primary },
+    temaChip: { borderWidth: 1, borderColor: cores.border, borderRadius: 16, paddingHorizontal: 12, paddingVertical: 6, backgroundColor: cores.card },
+    temaChipTexto: { fontSize: 12, color: cores.subtext, fontWeight: '600' },
     statusBox: { flexDirection: 'row', backgroundColor: cores.card, borderRadius: 12, marginBottom: 6, borderWidth: 1, borderColor: cores.border, overflow: 'hidden', width: '100%' },
     statusRow: { flex: 1, alignItems: 'center', padding: 10, borderRightWidth: 1, borderRightColor: cores.borderSoft },
     statusLabelRow: { flexDirection: 'row', alignItems: 'center' },
