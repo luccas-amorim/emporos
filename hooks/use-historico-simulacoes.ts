@@ -2,7 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import type { CurrencyCode } from '@/constants/currencies';
-import type { FormaPagamento } from '@/core/calculadora';
+import type { Cenario, FormaPagamento } from '@/core/calculadora';
 
 export interface SimulacaoSalva {
   id: string;
@@ -19,6 +19,12 @@ export interface SimulacaoSalva {
   custoBR: number;
   custoExt: number;
   economia: number;
+  // Campos adicionados depois do lançamento do histórico — opcionais para
+  // manter compatibilidade com simulações já salvas no aparelho.
+  cenario?: Cenario;
+  freteExt?: number;
+  cotacao?: number;
+  selicAnual?: number;
 }
 
 const STORAGE_KEY = '@vale_importar:historico_simulacoes';
@@ -63,9 +69,13 @@ export function useHistoricoSimulacoes() {
     setHistorico((atual) => [nova, ...atual].slice(0, LIMITE_HISTORICO));
   }, []);
 
+  const removerSimulacao = useCallback((id: string) => {
+    setHistorico((atual) => atual.filter((item) => item.id !== id));
+  }, []);
+
   const limparHistorico = useCallback(() => {
     setHistorico([]);
   }, []);
 
-  return { historico, carregando, adicionarSimulacao, limparHistorico };
+  return { historico, carregando, adicionarSimulacao, removerSimulacao, limparHistorico };
 }

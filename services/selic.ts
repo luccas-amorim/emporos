@@ -3,26 +3,24 @@ export interface Selic {
   selicMensal: number;
 }
 
-const FALLBACK: Selic = { selicAnual: 11.25, selicMensal: 0.0089 };
-
 export function taxaMensalEquivalente(taxaAnualPercentual: number): number {
   return Math.pow(1 + taxaAnualPercentual / 100, 1 / 12) - 1;
 }
 
-export async function buscarSelic(): Promise<Selic> {
-  try {
-    const res = await fetch(
-      'https://api.bcb.gov.br/dados/serie/bcdata.sgs.432/dados/ultimos/1?formato=json'
-    );
-    const dados = await res.json();
+// Lança em caso de falha — o fallback fica em services/mercado.ts.
+export async function buscarSelicRede(): Promise<Selic> {
+  const res = await fetch(
+    'https://api.bcb.gov.br/dados/serie/bcdata.sgs.432/dados/ultimos/1?formato=json'
+  );
+  if (!res.ok) throw new Error(`Selic: HTTP ${res.status}`);
 
-    if (Array.isArray(dados) && dados.length > 0) {
-      const selicAnual = parseFloat(dados[0].valor);
-      return { selicAnual, selicMensal: taxaMensalEquivalente(selicAnual) };
-    }
-    return FALLBACK;
-  } catch (error) {
-    console.error('❌ Erro API Selic:', error);
-    return FALLBACK;
+  const dados = await res.json();
+  if (!Array.isArray(dados) || dados.length === 0) {
+    throw new Error('Selic: resposta vazia');
   }
+
+  const selicAnual = parseFloat(dados[0].valor);
+  if (Number.isNaN(selicAnual)) throw new Error('Selic: valor inválido');
+
+  return { selicAnual, selicMensal: taxaMensalEquivalente(selicAnual) };
 }

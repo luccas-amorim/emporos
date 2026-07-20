@@ -1,4 +1,4 @@
-# ✈️ Calculadora Inteligente de Importação vs. Compra Nacional
+# ⚖️ Paridade — Importar ou Comprar no Brasil?
 
 > Uma ferramenta de decisão financeira que utiliza matemática avançada (Valor Presente Líquido) para comparar o custo real de importar produtos versus comprar no Brasil.
 
@@ -11,10 +11,11 @@ Comprar no exterior parece barato pelo preço de etiqueta, mas taxas de câmbio,
 Esta calculadora não faz apenas conversão de moeda. Ela atua como um **Consultor Financeiro Digital Mobile**, considerando:
 
 * **Matemática Financeira (VP):** Traz as parcelas brasileiras a Valor Presente, descontando o rendimento mensal baseado na **Selic Meta (Banco Central)**.
-* **Câmbio Realista:** Conexão com a **Frankfurter API** (Dados do Banco Central Europeu) + Campo de **Spread Bancário** personalizável (Wise, Nomad, Cartão físico).
+* **Câmbio Realista:** Cotação comercial em tempo quase real via **AwesomeAPI** (USD, EUR, GBP, JPY, ARS, CLP) + Campo de **Spread Bancário** personalizável (Wise, Nomad, Cartão físico).
+* **Tributação de Encomendas:** Cenários **Viagem × Encomenda** — encomendas internacionais incluem Imposto de Importação (Remessa Conforme: 20% até US$ 50, 60% − US$ 20 acima) e ICMS de 20% por dentro, com breakdown transparente de cada custo.
 * **Inteligência Fiscal (Compliance):** Identifica automaticamente o ano fiscal e aplica a alíquota correta de IOF para Cartão (Redução gradual de 4.38% até 0% em 2028), conforme Decreto nº 11.153/2022.
-* **Fallback de Segurança:** Sistema robusto que mantém o app funcional mesmo em caso de falha nas APIs ou falta de internet.
-* **Módulo de Parceiros:** Sistema de banners dinâmicos para monetização.
+* **Fallback de Segurança:** Cache local da última cotação real, com idade exibida ao usuário — o app segue funcional offline sem inventar números.
+* **Histórico de Simulações:** Persistência local com nome do produto, link, cotação da época, recálculo com taxas atuais e compartilhamento.
 
 ## 🛠️ Tecnologias
 * **Core:** React Native (Expo)
