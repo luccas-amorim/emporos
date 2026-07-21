@@ -9,6 +9,7 @@ export interface SimulacaoSalva {
   data: string; // ISO 8601
   nomeProduto?: string;
   link?: string;
+  observacao?: string;
   precoBR: number;
   parcelasBR: number;
   precoExt: number;

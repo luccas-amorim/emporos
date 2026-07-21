@@ -1,4 +1,4 @@
-# 📄 Whitepaper: Paridade — Calculadora de Paridade de Importação
+# 📄 Whitepaper: Vale importar? — Calculadora de Paridade de Importação
 
 **Versão:** 2.0  
 **Data:** 20/07/2026 (original: 30/11/2025)  

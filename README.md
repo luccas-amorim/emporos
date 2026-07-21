@@ -1,4 +1,4 @@
-# ⚖️ Paridade — Importar ou Comprar no Brasil?
+# ✈️ Vale importar? — Importar ou Comprar no Brasil?
 
 > Uma ferramenta de decisão financeira que utiliza matemática avançada (Valor Presente Líquido) para comparar o custo real de importar produtos versus comprar no Brasil.
 
