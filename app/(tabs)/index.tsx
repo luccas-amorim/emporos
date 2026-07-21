@@ -72,6 +72,7 @@ export default function App() {
 
   const [nomeProduto, setNomeProduto] = useState('');
   const [link, setLink] = useState('');
+  const [observacao, setObservacao] = useState('');
 
   const [resultado, setResultado] = useState<CalculoResultado | null>(null);
 
@@ -124,6 +125,7 @@ export default function App() {
     if (params.cenario) setCenario(params.cenario as Cenario);
     if (params.nomeProduto) setNomeProduto(params.nomeProduto);
     if (params.link) setLink(params.link);
+    if (params.observacao) setObservacao(params.observacao);
     setModoBR('total');
     setResultado(null);
   }, [params.prefill]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -164,6 +166,7 @@ export default function App() {
     setResultado(novoResultado);
     adicionarSimulacao({
       nomeProduto: nomeProduto.trim() || undefined,
+      observacao: observacao.trim() || undefined,
       link: link.trim() || undefined,
       precoBR: valPrecoBRTotal,
       parcelasBR: valParcelasBR,
@@ -189,7 +192,7 @@ export default function App() {
     try {
       await Share.share({
         message:
-          `Simulei ${nome} no Paridade: vale mais a pena ${veredito}! ` +
+          `Simulei ${nome} no Vale importar?: vale mais a pena ${veredito}! ` +
           `Brasil: ${formatarBRL(resultado.custoBR)} × Exterior: ${formatarBRL(resultado.custoExt)} ` +
           `(diferença de ${formatarBRL(resultado.economia)}, ${formatarPct(resultado.economiaPct)}).`,
       });
@@ -209,7 +212,7 @@ export default function App() {
           <RefreshControl refreshing={atualizando} onRefresh={aoAtualizar} tintColor={cores.primary} />
         }>
         <View style={styles.headerRow}>
-          <Text style={styles.titulo}>⚖️ Paridade</Text>
+          <Text style={styles.titulo}>✈️ Vale importar?</Text>
           <TouchableOpacity
             style={styles.temaChip}
             onPress={() => definirPreferencia(PROXIMO_TEMA[preferencia])}
@@ -444,6 +447,17 @@ export default function App() {
             onChangeText={setLink}
             accessibilityLabel="Link do produto (opcional)"
           />
+          <Text style={styles.label}>Observação</Text>
+          <TextInput
+            style={[styles.input, styles.inputMultilinha]}
+            placeholder="Ex: cor azul, cupom BLACK10, vendedor X"
+            placeholderTextColor={cores.muted}
+            value={observacao}
+            onChangeText={setObservacao}
+            multiline
+            maxLength={140}
+            accessibilityLabel="Observação sobre a compra (opcional)"
+          />
         </View>
 
         <TouchableOpacity
@@ -511,7 +525,7 @@ export default function App() {
         )}
 
         <Text style={styles.disclaimer}>
-          O Paridade é uma ferramenta de estimativa e não constitui recomendação financeira. Impostos,
+          O Vale importar? é uma ferramenta de estimativa e não constitui recomendação financeira. Impostos,
           câmbio e taxas são aproximações baseadas em fontes oficiais — confirme as condições reais
           antes de qualquer compra.
         </Text>
@@ -543,6 +557,7 @@ function criarStyles(cores: Paleta) {
     obs: { fontSize: 11, color: cores.muted, marginTop: 8, fontStyle: 'italic' },
     alternarModo: { fontSize: 12, color: cores.primary, marginTop: 8, fontWeight: '600' },
     input: { borderWidth: 1, borderColor: cores.border, borderRadius: 8, padding: 10, fontSize: 16, backgroundColor: cores.inputBg, color: cores.text, height: 50 },
+    inputMultilinha: { height: 70, textAlignVertical: 'top', paddingTop: 12 },
     row: { flexDirection: 'row', justifyContent: 'space-between', gap: 10 },
 
     optionBtn: { flex: 1, padding: 10, borderWidth: 1, borderColor: cores.border, borderRadius: 8, alignItems: 'center', justifyContent: 'center', backgroundColor: cores.optionBg, minHeight: 60 },

@@ -25,7 +25,7 @@ const SLIDES: Slide[] = [
     emoji: '⚖️',
     titulo: 'Compare o custo real',
     texto:
-      'O Paridade compara o preço de comprar no Brasil parcelado com o de comprar no exterior — considerando câmbio, spread, IOF e os impostos de importação.',
+      'O Vale importar? compara o preço de comprar no Brasil parcelado com o de comprar no exterior — considerando câmbio, spread, IOF e os impostos de importação.',
   },
   {
     emoji: '📐',

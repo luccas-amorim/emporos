@@ -89,7 +89,7 @@ export function CurrencySelect({ value, onChange, premiumDesbloqueado, aoPedirPr
                 accessibilityRole="button"
                 accessibilityLabel="Conhecer a versão completa">
                 <Text style={styles.avisoPremium}>
-                  🔒 Moedas adicionais fazem parte da versão completa do Paridade.{'\n'}
+                  🔒 Moedas adicionais fazem parte da versão completa.{'\n'}
                   <Text style={styles.avisoPremiumLink}>Toque para conhecer →</Text>
                 </Text>
               </TouchableOpacity>

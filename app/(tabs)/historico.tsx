@@ -44,7 +44,7 @@ function ItemHistorico({
     try {
       await Share.share({
         message:
-          `Simulei ${nome} no Paridade: ${item.valeImportar ? 'vale importar' : 'melhor comprar no Brasil'}! ` +
+          `Simulei ${nome} no Vale importar?: ${item.valeImportar ? 'vale importar' : 'melhor comprar no Brasil'}! ` +
           `Brasil: ${formatarBRL(item.custoBR)} × Exterior: ${formatarBRL(item.custoExt)} ` +
           `(diferença de ${formatarBRL(item.economia)}, ${formatarPct(economiaPctDe(item))}).`,
       });
@@ -82,6 +82,7 @@ function ItemHistorico({
           </Text>
         </TouchableOpacity>
       )}
+      {item.observacao && <Text style={styles.cardObs}>📝 {item.observacao}</Text>}
 
       <View style={styles.cardLineRow}>
         <Text style={styles.cardLine}>
@@ -155,6 +156,7 @@ export default function HistoricoScreen() {
         cenario: item.cenario ?? 'Viagem',
         nomeProduto: item.nomeProduto ?? '',
         link: item.link ?? '',
+        observacao: item.observacao ?? '',
       },
     });
   };
@@ -212,6 +214,7 @@ function criarStyles(cores: Paleta) {
     cardSubMsg: { fontSize: 12, color: cores.subtext, marginBottom: 2 },
     cardData: { fontSize: 11, color: cores.muted },
     cardLink: { fontSize: 12, color: cores.primary, marginVertical: 2 },
+    cardObs: { fontSize: 12, color: cores.subtext, fontStyle: 'italic', marginVertical: 2 },
     cardLineRow: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', marginTop: 4 },
     cardLine: { fontSize: 13, color: cores.text },
     cardTaxas: { fontSize: 11, color: cores.muted, marginTop: 4 },

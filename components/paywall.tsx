@@ -65,7 +65,7 @@ export function Paywall({ visivel, aoFechar, aoComprado }: PaywallProps) {
     <Modal visible={visivel} transparent animationType={ANIMACAO_MODAL} onRequestClose={aoFechar}>
       <View style={styles.overlay}>
         <View style={styles.box}>
-          <Text style={styles.titulo}>⚖️ Paridade Completo</Text>
+          <Text style={styles.titulo}>✈️ Vale importar? Premium</Text>
           <Text style={styles.subtitulo}>Desbloqueie tudo com uma compra única de {PRECO_VERSAO_COMPLETA}</Text>
 
           {BENEFICIOS.map((item) => (
