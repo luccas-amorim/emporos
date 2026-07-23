@@ -2,6 +2,12 @@
 
 Histórico das entregas por rodada de desenvolvimento (branches mergeadas em `main`).
 
+## 2026-07-20 — Modelo freemium (`feature/freemium-gate`)
+- **Cota gratuita:** 5 cálculos no total (contador local); ao esgotar, o botão vira "Desbloquear" e abre a paywall. Indicador de cota restante na Home.
+- **Histórico é premium:** na versão gratuita nada é salvo e a aba mostra um convite à versão completa.
+- Estado premium e paywall centralizados num contexto global (`PremiumProvider`) — a paywall abre de qualquer tela e a compra destrava tudo imediatamente, sem recarregar.
+- Benefícios da paywall atualizados (cálculos ilimitados + histórico + moedas + alertas).
+
 ## 2026-07-20 — Nome público, observação e roadmap dual-store (`feature/nome-observacao-roadmap`)
 - Nome público revertido para **"Vale importar?"** (mais intuitivo/memorável) em toda a UI, app.json e docs. O termo "paridade" segue apenas como conceito interno (nome da função de cálculo).
 - Campo de **observação** (até 140 caracteres) na identificação do item, salvo no histórico e propagado no "Recalcular hoje".
