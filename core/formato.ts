@@ -9,7 +9,9 @@ export function formatarNumeroBR(valor: number, decimais = 2): string {
 }
 
 export function formatarBRL(valor: number, decimais = 2): string {
-  return `R$ ${formatarNumeroBR(valor, decimais)}`;
+  // O sinal fica antes do símbolo da moeda ("-R$ 10,00"), como se escreve em pt-BR.
+  const negativo = valor < 0;
+  return `${negativo ? '-' : ''}R$ ${formatarNumeroBR(Math.abs(valor), decimais)}`;
 }
 
 // Cotações pequenas (JPY, ARS, CLP) precisam de mais casas para não virar "R$ 0,00".

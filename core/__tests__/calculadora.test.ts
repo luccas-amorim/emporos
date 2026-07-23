@@ -56,6 +56,7 @@ const baseViagem: CalculoInput = {
   parcelasBR: 12,
   precoExt: 800,
   freteExt: 0,
+  taxFreePct: 0,
   cenario: 'Viagem',
   cotacao: 5.0,
   cotacaoUSD: 5.0,
@@ -155,6 +156,48 @@ describe('calcularParidade — cenário Encomenda (Remessa Conforme)', () => {
     const resultado = calcularParidade({ ...baseEncomenda, precoExt: 100, freteExt: 10, spread: 2 });
     const soma = resultado.breakdown.reduce((acc, item) => acc + item.valor, 0);
     expect(soma).toBeCloseTo(resultado.custoExt, 5);
+  });
+});
+
+describe('calcularParidade — tax free (informado pelo usuário)', () => {
+  const base = { ...baseViagem, precoBR: 5000, parcelasBR: 1, precoExt: 1000, spread: 0, iofCartao: 0 };
+
+  it('abate o percentual informado do custo no exterior', () => {
+    const sem = calcularParidade({ ...base, taxFreePct: 0 });
+    const com = calcularParidade({ ...base, taxFreePct: 12 });
+    // 1000 × 12% × cotação 5,0 = R$ 600 de volta
+    expect(sem.custoExt - com.custoExt).toBeCloseTo(600, 5);
+  });
+
+  it('registra o reembolso como valor negativo no breakdown', () => {
+    const resultado = calcularParidade({ ...base, taxFreePct: 12 });
+    const linha = resultado.breakdown.find((i) => i.label.includes('tax free'))!;
+    expect(linha.valor).toBeLessThan(0);
+    expect(linha.label).toContain('12,0%');
+  });
+
+  it('a soma do breakdown continua batendo com o custo total', () => {
+    const resultado = calcularParidade({ ...base, taxFreePct: 12, spread: 2, iofCartao: 0.0338 });
+    const soma = resultado.breakdown.reduce((acc, i) => acc + i.valor, 0);
+    expect(soma).toBeCloseTo(resultado.custoExt, 5);
+  });
+
+  it('não incide sobre o frete, apenas sobre o produto', () => {
+    const semFrete = calcularParidade({ ...base, taxFreePct: 10, freteExt: 0 });
+    const comFrete = calcularParidade({ ...base, taxFreePct: 10, freteExt: 200 });
+    const reembolso = (r: typeof semFrete) => r.breakdown.find((i) => i.label.includes('tax free'))!.valor;
+    expect(reembolso(comFrete)).toBeCloseTo(reembolso(semFrete), 5);
+  });
+
+  it('é ignorado no cenário Encomenda', () => {
+    const encomenda = { ...base, cenario: 'Encomenda' as const, taxFreePct: 12 };
+    const resultado = calcularParidade(encomenda);
+    expect(resultado.breakdown.some((i) => i.label.includes('tax free'))).toBe(false);
+  });
+
+  it('não altera nada quando o usuário não informa a taxa', () => {
+    const resultado = calcularParidade({ ...base, taxFreePct: 0 });
+    expect(resultado.breakdown.some((i) => i.label.includes('tax free'))).toBe(false);
   });
 });
 

@@ -2,6 +2,12 @@
 
 Histórico das entregas por rodada de desenvolvimento (branches mergeadas em `main`).
 
+## 2026-07-20 — País da compra e tax free (`feature/paises-tax-free`)
+- Campo opcional de **país da compra** com busca tolerante a acentos, lista virtualizada e opção "Outro país" em texto livre (cobre destinos fora do catálogo, como Suíça ou Canadá).
+- O país sugere a moeda local, mas a seleção continua editável; moeda premium não é sugerida a quem não tem acesso.
+- Campo de **tax free** (% que o usuário recupera), visível só no cenário Viagem, abatido do custo com linha própria no detalhamento. A taxa é informada pelo usuário — não mantemos tabela por país, que envelheceria em silêncio.
+- Valores negativos passam a ser formatados como "-R$ 620,32".
+
 ## 2026-07-20 — Modelo freemium (`feature/freemium-gate`)
 - **Cota gratuita:** 5 cálculos no total (contador local); ao esgotar, o botão vira "Desbloquear" e abre a paywall. Indicador de cota restante na Home.
 - **Histórico é premium:** na versão gratuita nada é salvo e a aba mostra um convite à versão completa.

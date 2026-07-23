@@ -22,6 +22,10 @@ describe('formatarBRL', () => {
   it('prefixa com R$', () => {
     expect(formatarBRL(4217.9)).toBe('R$ 4.217,90');
   });
+
+  it('põe o sinal antes do símbolo em valores negativos', () => {
+    expect(formatarBRL(-620.32)).toBe('-R$ 620,32');
+  });
 });
 
 describe('formatarCotacaoBR', () => {
