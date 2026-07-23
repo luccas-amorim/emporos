@@ -15,9 +15,10 @@ import {
 const ANIMACAO_MODAL = Platform.OS === 'web' ? 'none' : 'fade';
 
 const BENEFICIOS = [
+  '♾️ Cálculos ilimitados — sem a cota de 5 da versão gratuita',
+  '📊 Histórico completo: produto, link, observação e a cotação de cada dia',
   '🌍 Todas as moedas: Libra, Iene, Peso Argentino, Peso Chileno — e as próximas',
   '🎯 Alertas de câmbio (em breve): avisamos quando a cotação chegar no seu alvo',
-  '🚀 Acesso antecipado às próximas funcionalidades premium',
   '💙 Compra única — sem assinatura, sem anúncios',
 ];
 

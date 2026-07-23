@@ -30,11 +30,11 @@ Documento vivo de acompanhamento. Marque os checkboxes conforme avançar. O que 
 
 ## 3. Fases de desenvolvimento pendentes
 
-### Fase 2 — Novo modelo freemium
-- [ ] Contador de cálculos (hook + AsyncStorage), gate em 5 no grátis.
-- [ ] Travar aba/salvamento de Histórico no grátis (pitch premium no lugar).
-- [ ] Paywall disparada ao atingir o 5º cálculo e ao tocar em recurso premium.
-- [ ] Ajustar a paywall para listar os benefícios do novo modelo.
+### Fase 2 — Novo modelo freemium ✅ concluída
+- [x] Contador de cálculos (hook + AsyncStorage), gate em 5 no grátis.
+- [x] Travar aba/salvamento de Histórico no grátis (pitch premium no lugar).
+- [x] Paywall disparada ao atingir o 5º cálculo e ao tocar em recurso premium.
+- [x] Ajustar a paywall para listar os benefícios do novo modelo.
 
 ### Fase 3 — País da compra + tax free
 - [ ] Estrutura de dados de países (nome PT, ISO, moeda oficial, elegível a tax free, % típica de reembolso ao turista) — **pesquisar as taxas reais de VAT refund por país**.
