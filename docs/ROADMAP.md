@@ -36,12 +36,14 @@ Documento vivo de acompanhamento. Marque os checkboxes conforme avançar. O que 
 - [x] Paywall disparada ao atingir o 5º cálculo e ao tocar em recurso premium.
 - [x] Ajustar a paywall para listar os benefícios do novo modelo.
 
-### Fase 3 — País da compra + tax free
-- [ ] Estrutura de dados de países (nome PT, ISO, moeda oficial, elegível a tax free, % típica de reembolso ao turista) — **pesquisar as taxas reais de VAT refund por país**.
-- [ ] Dropdown de países otimizado para mobile: lista alfabética + campo de busca (filtra ao digitar), performático com muitos itens (FlatList virtualizada).
-- [ ] País sugere a moeda (editável) e é salvo na simulação.
-- [ ] Selo "tax free disponível (~X% reembolsável)" + toggle opcional no cenário Viagem que desconta a estimativa do custo.
-- [ ] Grátis: lista curta (EUA, França, Itália, Espanha, Reino Unido, Japão). Premium: lista completa.
+### Fase 3 — País da compra + tax free ✅ concluída
+- [x] Catálogo de países (nome PT + moeda corrente), sem dados que envelheçam.
+- [x] Dropdown otimizado para mobile: busca que ignora acentos, lista virtualizada (FlatList) e opção **"Outro país"** com texto livre para destinos fora do catálogo.
+- [x] País sugere a moeda (editável) e é salvo na simulação.
+- [x] Campo de tax free informado pelo usuário, visível apenas no cenário Viagem, abatido do custo com linha própria no detalhamento.
+- [x] Grátis: lista curta (EUA, França, Itália, Espanha, Portugal, Japão) + texto livre. Premium: lista completa.
+
+> **Decisão de design:** a taxa de tax free é informada pelo usuário, não mantida numa tabela por país. Alíquotas e programas mudam sem aviso (o Reino Unido encerrou o dele em 2021; o Japão muda o sistema em nov/2026) e o que volta ao bolso depende da loja e da operadora. Um número desatualizado num app financeiro é pior que nenhum número.
 
 ### Fase 4 — Integração de pagamento
 - [ ] Escolher RevenueCat × expo-iap e definir preço final em `services/compras.ts`.

@@ -24,6 +24,8 @@ export interface SimulacaoSalva {
   // manter compatibilidade com simulações já salvas no aparelho.
   cenario?: Cenario;
   freteExt?: number;
+  taxFreePct?: number;
+  pais?: string; // código ISO do país da compra
   cotacao?: number;
   selicAnual?: number;
 }

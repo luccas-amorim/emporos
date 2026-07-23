@@ -17,6 +17,7 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { AlertasCambio } from '@/components/alertas-cambio';
+import { CountrySelect } from '@/components/country-select';
 import { CurrencySelect } from '@/components/currency-select';
 import { FlagIcon } from '@/components/flag-icon';
 import { moedaPorCodigo, parStatus, type CurrencyCode } from '@/constants/currencies';
@@ -70,6 +71,8 @@ export default function App() {
   const [moeda, setMoeda] = useState<CurrencyCode>('USD');
   const [pgto, setPgto] = useState<FormaPagamento>('Cartao');
 
+  const [pais, setPais] = useState<string | undefined>(undefined);
+  const [taxFree, setTaxFree] = useState('');
   const [nomeProduto, setNomeProduto] = useState('');
   const [link, setLink] = useState('');
   const [observacao, setObservacao] = useState('');
@@ -123,6 +126,8 @@ export default function App() {
     if (params.pgto) setPgto(params.pgto as FormaPagamento);
     if (params.spread) setSpread(params.spread);
     if (params.cenario) setCenario(params.cenario as Cenario);
+    if (params.pais) setPais(params.pais);
+    if (params.taxFree) setTaxFree(params.taxFree);
     if (params.nomeProduto) setNomeProduto(params.nomeProduto);
     if (params.link) setLink(params.link);
     if (params.observacao) setObservacao(params.observacao);
@@ -144,6 +149,14 @@ export default function App() {
   // Esgotou a cota gratuita: o botão passa a levar à paywall em vez de calcular.
   const bloqueadoPorLimite = !premium && premiumCarregado && contador.carregado && contador.atingiuLimite;
 
+  // Escolher o país sugere a moeda local, mas o usuário pode trocar depois: há compras
+  // cotadas em dólar fora dos EUA. Países digitados à mão não sugerem moeda, e moeda
+  // premium não é sugerida a quem não tem acesso.
+  const aoEscolherPais = (nome: string, moedaSugerida?: CurrencyCode) => {
+    setPais(nome);
+    if (moedaSugerida && (premium || !moedaPorCodigo(moedaSugerida).premium)) setMoeda(moedaSugerida);
+  };
+
   const calcular = () => {
     if (!dados || !podeCalcular) return;
     if (bloqueadoPorLimite) {
@@ -153,12 +166,14 @@ export default function App() {
 
     const valSpread = parseNumeroLocal(spread);
     const valFrete = cenario === 'Encomenda' ? parseNumeroLocal(freteExt) : 0;
+    const valTaxFree = cenario === 'Viagem' ? parseNumeroLocal(taxFree) : 0;
 
     const novoResultado = calcularParidade({
       precoBR: valPrecoBRTotal,
       parcelasBR: valParcelasBR,
       precoExt: valPrecoExt,
       freteExt: valFrete,
+      taxFreePct: valTaxFree,
       cenario,
       cotacao: dados.cotacoes[moeda],
       cotacaoUSD: dados.cotacoes.USD,
@@ -185,6 +200,8 @@ export default function App() {
       parcelasBR: valParcelasBR,
       precoExt: valPrecoExt,
       freteExt: valFrete,
+      taxFreePct: valTaxFree,
+      pais,
       cenario,
       moeda,
       pgto,
@@ -356,6 +373,14 @@ export default function App() {
         <View style={styles.card}>
           <Text style={styles.sectionTitle}>🌎 Opção Exterior</Text>
 
+          <Text style={styles.label}>País da compra (opcional)</Text>
+          <CountrySelect
+            value={pais}
+            onChange={aoEscolherPais}
+            premiumDesbloqueado={premium}
+            aoPedirPremium={abrirPaywall}
+          />
+
           <View style={styles.row}>
             <View style={{ flex: 1 }}>
               <Text style={styles.label}>Preço ({moeda})</Text>
@@ -409,6 +434,25 @@ export default function App() {
               />
             </View>
           </View>
+
+          {cenario === 'Viagem' && (
+            <>
+              <Text style={styles.label}>Tax free — % que você recupera (opcional)</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Ex: 12"
+                placeholderTextColor={cores.muted}
+                keyboardType="numeric"
+                value={taxFree}
+                onChangeText={setTaxFree}
+                accessibilityLabel="Percentual de tax free que você espera recuperar"
+              />
+              <Text style={styles.obs}>
+                Alguns países devolvem parte do imposto local ao turista. Confirme a taxa na loja ou com a
+                operadora de reembolso — costuma ser bem menor que a alíquota cheia.
+              </Text>
+            </>
+          )}
 
           <Text style={styles.label}>Pagamento</Text>
           <View style={styles.row}>

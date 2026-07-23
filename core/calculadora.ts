@@ -6,6 +6,11 @@ export interface CalculoInput {
   parcelasBR: number;
   precoExt: number;
   freteExt: number; // frete na mesma moeda do produto (0 quando não se aplica)
+  /**
+   * Percentual de tax free que o usuário espera recuperar (0–100), informado por ele
+   * conforme a loja/operadora do destino. Só se aplica ao cenário Viagem.
+   */
+  taxFreePct: number;
   cenario: Cenario;
   cotacao: number; // cotação comercial da moeda escolhida (BRL por 1 unidade)
   cotacaoUSD: number; // usada para o limite de US$50 da Remessa Conforme
@@ -77,6 +82,7 @@ export function calcularParidade(input: CalculoInput): CalculoResultado {
     parcelasBR,
     precoExt,
     freteExt,
+    taxFreePct,
     cenario,
     cotacao,
     cotacaoUSD,
@@ -122,7 +128,20 @@ export function calcularParidade(input: CalculoInput): CalculoResultado {
     });
     breakdown.push({ label: `ICMS (${ICMS_ALIQUOTA * 100}%, por dentro)`, valor: icms });
 
+
     custoExt += impostoImportacao + icms;
+  }
+
+  // Tax free: só existe em compra presencial (Viagem). O turista paga o preço cheio,
+  // com IOF, e recupera parte do imposto local depois — por isso entra como abatimento
+  // no fim, e não reduzindo a base do IOF. Incide apenas sobre o produto.
+  if (cenario === 'Viagem' && taxFreePct > 0) {
+    const reembolso = precoExt * (taxFreePct / 100) * cotacaoFinal;
+    breakdown.push({
+      label: `Reembolso tax free (−${taxFreePct.toFixed(1).replace('.', ',')}%)`,
+      valor: -reembolso,
+    });
+    custoExt -= reembolso;
   }
 
   let custoBR = precoBR;
