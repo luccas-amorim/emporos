@@ -17,7 +17,6 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { AlertasCambio } from '@/components/alertas-cambio';
-import { CountrySelect } from '@/components/country-select';
 import { CurrencySelect } from '@/components/currency-select';
 import { FlagIcon } from '@/components/flag-icon';
 import { moedaPorCodigo, parStatus, type CurrencyCode } from '@/constants/currencies';
@@ -71,7 +70,6 @@ export default function App() {
   const [moeda, setMoeda] = useState<CurrencyCode>('USD');
   const [pgto, setPgto] = useState<FormaPagamento>('Cartao');
 
-  const [pais, setPais] = useState<string | undefined>(undefined);
   const [taxFree, setTaxFree] = useState('');
   const [nomeProduto, setNomeProduto] = useState('');
   const [link, setLink] = useState('');
@@ -126,7 +124,6 @@ export default function App() {
     if (params.pgto) setPgto(params.pgto as FormaPagamento);
     if (params.spread) setSpread(params.spread);
     if (params.cenario) setCenario(params.cenario as Cenario);
-    if (params.pais) setPais(params.pais);
     if (params.taxFree) setTaxFree(params.taxFree);
     if (params.nomeProduto) setNomeProduto(params.nomeProduto);
     if (params.link) setLink(params.link);
@@ -148,14 +145,6 @@ export default function App() {
   const podeCalcular = !!dados && valPrecoBRTotal > 0 && valPrecoExt > 0;
   // Esgotou a cota gratuita: o botão passa a levar à paywall em vez de calcular.
   const bloqueadoPorLimite = !premium && premiumCarregado && contador.carregado && contador.atingiuLimite;
-
-  // Escolher o país sugere a moeda local, mas o usuário pode trocar depois: há compras
-  // cotadas em dólar fora dos EUA. Países digitados à mão não sugerem moeda, e moeda
-  // premium não é sugerida a quem não tem acesso.
-  const aoEscolherPais = (nome: string, moedaSugerida?: CurrencyCode) => {
-    setPais(nome);
-    if (moedaSugerida && (premium || !moedaPorCodigo(moedaSugerida).premium)) setMoeda(moedaSugerida);
-  };
 
   const calcular = () => {
     if (!dados || !podeCalcular) return;
@@ -201,7 +190,6 @@ export default function App() {
       precoExt: valPrecoExt,
       freteExt: valFrete,
       taxFreePct: valTaxFree,
-      pais,
       cenario,
       moeda,
       pgto,
@@ -373,14 +361,6 @@ export default function App() {
         <View style={styles.card}>
           <Text style={styles.sectionTitle}>🌎 Opção Exterior</Text>
 
-          <Text style={styles.label}>País da compra (opcional)</Text>
-          <CountrySelect
-            value={pais}
-            onChange={aoEscolherPais}
-            premiumDesbloqueado={premium}
-            aoPedirPremium={abrirPaywall}
-          />
-
           <View style={styles.row}>
             <View style={{ flex: 1 }}>
               <Text style={styles.label}>Preço ({moeda})</Text>
@@ -437,7 +417,7 @@ export default function App() {
 
           {cenario === 'Viagem' && (
             <>
-              <Text style={styles.label}>Tax free — % que você recupera (opcional)</Text>
+              <Text style={styles.label}>Tax free / VAT a recuperar (%)</Text>
               <TextInput
                 style={styles.input}
                 placeholder="Ex: 12"
@@ -448,8 +428,8 @@ export default function App() {
                 accessibilityLabel="Percentual de tax free que você espera recuperar"
               />
               <Text style={styles.obs}>
-                Alguns países devolvem parte do imposto local ao turista. Confirme a taxa na loja ou com a
-                operadora de reembolso — costuma ser bem menor que a alíquota cheia.
+                Informe quanto você vai receber de volta, não a alíquota cheia do país: depois das taxas da
+                operadora, o reembolso costuma ficar bem abaixo dela. Confirme na loja.
               </Text>
             </>
           )}

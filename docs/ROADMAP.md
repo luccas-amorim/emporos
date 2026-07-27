@@ -36,14 +36,19 @@ Documento vivo de acompanhamento. Marque os checkboxes conforme avançar. O que 
 - [x] Paywall disparada ao atingir o 5º cálculo e ao tocar em recurso premium.
 - [x] Ajustar a paywall para listar os benefícios do novo modelo.
 
-### Fase 3 — País da compra + tax free ✅ concluída
-- [x] Catálogo de países (nome PT + moeda corrente), sem dados que envelheçam.
-- [x] Dropdown otimizado para mobile: busca que ignora acentos, lista virtualizada (FlatList) e opção **"Outro país"** com texto livre para destinos fora do catálogo.
-- [x] País sugere a moeda (editável) e é salvo na simulação.
-- [x] Campo de tax free informado pelo usuário, visível apenas no cenário Viagem, abatido do custo com linha própria no detalhamento.
-- [x] Grátis: lista curta (EUA, França, Itália, Espanha, Portugal, Japão) + texto livre. Premium: lista completa.
+### Fase 3 — Tax free ✅ concluída
+- [x] Campo de tax free (% que o usuário recupera) informado por ele, visível apenas no cenário Viagem, abatido do custo com linha própria no detalhamento.
 
-> **Decisão de design:** a taxa de tax free é informada pelo usuário, não mantida numa tabela por país. Alíquotas e programas mudam sem aviso (o Reino Unido encerrou o dele em 2021; o Japão muda o sistema em nov/2026) e o que volta ao bolso depende da loja e da operadora. Um número desatualizado num app financeiro é pior que nenhum número.
+> **Decisão de design:** a taxa é informada pelo usuário, não mantida numa tabela por país. Alíquotas e programas mudam sem aviso (o Reino Unido encerrou o dele em 2021; o Japão muda o sistema em nov/2026) e o que volta ao bolso depende da loja e da operadora. Um número desatualizado num app financeiro é pior que nenhum número.
+
+### 🧊 Guardado para reuso: seletor de países
+`components/country-select.tsx` + `constants/paises.ts` estão prontos e testados, mas **não são exibidos**. Trazem dropdown com busca tolerante a acentos, lista virtualizada e opção "Outro país" em texto livre.
+
+Foi retirado da tela porque:
+1. o catálogo cobre apenas países das moedas suportadas — para ser útil, precisaria de uma lista bem maior;
+2. no plano gratuito, escolher um país de moeda premium (ex.: Japão) faria a tela exibir "Japão" enquanto o cálculo rodaria em dólar — informação conflitante.
+
+Para reativar: ampliar o catálogo **e** garantir que toda moeda dos países listados esteja disponível ao usuário (ou restringir a lista às moedas que ele tem).
 
 ### Fase 4 — Integração de pagamento
 - [ ] Escolher RevenueCat × expo-iap e definir preço final em `services/compras.ts`.

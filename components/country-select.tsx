@@ -7,6 +7,18 @@ import { filtrarPaises, paisesDisponiveis, type Pais } from '@/constants/paises'
 import type { Paleta } from '@/constants/theme';
 import { useTema } from '@/hooks/use-tema';
 
+// ⚠️ COMPONENTE PRONTO, MAS NÃO EXIBIDO NO APP (ver docs/ROADMAP.md).
+//
+// Foi retirado da tela por duas razões:
+// 1. o catálogo só cobre países das moedas suportadas — para valer a pena, precisaria
+//    ser bem maior;
+// 2. no plano gratuito, selecionar um país cuja moeda é premium (ex.: Japão) faria a
+//    tela dizer "Japão" enquanto o cálculo roda em dólar — o app se contradizendo.
+//
+// Reativar quando as duas coisas forem resolvidas: catálogo ampliado e todas as moedas
+// dos países listados disponíveis (ou o país restrito às moedas que o usuário tem).
+// Continua coberto por testes (core/__tests__/paises.test.ts) para não apodrecer.
+
 // No react-native-web, Modal com animationType nem sempre desmonta ao fechar.
 const ANIMACAO_MODAL = Platform.OS === 'web' ? 'none' : 'slide';
 const ALTURA_ITEM = 56;
