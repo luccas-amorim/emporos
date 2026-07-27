@@ -2,10 +2,9 @@
 
 Histórico das entregas por rodada de desenvolvimento (branches mergeadas em `main`).
 
-## 2026-07-20 — País da compra e tax free (`feature/paises-tax-free`)
-- Campo opcional de **país da compra** com busca tolerante a acentos, lista virtualizada e opção "Outro país" em texto livre (cobre destinos fora do catálogo, como Suíça ou Canadá).
-- O país sugere a moeda local, mas a seleção continua editável; moeda premium não é sugerida a quem não tem acesso.
+## 2026-07-20 — Tax free (`feature/paises-tax-free`)
 - Campo de **tax free** (% que o usuário recupera), visível só no cenário Viagem, abatido do custo com linha própria no detalhamento. A taxa é informada pelo usuário — não mantemos tabela por país, que envelheceria em silêncio.
+- Seletor de países implementado e testado, porém **não exibido**: o catálogo ainda é curto e, no plano gratuito, um país de moeda premium faria a tela contradizer o cálculo. Guardado para reuso (ver ROADMAP).
 - Valores negativos passam a ser formatados como "-R$ 620,32".
 
 ## 2026-07-20 — Modelo freemium (`feature/freemium-gate`)
