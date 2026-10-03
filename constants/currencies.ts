@@ -6,16 +6,15 @@ export interface Currency {
   code: CurrencyCode;
   nome: string;
   bandeira: FlagCode;
-  premium: boolean; // moedas premium ficam disponíveis apenas na versão completa
 }
 
 export const MOEDAS: Currency[] = [
-  { code: 'USD', nome: 'Dólar Americano', bandeira: 'US', premium: false },
-  { code: 'EUR', nome: 'Euro', bandeira: 'EU', premium: false },
-  { code: 'GBP', nome: 'Libra Esterlina', bandeira: 'GB', premium: true },
-  { code: 'JPY', nome: 'Iene Japonês', bandeira: 'JP', premium: true },
-  { code: 'ARS', nome: 'Peso Argentino', bandeira: 'AR', premium: true },
-  { code: 'CLP', nome: 'Peso Chileno', bandeira: 'CL', premium: true },
+  { code: 'USD', nome: 'Dólar Americano', bandeira: 'US' },
+  { code: 'EUR', nome: 'Euro', bandeira: 'EU' },
+  { code: 'GBP', nome: 'Libra Esterlina', bandeira: 'GB' },
+  { code: 'JPY', nome: 'Iene Japonês', bandeira: 'JP' },
+  { code: 'ARS', nome: 'Peso Argentino', bandeira: 'AR' },
+  { code: 'CLP', nome: 'Peso Chileno', bandeira: 'CL' },
 ];
 
 export function moedaPorCodigo(code: CurrencyCode): Currency {

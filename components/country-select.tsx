@@ -3,20 +3,14 @@ import { FlatList, Modal, Platform, StyleSheet, Text, TextInput, TouchableOpacit
 
 import { FlagIcon } from '@/components/flag-icon';
 import { moedaPorCodigo, type CurrencyCode } from '@/constants/currencies';
-import { filtrarPaises, paisesDisponiveis, type Pais } from '@/constants/paises';
+import { filtrarPaises, paisesOrdenados, type Pais } from '@/constants/paises';
 import type { Paleta } from '@/constants/theme';
 import { useTema } from '@/hooks/use-tema';
 
 // ⚠️ COMPONENTE PRONTO, MAS NÃO EXIBIDO NO APP (ver docs/ROADMAP.md).
 //
-// Foi retirado da tela por duas razões:
-// 1. o catálogo só cobre países das moedas suportadas — para valer a pena, precisaria
-//    ser bem maior;
-// 2. no plano gratuito, selecionar um país cuja moeda é premium (ex.: Japão) faria a
-//    tela dizer "Japão" enquanto o cálculo roda em dólar — o app se contradizendo.
-//
-// Reativar quando as duas coisas forem resolvidas: catálogo ampliado e todas as moedas
-// dos países listados disponíveis (ou o país restrito às moedas que o usuário tem).
+// Foi retirado da tela porque o catálogo só cobre países das moedas suportadas — para
+// valer a pena, precisaria ser bem maior. Reativar quando o catálogo for ampliado.
 // Continua coberto por testes (core/__tests__/paises.test.ts) para não apodrecer.
 
 // No react-native-web, Modal com animationType nem sempre desmonta ao fechar.
@@ -28,11 +22,9 @@ interface CountrySelectProps {
   value?: string;
   /** Recebe o nome e, quando o país é conhecido, a moeda a sugerir. */
   onChange: (nome: string, moedaSugerida?: CurrencyCode) => void;
-  premiumDesbloqueado: boolean;
-  aoPedirPremium?: () => void;
 }
 
-export function CountrySelect({ value, onChange, premiumDesbloqueado, aoPedirPremium }: CountrySelectProps) {
+export function CountrySelect({ value, onChange }: CountrySelectProps) {
   const { cores } = useTema();
   const styles = useMemo(() => criarStyles(cores), [cores]);
   const [aberto, setAberto] = useState(false);
@@ -40,7 +32,7 @@ export function CountrySelect({ value, onChange, premiumDesbloqueado, aoPedirPre
   const [digitando, setDigitando] = useState(false);
   const [outroPais, setOutroPais] = useState('');
 
-  const disponiveis = useMemo(() => paisesDisponiveis(premiumDesbloqueado), [premiumDesbloqueado]);
+  const disponiveis = useMemo(() => paisesOrdenados(), []);
   const listados = useMemo(() => filtrarPaises(disponiveis, busca), [disponiveis, busca]);
   // O país pode ter sido digitado à mão, então procuramos pelo nome, não por código.
   const conhecido = disponiveis.find((p) => p.nome === value);
@@ -170,21 +162,6 @@ export function CountrySelect({ value, onChange, premiumDesbloqueado, aoPedirPre
                   accessibilityLabel="Informar outro país">
                   <Text style={styles.outroBotaoTexto}>✏️ Outro país…</Text>
                 </TouchableOpacity>
-
-                {!premiumDesbloqueado && (
-                  <TouchableOpacity
-                    onPress={() => {
-                      fechar();
-                      aoPedirPremium?.();
-                    }}
-                    accessibilityRole="button"
-                    accessibilityLabel="Conhecer a versão completa">
-                    <Text style={styles.avisoPremium}>
-                      🔒 A lista rápida traz os destinos mais buscados.{'\n'}
-                      <Text style={styles.avisoPremiumLink}>Ver a lista completa →</Text>
-                    </Text>
-                  </TouchableOpacity>
-                )}
               </>
             )}
           </View>
@@ -261,15 +238,5 @@ function criarStyles(cores: Paleta) {
       marginTop: 8,
     },
     outroBotaoTexto: { fontSize: 14, color: cores.primary, fontWeight: '600' },
-    avisoPremium: {
-      fontSize: 12,
-      color: cores.warnText,
-      backgroundColor: cores.warnBg,
-      padding: 10,
-      borderRadius: 8,
-      marginTop: 8,
-      textAlign: 'center',
-    },
-    avisoPremiumLink: { fontWeight: 'bold', color: cores.primary },
   });
 }

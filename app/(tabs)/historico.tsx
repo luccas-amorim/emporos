@@ -7,7 +7,6 @@ import { moedaPorCodigo } from '@/constants/currencies';
 import type { Paleta } from '@/constants/theme';
 import { formatarBRL, formatarCotacaoBR, formatarPct } from '@/core/formato';
 import { useHistoricoSimulacoes, type SimulacaoSalva } from '@/hooks/use-historico-simulacoes';
-import { usePremium } from '@/hooks/use-premium';
 import { useTema } from '@/hooks/use-tema';
 
 function formatarData(iso: string): string {
@@ -141,7 +140,6 @@ export default function HistoricoScreen() {
   const styles = useMemo(() => criarStyles(cores), [cores]);
   const router = useRouter();
   const { historico, carregando, removerSimulacao, limparHistorico } = useHistoricoSimulacoes();
-  const { premium, carregado: premiumCarregado, abrirPaywall } = usePremium();
 
   const recalcular = (item: SimulacaoSalva) => {
     router.push({
@@ -162,29 +160,6 @@ export default function HistoricoScreen() {
       },
     });
   };
-
-  if (!premium && premiumCarregado) {
-    return (
-      <View style={styles.container}>
-        <Text style={styles.titulo}>📊 Histórico</Text>
-        <View style={styles.pitchBox}>
-          <Text style={styles.pitchEmoji}>🔒</Text>
-          <Text style={styles.pitchTitulo}>Guarde suas simulações</Text>
-          <Text style={styles.pitchTexto}>
-            Na versão completa, cada cálculo fica salvo com o nome do produto, o link, sua observação e
-            a cotação do dia — dá para recalcular com as taxas de hoje e comparar quando o câmbio mudar.
-          </Text>
-          <TouchableOpacity
-            style={styles.pitchBotao}
-            onPress={abrirPaywall}
-            accessibilityRole="button"
-            accessibilityLabel="Conhecer a versão completa">
-            <Text style={styles.pitchBotaoTexto}>Conhecer a versão completa</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    );
-  }
 
   return (
     <View style={styles.container}>
@@ -229,12 +204,6 @@ function criarStyles(cores: Paleta) {
     titulo: { fontSize: 26, fontWeight: 'bold', color: cores.primary },
     limparTexto: { color: cores.danger, fontWeight: '600' },
     vazio: { color: cores.subtext, fontSize: 14, textAlign: 'center', marginTop: 40 },
-    pitchBox: { backgroundColor: cores.card, borderRadius: 12, padding: 24, marginTop: 24, alignItems: 'center', borderWidth: 1, borderColor: cores.borderSoft },
-    pitchEmoji: { fontSize: 40, marginBottom: 12 },
-    pitchTitulo: { fontSize: 18, fontWeight: 'bold', color: cores.text, marginBottom: 8, textAlign: 'center' },
-    pitchTexto: { fontSize: 14, color: cores.subtext, textAlign: 'center', lineHeight: 20, marginBottom: 18 },
-    pitchBotao: { backgroundColor: cores.primary, borderRadius: 10, paddingVertical: 12, paddingHorizontal: 24 },
-    pitchBotaoTexto: { color: cores.card, fontWeight: 'bold', fontSize: 14 },
     lista: { paddingBottom: 40 },
     card: { backgroundColor: cores.card, padding: 15, borderRadius: 12, marginBottom: 12, borderWidth: 1 },
     cardBr: { borderColor: cores.successBorder },

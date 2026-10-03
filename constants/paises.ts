@@ -40,16 +40,12 @@ export const PAISES: Pais[] = [
   { codigo: 'GB', nome: 'Reino Unido', moeda: 'GBP' },
 ];
 
-// Destinos disponíveis na versão gratuita (os mais buscados por brasileiros).
-export const PAISES_GRATUITOS = ['US', 'FR', 'IT', 'ES', 'PT', 'JP'];
-
 export function paisPorCodigo(codigo: string): Pais | undefined {
   return PAISES.find((p) => p.codigo === codigo);
 }
 
-export function paisesDisponiveis(premium: boolean): Pais[] {
-  const lista = premium ? PAISES : PAISES.filter((p) => PAISES_GRATUITOS.includes(p.codigo));
-  return [...lista].sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
+export function paisesOrdenados(): Pais[] {
+  return [...PAISES].sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
 }
 
 // Busca tolerante: ignora acentos e caixa, casando por nome do país ou sigla da moeda.

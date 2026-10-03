@@ -31,9 +31,7 @@ import {
   parseNumeroLocal,
 } from '@/core/calculadora';
 import { formatarBRL, formatarCotacaoBR, formatarPct } from '@/core/formato';
-import { LIMITE_CALCULOS_GRATIS, useContadorCalculos } from '@/hooks/use-contador-calculos';
 import { useHistoricoSimulacoes } from '@/hooks/use-historico-simulacoes';
-import { usePremium } from '@/hooks/use-premium';
 import { useTema } from '@/hooks/use-tema';
 import { carregarDadosMercado, type DadosMercado, descreverIdade } from '@/services/mercado';
 
@@ -78,8 +76,6 @@ export default function App() {
   const [resultado, setResultado] = useState<CalculoResultado | null>(null);
 
   const { adicionarSimulacao } = useHistoricoSimulacoes();
-  const { premium, carregado: premiumCarregado, abrirPaywall } = usePremium();
-  const contador = useContadorCalculos();
   const moedaRestaurada = React.useRef(false);
 
   const buscarDados = useCallback(async () => {
@@ -91,14 +87,11 @@ export default function App() {
     buscarDados();
   }, [buscarDados]);
 
-  // Restaura a última moeda escolhida (respeitando o gate premium) e passa a
-  // persistir as trocas seguintes.
+  // Restaura a última moeda escolhida e passa a persistir as trocas seguintes.
   useEffect(() => {
-    if (!premiumCarregado || moedaRestaurada.current) return;
     AsyncStorage.getItem(CHAVE_MOEDA)
       .then((salva) => {
-        const valida = salva && CODIGOS_MOEDA.includes(salva as CurrencyCode);
-        if (valida && (premium || !moedaPorCodigo(salva as CurrencyCode).premium)) {
+        if (salva && CODIGOS_MOEDA.includes(salva as CurrencyCode)) {
           setMoeda(salva as CurrencyCode);
         }
       })
@@ -106,7 +99,7 @@ export default function App() {
       .finally(() => {
         moedaRestaurada.current = true;
       });
-  }, [premiumCarregado, premium]);
+  }, []);
 
   useEffect(() => {
     if (!moedaRestaurada.current) return;
@@ -143,15 +136,9 @@ export default function App() {
   const valPrecoBRTotal = modoBR === 'parcela' ? valEntradaBR * valParcelasBR : valEntradaBR;
   const valPrecoExt = parseNumeroLocal(precoExt);
   const podeCalcular = !!dados && valPrecoBRTotal > 0 && valPrecoExt > 0;
-  // Esgotou a cota gratuita: o botão passa a levar à paywall em vez de calcular.
-  const bloqueadoPorLimite = !premium && premiumCarregado && contador.carregado && contador.atingiuLimite;
 
   const calcular = () => {
     if (!dados || !podeCalcular) return;
-    if (bloqueadoPorLimite) {
-      abrirPaywall();
-      return;
-    }
 
     const valSpread = parseNumeroLocal(spread);
     const valFrete = cenario === 'Encomenda' ? parseNumeroLocal(freteExt) : 0;
@@ -174,12 +161,6 @@ export default function App() {
     });
 
     setResultado(novoResultado);
-
-    // Histórico é recurso premium; na versão gratuita apenas consumimos a cota.
-    if (!premium) {
-      contador.registrar();
-      return;
-    }
 
     adicionarSimulacao({
       nomeProduto: nomeProduto.trim() || undefined,
@@ -393,12 +374,7 @@ export default function App() {
           <View style={styles.row}>
             <View style={{ flex: 1.4 }}>
               <Text style={styles.label}>Moeda</Text>
-              <CurrencySelect
-                value={moeda}
-                onChange={setMoeda}
-                premiumDesbloqueado={premium}
-                aoPedirPremium={abrirPaywall}
-              />
+              <CurrencySelect value={moeda} onChange={setMoeda} />
             </View>
 
             <View style={{ flex: 1 }}>
@@ -497,39 +473,16 @@ export default function App() {
           />
         </View>
 
-        {bloqueadoPorLimite ? (
-          <TouchableOpacity
-            style={styles.calcButton}
-            onPress={abrirPaywall}
-            accessibilityRole="button"
-            accessibilityLabel="Desbloquear cálculos ilimitados">
-            <Text style={styles.calcButtonText}>🔓 DESBLOQUEAR</Text>
-          </TouchableOpacity>
-        ) : (
-          <TouchableOpacity
-            style={[styles.calcButton, !podeCalcular && styles.calcButtonDisabled]}
-            onPress={calcular}
-            disabled={!podeCalcular}
-            accessibilityRole="button"
-            accessibilityLabel="Calcular comparação"
-            accessibilityState={{ disabled: !podeCalcular }}>
-            <Text style={styles.calcButtonText}>CALCULAR</Text>
-          </TouchableOpacity>
-        )}
-        {bloqueadoPorLimite ? (
-          <Text style={styles.hintCota}>
-            Você usou seus {LIMITE_CALCULOS_GRATIS} cálculos gratuitos. Desbloqueie para cálculos
-            ilimitados, histórico e todas as moedas.
-          </Text>
-        ) : (
-          !premium &&
-          contador.carregado && (
-            <Text style={styles.hintCota}>
-              🎁 {contador.restantes} de {LIMITE_CALCULOS_GRATIS} cálculos gratuitos restantes
-            </Text>
-          )
-        )}
-        {!podeCalcular && dados && !bloqueadoPorLimite && (
+        <TouchableOpacity
+          style={[styles.calcButton, !podeCalcular && styles.calcButtonDisabled]}
+          onPress={calcular}
+          disabled={!podeCalcular}
+          accessibilityRole="button"
+          accessibilityLabel="Calcular comparação"
+          accessibilityState={{ disabled: !podeCalcular }}>
+          <Text style={styles.calcButtonText}>CALCULAR</Text>
+        </TouchableOpacity>
+        {!podeCalcular && dados && (
           <Text style={styles.hintValidacao}>Preencha o preço no Brasil e no exterior para comparar.</Text>
         )}
 
@@ -576,13 +529,7 @@ export default function App() {
           </View>
         )}
 
-        {ALERTAS_CAMBIO_ATIVO && (
-          <AlertasCambio
-            premium={premium}
-            aoPedirPremium={abrirPaywall}
-            cotacoes={dados?.cotacoes ?? null}
-          />
-        )}
+        {ALERTAS_CAMBIO_ATIVO && <AlertasCambio cotacoes={dados?.cotacoes ?? null} />}
 
         <Text style={styles.disclaimer}>
           O Vale importar? é uma ferramenta de estimativa e não constitui recomendação financeira. Impostos,
@@ -628,7 +575,6 @@ function criarStyles(cores: Paleta) {
     calcButtonDisabled: { opacity: 0.4 },
     calcButtonText: { color: cores.card, fontSize: 18, fontWeight: 'bold' },
     hintValidacao: { fontSize: 12, color: cores.muted, marginBottom: 12, textAlign: 'center' },
-    hintCota: { fontSize: 12, color: cores.subtext, marginBottom: 12, textAlign: 'center' },
 
     resultBox: { width: '100%', padding: 20, borderRadius: 12, marginTop: 12, marginBottom: 10, borderWidth: 1 },
     resBr: { backgroundColor: cores.successBg, borderColor: cores.successBorder },

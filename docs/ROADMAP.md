@@ -4,37 +4,35 @@ Documento vivo de acompanhamento. Marque os checkboxes conforme avançar. O que 
 
 ---
 
-## 1. Modelo de produto (free × premium)
+## 1. Modelo de produto (gratuito, mantido por doações)
 
-| Recurso | Grátis | Premium (compra única R$ 4,99) |
-| --- | --- | --- |
-| Cálculos | Até **5** no total | Ilimitados |
-| Moedas | USD e EUR | + GBP, JPY, ARS, CLP (e futuras) |
-| Histórico de simulações | ❌ | ✅ |
-| País da compra + tax free | Lista curta (EUA, França, Itália, Espanha…) | Lista completa |
-| Alertas de câmbio | ❌ | ✅ (quando lançados) |
+Decidido em 02/10/2026: o app será publicado **de graça** nas duas lojas, com **todos os recursos para todos** — cálculos ilimitados, todas as moedas, histórico e alertas de câmbio (quando lançados). Sem anúncios, sem compras dentro do app, sem cadastro. O código é aberto sob licença **MIT**.
 
-> **Nota do contador de cálculos:** o limite de 5 fica no aparelho (AsyncStorage). Um usuário pode desinstalar/reinstalar para zerar — tolerável para R$ 4,99; blindar exigiria servidor.
+- **Custos de publicação:** Apple US$ 99/ano + Google US$ 25 (taxa única) ≈ **US$ 125** no primeiro ano.
+- **Financiamento:** doações via [GitHub Sponsors](https://github.com/sponsors/luccas-amorim) e [PIX](https://luccas-amorim.github.io/apoie/), divulgadas no README e no `.github/FUNDING.yml`.
+- **Nada de doação dentro do app:** as diretrizes 3.2.1/3.2.2 da Apple proíbem pedir doações no app a quem não é organização sem fins lucrativos registrada. Não adicionar botão, link nem texto de apoio na UI.
+
+> O modelo freemium anterior (5 cálculos grátis, histórico e moedas extras pagos por compra única) foi removido na v2.1.0 — ver [CHANGELOG.md](../CHANGELOG.md).
 
 ---
 
 ## 2. Arquitetura de infraestrutura (decidido)
 
 - **Servidor próprio:** não é necessário. Câmbio (AwesomeAPI) e Selic (BCB) são APIs públicas de terceiros; o cálculo é local. Custo mensal de infra ≈ R$ 0.
-- **Banco de dados:** não. Histórico e preferências ficam no aparelho (AsyncStorage); "quem pagou" fica na loja.
-- **Liberação do pagante:** produto **não-consumível** (IAP). A identidade é a conta Google/Apple já logada no celular — sem conta/login próprios. "Restaurar compras" recupera o acesso em troca de aparelho/reinstalação.
-- **Validação de compra:** recomendado **RevenueCat** (SDK que unifica Play + App Store, valida recibos no servidor deles, grátis até US$ 2.500/mês de receita — sem servidor seu). Alternativa: `expo-iap` (validação no app, mais simples, falsificável por root — tolerável para o preço).
+- **Banco de dados:** não. Histórico e preferências ficam no aparelho (AsyncStorage).
+- **Pagamentos:** nenhum. Sem IAP, o app não precisa de Paid Apps Agreement, Google Play Billing nem validação de recibos.
 - **LGPD:** como nada sai do aparelho, o app não coleta dados pessoais — simplifica o formulário de privacidade das lojas.
 
 ---
 
 ## 3. Fases de desenvolvimento pendentes
 
-### Fase 2 — Novo modelo freemium ✅ concluída
-- [x] Contador de cálculos (hook + AsyncStorage), gate em 5 no grátis.
-- [x] Travar aba/salvamento de Histórico no grátis (pitch premium no lugar).
-- [x] Paywall disparada ao atingir o 5º cálculo e ao tocar em recurso premium.
-- [x] Ajustar a paywall para listar os benefícios do novo modelo.
+### Fase 2 — App gratuito e código aberto ✅ concluída
+- [x] Remover paywall, cota de cálculos, gate de histórico/moedas/alertas e camada de compras.
+- [x] Licença MIT, `.github/FUNDING.yml` e seção "Apoie" no README.
+- [x] Política de privacidade revisada (`docs/POLITICA-DE-PRIVACIDADE.md`).
+- [ ] Publicar o texto revisado no gist da política de privacidade (URL usada nas lojas).
+- [ ] Tornar o repositório público (o botão "Sponsor" do `FUNDING.yml` só aparece em repositório público).
 
 ### Fase 3 — Tax free ✅ concluída
 - [x] Campo de tax free (% que o usuário recupera) informado por ele, visível apenas no cenário Viagem, abatido do custo com linha própria no detalhamento.
@@ -44,16 +42,9 @@ Documento vivo de acompanhamento. Marque os checkboxes conforme avançar. O que 
 ### 🧊 Guardado para reuso: seletor de países
 `components/country-select.tsx` + `constants/paises.ts` estão prontos e testados, mas **não são exibidos**. Trazem dropdown com busca tolerante a acentos, lista virtualizada e opção "Outro país" em texto livre.
 
-Foi retirado da tela porque:
-1. o catálogo cobre apenas países das moedas suportadas — para ser útil, precisaria de uma lista bem maior;
-2. no plano gratuito, escolher um país de moeda premium (ex.: Japão) faria a tela exibir "Japão" enquanto o cálculo rodaria em dólar — informação conflitante.
+Foi retirado da tela porque o catálogo cobre apenas países das moedas suportadas — para ser útil, precisaria de uma lista bem maior. (O segundo motivo, um país de moeda premium contradizendo o cálculo no plano gratuito, deixou de existir com o fim do freemium.)
 
-Para reativar: ampliar o catálogo **e** garantir que toda moeda dos países listados esteja disponível ao usuário (ou restringir a lista às moedas que ele tem).
-
-### Fase 4 — Integração de pagamento
-- [ ] Escolher RevenueCat × expo-iap e definir preço final em `services/compras.ts`.
-- [ ] Criar produto não-consumível nas duas lojas e conectar `comprarVersaoCompleta()`/`restaurarCompras()`.
-- [ ] Testar compra em faixa de teste (sandbox) nas duas plataformas.
+Para reativar: ampliar o catálogo.
 
 ---
 
@@ -66,7 +57,8 @@ O código já é multiplataforma; os builds saem da nuvem via **EAS Build** (`ea
 - [ ] **Ícone 1024×1024** (sem transparência, para as fichas das lojas).
 - [ ] **Screenshots** por dispositivo (telas claras e escuras; destacar o breakdown de impostos como diferencial).
 - [ ] **Textos da ficha:** nome ("Vale importar?"), descrição curta e longa, palavras-chave. PT-BR obrigatório; EN opcional.
-- [ ] **Política de privacidade (URL)** — já existe (gist). Confirmar que reflete "nenhum dado sai do aparelho".
+- [ ] **Política de privacidade (URL)** — gist em `gist.github.com/luccas-amorim/b2fee294fdd1c734825f064f8cb2cc79`. Atualizar com o texto de `docs/POLITICA-DE-PRIVACIDADE.md` (o atual ainda cita Frankfurter API e links de afiliados).
+- [ ] **Links de doação fora do app:** README e página de apoio. Na ficha da App Store, preferir apontar só para o repositório — a Apple também revisa os textos da ficha.
 - [ ] **Classificação etária** (questionário) — o app não tem conteúdo sensível.
 
 ### 4b. Google Play (Android)
@@ -77,32 +69,28 @@ Requisitos e ordem:
 - [ ] Formulário **Data Safety** (declarar que não coleta dados).
 - [ ] **Target API level** atual (Android 14 / API 34+) — o SDK 54 já atende.
 - [ ] Build **.aab**: `eas build -p android --profile production`.
-- [ ] IAP: criar produto gerenciado (não-consumível) no Console; ativar Google Play Billing.
 - [ ] Envio: `eas submit -p android` → faixa de teste → produção após os 14 dias.
 
 ### 4c. App Store (iOS/Apple)
 Requisitos e ordem:
 - [ ] **Apple Developer Program** — **US$ 99/ano** (recorrente). Inscrição como indivíduo é mais rápida; empresa exige D-U-N-S.
 - [ ] **App Store Connect:** criar o app, ficha, screenshots por tamanho de tela, **App Privacy** (nutrition labels — "não coleta dados").
-- [ ] **Paid Apps Agreement** + dados bancários/fiscais (necessário para IAP).
 - [ ] Build **.ipa**: `eas build -p ios --profile production` (na nuvem; EAS gerencia certificados — **sem Mac**).
-- [ ] IAP: criar produto não-consumível no App Store Connect; StoreKit.
 - [ ] Envio: `eas submit -p ios` → **revisão humana da Apple** (1–3 dias; mais rigorosa, pode pedir ajustes).
 
 ### 4d. Cronograma sugerido
 1. Ícone + assets + textos (comum).
-2. Abrir contas nas duas lojas (identidade Google + inscrição Apple podem levar dias).
+2. Arrecadar a meta (~US$ 125) e abrir contas nas duas lojas (identidade Google + inscrição Apple podem levar dias).
 3. **Iniciar o teste fechado do Android imediatamente** (relógio de 14 dias correndo).
 4. Em paralelo: submeter iOS para revisão.
-5. Integrar IAP e testar em sandbox nas duas.
-6. Publicar produção assim que Android cumprir os 14 dias e Apple aprovar.
+5. Publicar produção assim que Android cumprir os 14 dias e Apple aprovar.
 
 ---
 
 ## 5. Pós-lançamento
 - [ ] **Ativar alertas de câmbio** — `ALERTAS_CAMBIO_ATIVO = true` em `constants/feature-flags.ts`.
 - [ ] **Push notifications** de alertas via EAS (`expo-notifications` + credenciais).
-- [ ] **Mais moedas premium** — `constants/currencies.ts` + bandeira em `components/flag-icon.tsx`.
+- [ ] **Mais moedas** — `constants/currencies.ts` + bandeira em `components/flag-icon.tsx`.
 - [ ] **Histórico de cotação com gráfico** ("melhor momento para comprar").
 - [ ] **Backup opcional** do histórico no iCloud/Google Drive do próprio usuário (sem servidor seu).
 

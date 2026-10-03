@@ -11,15 +11,13 @@ import { useTema } from '@/hooks/use-tema';
 import { type DirecaoAlerta, verificarAlertas } from '@/services/alertas';
 
 interface AlertasCambioProps {
-  premium: boolean;
-  aoPedirPremium: () => void;
   cotacoes: Partial<Record<CurrencyCode, number>> | null;
 }
 
 // Card de alertas de câmbio. Fica atrás de ALERTAS_CAMBIO_ATIVO (feature flag) até o
 // app ser aprovado na loja; o disparo em foreground acontece na Home, e o push via
 // EAS entra numa etapa futura sem mudar esta UI.
-export function AlertasCambio({ premium, aoPedirPremium, cotacoes }: AlertasCambioProps) {
+export function AlertasCambio({ cotacoes }: AlertasCambioProps) {
   const { cores } = useTema();
   const styles = useMemo(() => criarStyles(cores), [cores]);
   const { alertas, adicionarAlerta, removerAlerta } = useAlertasCambio();
@@ -28,27 +26,8 @@ export function AlertasCambio({ premium, aoPedirPremium, cotacoes }: AlertasCamb
   const [alvo, setAlvo] = useState('');
   const [direcao, setDirecao] = useState<DirecaoAlerta>('abaixo');
 
-  const moedasDisponiveis = MOEDAS.filter((m) => premium || !m.premium);
   const valAlvo = parseNumeroLocal(alvo);
   const disparados = cotacoes ? verificarAlertas(alertas, cotacoes) : [];
-
-  if (!premium) {
-    return (
-      <View style={styles.card}>
-        <Text style={styles.sectionTitle}>🎯 Alertas de câmbio</Text>
-        <Text style={styles.pitch}>
-          Defina um alvo de cotação e saiba a hora certa de comprar. Disponível na versão completa.
-        </Text>
-        <TouchableOpacity
-          style={styles.botaoPitch}
-          onPress={aoPedirPremium}
-          accessibilityRole="button"
-          accessibilityLabel="Conhecer a versão completa">
-          <Text style={styles.botaoPitchTexto}>Conhecer a versão completa</Text>
-        </TouchableOpacity>
-      </View>
-    );
-  }
 
   return (
     <View style={styles.card}>
@@ -63,7 +42,7 @@ export function AlertasCambio({ premium, aoPedirPremium, cotacoes }: AlertasCamb
 
       <View style={styles.formRow}>
         <View style={styles.moedasRow}>
-          {moedasDisponiveis.map((m) => (
+          {MOEDAS.map((m) => (
             <TouchableOpacity
               key={m.code}
               style={[styles.moedaChip, moeda === m.code && styles.moedaChipAtiva]}
@@ -142,10 +121,7 @@ function criarStyles(cores: Paleta) {
   return StyleSheet.create({
     card: { backgroundColor: cores.card, width: '100%', padding: 15, borderRadius: 12, marginBottom: 15, shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 5, elevation: 2 },
     sectionTitle: { fontSize: 16, fontWeight: 'bold', color: cores.text, marginBottom: 10, borderBottomWidth: 1, borderBottomColor: cores.borderSoft, paddingBottom: 5 },
-    pitch: { fontSize: 13, color: cores.subtext, lineHeight: 19, marginBottom: 12 },
     disparado: { fontSize: 13, color: cores.success, backgroundColor: cores.successBg, padding: 10, borderRadius: 8, marginBottom: 8, fontWeight: '600' },
-    botaoPitch: { backgroundColor: cores.primarySoft, borderRadius: 8, padding: 12, alignItems: 'center' },
-    botaoPitchTexto: { color: cores.primary, fontWeight: 'bold', fontSize: 14 },
     formRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 10, flexWrap: 'wrap' },
     moedasRow: { flexDirection: 'row', gap: 6, flexWrap: 'wrap' },
     moedaChip: { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: cores.border, borderRadius: 14, paddingHorizontal: 10, paddingVertical: 5, backgroundColor: cores.optionBg },
