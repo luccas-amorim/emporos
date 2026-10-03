@@ -1,14 +1,8 @@
-import { filtrarPaises, PAISES, PAISES_GRATUITOS, paisesDisponiveis, paisPorCodigo } from '@/constants/paises';
+import { filtrarPaises, PAISES, paisesOrdenados, paisPorCodigo } from '@/constants/paises';
 
 describe('catálogo de países', () => {
-  it('lista apenas os destinos gratuitos fora do premium', () => {
-    const gratis = paisesDisponiveis(false);
-    expect(gratis).toHaveLength(PAISES_GRATUITOS.length);
-    expect(gratis.length).toBeLessThan(PAISES.length);
-  });
-
-  it('devolve a lista completa em ordem alfabética no premium', () => {
-    const todos = paisesDisponiveis(true);
+  it('devolve a lista completa em ordem alfabética', () => {
+    const todos = paisesOrdenados();
     expect(todos).toHaveLength(PAISES.length);
     const nomes = todos.map((p) => p.nome);
     expect(nomes).toEqual([...nomes].sort((a, b) => a.localeCompare(b, 'pt-BR')));
@@ -31,7 +25,7 @@ describe('catálogo de países', () => {
 });
 
 describe('filtrarPaises', () => {
-  const lista = paisesDisponiveis(true);
+  const lista = paisesOrdenados();
 
   it('ignora acentos e caixa na busca', () => {
     expect(filtrarPaises(lista, 'japao').map((p) => p.codigo)).toContain('JP');

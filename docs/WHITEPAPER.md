@@ -16,8 +16,8 @@ A decisão raramente é óbvia. Envolve variáveis complexas: taxa de câmbio vo
 O aplicativo **"Vale Importar?"** não é apenas um comparador de preços. É uma calculadora financeira de **Valor Presente Líquido (VPL)** que automatiza a tomada de decisão. Ele nivela as duas opções de compra para a data presente (t=0), permitindo uma comparação matematicamente justa.
 
 ### Modelo de Negócio
-1.  **Utilidade Gratuita:** Ferramenta de alta precisão para atrair tráfego qualificado.
-2.  **Monetização (Ads/Affiliates):** Integração nativa com parceiros financeiros (Wise, Nomad, Western Union), gerando receita por conversão ou *brand awareness*.
+1.  **Gratuito e completo:** todos os recursos e moedas para todos, sem anúncios, sem links de afiliados e sem compras dentro do app.
+2.  **Código aberto (MIT), mantido por doações:** os custos de publicação nas lojas são cobertos por apoio voluntário via GitHub Sponsors e PIX, divulgados apenas fora do app — nunca dentro dele.
 
 ---
 
