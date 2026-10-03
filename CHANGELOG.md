@@ -4,11 +4,12 @@ Histórico das entregas por rodada de desenvolvimento (branches mergeadas em `ma
 
 ## 2026-10-02 — v2.1.0 · App gratuito e código aberto (`feature/app-gratuito-mit`)
 - **Fim do modelo freemium:** o app passa a ser publicado de graça, financiado por doações. Removidos a paywall, a camada de compras (`services/compras.ts`), o contexto premium (`hooks/use-premium.tsx`) e a cota de 5 cálculos (`hooks/use-contador-calculos.ts`).
-- **Tudo liberado para todos:** cálculos ilimitados, histórico de simulações, todas as moedas (GBP, JPY, ARS e CLP sem cadeado) e alertas de câmbio sem gate (a feature flag de lançamento continua desligada).
+- **Tudo liberado para todos:** cálculos ilimitados, histórico de simulações, todas as moedas (GBP, JPY, ARS e CLP sem cadeado) e **alertas de câmbio ativados** (`ALERTAS_CAMBIO_ATIVO = true`), com aviso em foreground na Home.
 - **Sem doação dentro do app**, por causa das diretrizes 3.2.1/3.2.2 da Apple: os links de apoio ficam no README e no `.github/FUNDING.yml` (GitHub Sponsors + PIX).
-- **Licença MIT** no lugar da licença proprietária.
+- **Licença MIT** (Copyright (c) 2026 Luccas de Amorim) no lugar da licença proprietária.
 - README reescrito: o app é descrito como calculadora de decisão de compra, com aviso de que os resultados são estimativas e não aconselhamento financeiro, tributário ou de investimento, e com a seção "Apoie" (meta de ~US$ 125 para publicar nas duas lojas).
-- Link da política de privacidade corrigido para o novo usuário do GitHub (`luccas-amorim`) e texto revisado em `docs/POLITICA-DE-PRIVACIDADE.md` (APIs atuais, dados salvos só no aparelho, sem afiliados nem compras).
+- Link da política de privacidade corrigido para o novo usuário do GitHub (`luccas-amorim`); texto revisado (APIs atuais, dados salvos só no aparelho, sem afiliados nem compras) publicado no gist e versionado em `docs/POLITICA-DE-PRIVACIDADE.md`.
+- **Correção — "Recalcular hoje":** o tax free da simulação não voltava para a Home, e campos opcionais vazios (frete, tax free, nome, link, observação) herdavam os valores da simulação que estava na tela. Os parâmetros agora são montados por `paramsRecalculo()`, com testes.
 
 ## 2026-07-20 — Tax free (`feature/paises-tax-free`)
 - Campo de **tax free** (% que o usuário recupera), visível só no cenário Viagem, abatido do custo com linha própria no detalhamento. A taxa é informada pelo usuário — não mantemos tabela por país, que envelheceria em silêncio.

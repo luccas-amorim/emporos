@@ -6,7 +6,7 @@ import { FlagIcon } from '@/components/flag-icon';
 import { moedaPorCodigo } from '@/constants/currencies';
 import type { Paleta } from '@/constants/theme';
 import { formatarBRL, formatarCotacaoBR, formatarPct } from '@/core/formato';
-import { useHistoricoSimulacoes, type SimulacaoSalva } from '@/hooks/use-historico-simulacoes';
+import { paramsRecalculo, useHistoricoSimulacoes, type SimulacaoSalva } from '@/hooks/use-historico-simulacoes';
 import { useTema } from '@/hooks/use-tema';
 
 function formatarData(iso: string): string {
@@ -144,20 +144,7 @@ export default function HistoricoScreen() {
   const recalcular = (item: SimulacaoSalva) => {
     router.push({
       pathname: '/',
-      params: {
-        prefill: String(Date.now()),
-        precoBR: String(item.precoBR),
-        parcelasBR: String(item.parcelasBR),
-        precoExt: String(item.precoExt),
-        freteExt: item.freteExt ? String(item.freteExt) : '',
-        moeda: item.moeda,
-        pgto: item.pgto,
-        spread: String(item.spread),
-        cenario: item.cenario ?? 'Viagem',
-        nomeProduto: item.nomeProduto ?? '',
-        link: item.link ?? '',
-        observacao: item.observacao ?? '',
-      },
+      params: { prefill: String(Date.now()), ...paramsRecalculo(item) },
     });
   };
 

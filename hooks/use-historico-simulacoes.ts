@@ -30,6 +30,25 @@ export interface SimulacaoSalva {
   selicAnual?: number;
 }
 
+// Parâmetros do "Recalcular hoje" (Histórico → Home). Todo campo vai preenchido, mesmo
+// vazio: a Home aplica todos, para não herdar valores da simulação que estava na tela.
+export function paramsRecalculo(item: SimulacaoSalva): Record<string, string> {
+  return {
+    precoBR: String(item.precoBR),
+    parcelasBR: String(item.parcelasBR),
+    precoExt: String(item.precoExt),
+    freteExt: item.freteExt ? String(item.freteExt) : '',
+    moeda: item.moeda,
+    pgto: item.pgto,
+    spread: String(item.spread),
+    cenario: item.cenario ?? 'Viagem',
+    taxFree: item.taxFreePct ? String(item.taxFreePct) : '',
+    nomeProduto: item.nomeProduto ?? '',
+    link: item.link ?? '',
+    observacao: item.observacao ?? '',
+  };
+}
+
 const STORAGE_KEY = '@vale_importar:historico_simulacoes';
 const LIMITE_HISTORICO = 50;
 

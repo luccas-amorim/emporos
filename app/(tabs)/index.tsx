@@ -106,21 +106,22 @@ export default function App() {
     AsyncStorage.setItem(CHAVE_MOEDA, moeda).catch(() => {});
   }, [moeda]);
 
-  // Prefill vindo do Histórico ("Recalcular hoje").
+  // Prefill vindo do Histórico ("Recalcular hoje"). Os campos opcionais são aplicados
+  // mesmo vazios, para não herdar valores da simulação que estava na tela.
   useEffect(() => {
     if (!params.prefill) return;
     if (params.precoBR) setValorBR(params.precoBR);
     if (params.parcelasBR) setParcelasBR(params.parcelasBR);
     if (params.precoExt) setPrecoExt(params.precoExt);
-    if (params.freteExt) setFreteExt(params.freteExt);
+    setFreteExt(params.freteExt ?? '');
     if (params.moeda) setMoeda(params.moeda as CurrencyCode);
     if (params.pgto) setPgto(params.pgto as FormaPagamento);
     if (params.spread) setSpread(params.spread);
     if (params.cenario) setCenario(params.cenario as Cenario);
-    if (params.taxFree) setTaxFree(params.taxFree);
-    if (params.nomeProduto) setNomeProduto(params.nomeProduto);
-    if (params.link) setLink(params.link);
-    if (params.observacao) setObservacao(params.observacao);
+    setTaxFree(params.taxFree ?? '');
+    setNomeProduto(params.nomeProduto ?? '');
+    setLink(params.link ?? '');
+    setObservacao(params.observacao ?? '');
     setModoBR('total');
     setResultado(null);
   }, [params.prefill]); // eslint-disable-line react-hooks/exhaustive-deps

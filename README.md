@@ -56,11 +56,11 @@ Se o app te ajudou a decidir uma compra, considere apoiar:
 ## 🔒 Licença
 Distribuído sob a **Licença MIT** — você pode usar, copiar, modificar e redistribuir o código, desde que mantenha o aviso de copyright. Texto completo em [LICENSE](LICENSE).
 
-Copyright (c) 2025 Luccas de Amorim.
+Copyright (c) 2026 Luccas de Amorim.
 
 ## ⚖️ Privacidade
 * **Política de Privacidade:** [Clique aqui para ler](https://gist.github.com/luccas-amorim/b2fee294fdd1c734825f064f8cb2cc79)
 * Nenhum dado sai do aparelho: histórico e preferências ficam salvos apenas localmente.
 
 ---
-Desenvolvido por **Luccas de Amorim Rêgo Cavicchioli**.
+Desenvolvido por **Luccas de Amorim**.

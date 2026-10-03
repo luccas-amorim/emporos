@@ -14,9 +14,8 @@ interface AlertasCambioProps {
   cotacoes: Partial<Record<CurrencyCode, number>> | null;
 }
 
-// Card de alertas de câmbio. Fica atrás de ALERTAS_CAMBIO_ATIVO (feature flag) até o
-// app ser aprovado na loja; o disparo em foreground acontece na Home, e o push via
-// EAS entra numa etapa futura sem mudar esta UI.
+// Card de alertas de câmbio, exibido na Home enquanto ALERTAS_CAMBIO_ATIVO estiver ligado.
+// O disparo acontece em foreground; o push via EAS entra numa etapa futura sem mudar esta UI.
 export function AlertasCambio({ cotacoes }: AlertasCambioProps) {
   const { cores } = useTema();
   const styles = useMemo(() => criarStyles(cores), [cores]);
