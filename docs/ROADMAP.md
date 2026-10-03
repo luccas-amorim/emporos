@@ -31,7 +31,7 @@ Decidido em 02/10/2026: o app será publicado **de graça** nas duas lojas, com 
 - [x] Remover paywall, cota de cálculos, gate de histórico/moedas/alertas e camada de compras.
 - [x] Licença MIT, `.github/FUNDING.yml` e seção "Apoie" no README.
 - [x] Política de privacidade revisada (`docs/POLITICA-DE-PRIVACIDADE.md`).
-- [ ] Publicar o texto revisado no gist da política de privacidade (URL usada nas lojas).
+- [x] Publicar o texto revisado no gist da política de privacidade (URL usada nas lojas).
 - [x] Tornar o repositório público (o botão "Sponsor" do `FUNDING.yml` só aparece em repositório público).
 - [x] Ativar os alertas de câmbio para todos (`ALERTAS_CAMBIO_ATIVO = true`).
 
@@ -58,7 +58,7 @@ O código já é multiplataforma; os builds saem da nuvem via **EAS Build** (`ea
 - [ ] **Ícone 1024×1024** (sem transparência, para as fichas das lojas).
 - [ ] **Screenshots** por dispositivo (telas claras e escuras; destacar o breakdown de impostos como diferencial).
 - [ ] **Textos da ficha:** nome ("Vale importar?"), descrição curta e longa, palavras-chave. PT-BR obrigatório; EN opcional.
-- [ ] **Política de privacidade (URL)** — gist em `gist.github.com/luccas-amorim/b2fee294fdd1c734825f064f8cb2cc79`. Substituir pelo texto de `docs/POLITICA-DE-PRIVACIDADE.md` (o atual ainda cita Frankfurter API e links de afiliados); depois, ao alterar um, alterar o outro.
+- [x] **Política de privacidade (URL)** — gist em `gist.github.com/luccas-amorim/b2fee294fdd1c734825f064f8cb2cc79`, com o mesmo texto de `docs/POLITICA-DE-PRIVACIDADE.md`. Ao alterar um, alterar o outro.
 - [ ] **Links de doação fora do app:** README e página de apoio. Na ficha da App Store, preferir apontar só para o repositório — a Apple também revisa os textos da ficha.
 - [ ] **Classificação etária** (questionário) — o app não tem conteúdo sensível.
 

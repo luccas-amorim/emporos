@@ -8,7 +8,7 @@ Histórico das entregas por rodada de desenvolvimento (branches mergeadas em `ma
 - **Sem doação dentro do app**, por causa das diretrizes 3.2.1/3.2.2 da Apple: os links de apoio ficam no README e no `.github/FUNDING.yml` (GitHub Sponsors + PIX).
 - **Licença MIT** (Copyright (c) 2026 Luccas de Amorim) no lugar da licença proprietária.
 - README reescrito: o app é descrito como calculadora de decisão de compra, com aviso de que os resultados são estimativas e não aconselhamento financeiro, tributário ou de investimento, e com a seção "Apoie" (meta de ~US$ 125 para publicar nas duas lojas).
-- Link da política de privacidade corrigido para o novo usuário do GitHub (`luccas-amorim`); texto revisado (APIs atuais, dados salvos só no aparelho, sem afiliados nem compras) em `docs/POLITICA-DE-PRIVACIDADE.md`, a ser copiado para o gist.
+- Link da política de privacidade corrigido para o novo usuário do GitHub (`luccas-amorim`); texto revisado (APIs atuais, dados salvos só no aparelho, sem afiliados nem compras) em `docs/POLITICA-DE-PRIVACIDADE.md` e publicado no gist (03/10/2026).
 - **Correção — "Recalcular hoje":** o tax free da simulação não voltava para a Home, e campos opcionais vazios (frete, tax free, nome, link, observação) herdavam os valores da simulação que estava na tela. Os parâmetros agora são montados por `paramsRecalculo()`, com testes.
 
 ## 2026-07-20 — Tax free (`feature/paises-tax-free`)
