@@ -1,5 +1,7 @@
 # ✈️ Vale importar? — Importar ou Comprar no Brasil?
 
+<sub>Repositório Empóros: o nome vem de émporos, o mercador grego que fazia a conta de importar. [Por quê?](MITO.md)</sub>
+
 > Uma calculadora de decisão de compra que usa Valor Presente para comparar o custo real de importar um produto com o de comprá-lo no Brasil, inclusive parcelado.
 
 ![Status](https://img.shields.io/badge/Status-MVP_Mobile-green) ![License](https://img.shields.io/badge/Licença-MIT-yellow) ![Version](https://img.shields.io/badge/Versão-2.1.0-blue) ![Stack](https://img.shields.io/badge/Tech-React_Native-violet)
