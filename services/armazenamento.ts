@@ -8,13 +8,14 @@ export const CHAVES = {
   historico: '@emporos:historico_simulacoes',
   alertas: '@emporos:alertas_cambio',
   dadosMercado: '@emporos:dados_mercado',
+  icms: '@emporos:icms_estado',
 } as const;
 
 export type Chave = (typeof CHAVES)[keyof typeof CHAVES];
 
 // Nomes anteriores ao rename para emporos (v2.2.0). Pode sair quando ninguém mais
 // tiver uma instalação anterior a essa versão.
-const CHAVES_ANTIGAS: Record<Chave, string> = {
+const CHAVES_ANTIGAS: Partial<Record<Chave, string>> = {
   [CHAVES.tema]: '@paridade:tema',
   [CHAVES.onboarding]: '@paridade:onboarding_visto',
   [CHAVES.moeda]: '@paridade:moeda_selecionada',
@@ -30,6 +31,7 @@ export async function lerComMigracao(chave: Chave): Promise<string | null> {
   if (atual !== null) return atual;
 
   const antiga = CHAVES_ANTIGAS[chave];
+  if (!antiga) return null;
   const valorAntigo = await AsyncStorage.getItem(antiga);
   if (valorAntigo === null) return null;
 

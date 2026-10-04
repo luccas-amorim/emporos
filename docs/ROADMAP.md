@@ -90,6 +90,7 @@ Requisitos e ordem:
 ---
 
 ## 5. Pós-lançamento
+- [ ] **Revisar as regras fiscais a cada trimestre** (e sempre que sair notícia de IOF, Remessa Conforme ou ICMS) — `constants/regras-fiscais.ts`, com fonte e `revisadoEm`.
 - [ ] **Push notifications** de alertas via EAS (`expo-notifications` + credenciais).
 - [ ] **Mais moedas** — `constants/currencies.ts` + bandeira em `components/flag-icon.tsx`.
 - [ ] **Histórico de cotação com gráfico** ("melhor momento para comprar").

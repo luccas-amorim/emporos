@@ -6,6 +6,9 @@ Histórico das entregas por rodada de desenvolvimento (branches mergeadas em `ma
 - **CI no GitHub Actions** (`.github/workflows/ci.yml`): lint, TypeScript, testes e `expo-doctor` em todo PR e push na `main`. Dependabot mantém as actions atualizadas.
 - Novo script `npm run typecheck`; `expo`, `expo-constants` e `jest-expo` atualizados para os patches esperados pelo SDK 54.
 - **Projeto renomeado para Empóros** (`emporos`): nome do pacote, slug do Expo, identificador das lojas (`io.github.luccasamorim.emporos`) e documentação. "Vale importar?" segue como nome exibido ao usuário. O slug novo exige um projeto EAS novo (`eas init`).
+- **Correção — IOF desatualizado:** o app seguia o cronograma de redução do Decreto nº 11.153/2022 (2,38% no cartão em 2026; 1,1% em espécie), abandonado em 2025. Agora usa os 3,5% do Decreto nº 12.499/2025 para cartão e espécie.
+- **Correção — Remessa Conforme:** II de 0% até US$ 50 e desconto de US$ 30 acima (Portaria MF nº 1.342/2026), no lugar de 20% e US$ 20. Novo seletor de **ICMS do estado** (17% ou 20%, lembrado entre usos) e opção para **site fora do Remessa Conforme** (60% sem desconto).
+- **Regras fiscais datadas** em `constants/regras-fiscais.ts`: valores, data de revisão e fonte oficial de cada regra. O resultado mostra "Regras fiscais de out/2026" e as fontes com link, e avisa quando a encomenda passa de US$ 3.000 ou a compra de viagem passa da cota de bagagem.
 - Chaves do AsyncStorage unificadas em `services/armazenamento.ts` sob o prefixo `@emporos:`, com migração automática das chaves antigas (`@paridade:*`, `@vale_importar:*`) na primeira leitura — nada se perde.
 
 ## 2026-10-02 — v2.1.0 · App gratuito e código aberto (`feature/app-gratuito-mit`)

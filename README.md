@@ -18,8 +18,8 @@ Esta calculadora não faz apenas conversão de moeda: ela coloca as duas opçõe
 
 * **Matemática Financeira (VP):** Traz as parcelas brasileiras a Valor Presente, descontando o rendimento mensal baseado na **Selic Meta (Banco Central)**.
 * **Câmbio Realista:** Cotação comercial em tempo quase real via **AwesomeAPI** (USD, EUR, GBP, JPY, ARS, CLP) + Campo de **Spread Bancário** personalizável (Wise, Nomad, Cartão físico).
-* **Tributação de Encomendas:** Cenários **Viagem × Encomenda** — encomendas internacionais incluem Imposto de Importação (Remessa Conforme: 20% até US$ 50, 60% − US$ 20 acima) e ICMS de 20% por dentro, com breakdown transparente de cada custo.
-* **IOF por ano:** Identifica o ano corrente e aplica a alíquota de IOF para Cartão prevista no cronograma de redução gradual (4,38% até 0% em 2028), conforme Decreto nº 11.153/2022.
+* **Tributação de Encomendas:** Cenários **Viagem × Encomenda** — encomendas internacionais incluem Imposto de Importação (Remessa Conforme: 0% até US$ 50, 60% − US$ 30 acima; 60% em sites fora do programa) e ICMS de 17% ou 20% por dentro, conforme o estado, com breakdown transparente de cada custo.
+* **Regras fiscais com data:** IOF (3,5% no cartão e em espécie), Remessa Conforme, ICMS e cota de bagagem ficam em [`constants/regras-fiscais.ts`](constants/regras-fiscais.ts), com a data da última revisão e a fonte oficial de cada regra. O app mostra essa data e as fontes junto do resultado.
 * **Fallback de Segurança:** Cache local da última cotação real, com idade exibida ao usuário — o app segue funcional offline sem inventar números.
 * **Histórico de Simulações:** Persistência local com nome do produto, link, cotação da época, recálculo com taxas atuais e compartilhamento.
 

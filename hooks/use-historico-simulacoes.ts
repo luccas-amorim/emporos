@@ -26,6 +26,8 @@ export interface SimulacaoSalva {
   cenario?: Cenario;
   freteExt?: number;
   taxFreePct?: number;
+  icms?: number; // alíquota de ICMS usada (Encomenda)
+  siteCertificado?: boolean; // site no Remessa Conforme (Encomenda)
   pais?: string; // código ISO do país da compra
   cotacao?: number;
   selicAnual?: number;
@@ -44,6 +46,8 @@ export function paramsRecalculo(item: SimulacaoSalva): Record<string, string> {
     spread: String(item.spread),
     cenario: item.cenario ?? 'Viagem',
     taxFree: item.taxFreePct ? String(item.taxFreePct) : '',
+    icms: item.icms ? String(item.icms) : '',
+    certificado: item.siteCertificado === false ? 'nao' : 'sim',
     nomeProduto: item.nomeProduto ?? '',
     link: item.link ?? '',
     observacao: item.observacao ?? '',
