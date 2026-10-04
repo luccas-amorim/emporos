@@ -46,6 +46,9 @@ npm run typecheck  # TypeScript
 
 Cada PR passa pelo CI (GitHub Actions): lint, tipos, testes e `expo-doctor`, que confere se as dependências batem com o Expo SDK. Para atualizar dependências do Expo, use `npx expo install --fix`.
 
+## 🤝 Contribuindo
+Issues e PRs são bem-vindos. O [CONTRIBUTING.md](CONTRIBUTING.md) explica a organização do código, as convenções e como atualizar uma regra fiscal; achou uma alíquota desatualizada, abra uma issue com o modelo "Regra fiscal desatualizada".
+
 ## 🗺️ Roadmap
 O plano de evolução e os próximos passos rumo à publicação estão em **[docs/ROADMAP.md](docs/ROADMAP.md)** — incluindo o que depende de ações externas (contas de developer, beta da Play Store). O histórico do que já foi entregue está no **[CHANGELOG.md](CHANGELOG.md)**.
 

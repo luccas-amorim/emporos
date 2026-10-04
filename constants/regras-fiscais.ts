@@ -48,6 +48,13 @@ export const REGRAS_FISCAIS = {
 
 export type AliquotaICMS = (typeof REGRAS_FISCAIS.icms.opcoes)[number];
 
+/** Converte um valor salvo ("0.2") em alíquota de ICMS aceita, ou null. */
+export function aliquotaICMSValida(valor: string | null | undefined): AliquotaICMS | null {
+  if (!valor) return null;
+  const numero = Number(valor);
+  return (REGRAS_FISCAIS.icms.opcoes as readonly number[]).includes(numero) ? (numero as AliquotaICMS) : null;
+}
+
 export const FONTES_FISCAIS: Fonte[] = [
   {
     regra: 'IOF de 3,5% (cartão e espécie)',

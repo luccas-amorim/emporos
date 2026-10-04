@@ -1,0 +1,33 @@
+name: Regra fiscal desatualizada
+description: IOF, Imposto de Importação, ICMS ou cota de bagagem mudou
+labels: [regra-fiscal]
+body:
+  - type: markdown
+    attributes:
+      value: As regras ficam em `constants/regras-fiscais.ts`. Uma fonte oficial ajuda a corrigir rápido.
+  - type: input
+    id: regra
+    attributes:
+      label: Qual regra?
+      placeholder: "Ex.: ICMS de importação em São Paulo"
+    validations:
+      required: true
+  - type: textarea
+    id: mudanca
+    attributes:
+      label: O que mudou?
+      description: Valor que o app usa hoje e o valor correto.
+    validations:
+      required: true
+  - type: input
+    id: fonte
+    attributes:
+      label: Fonte oficial
+      description: Link do Diário Oficial, Planalto, Receita Federal, Sefaz ou Comsefaz.
+    validations:
+      required: true
+  - type: input
+    id: vigencia
+    attributes:
+      label: A partir de quando vale?
+      placeholder: "Ex.: 01/01/2027"
