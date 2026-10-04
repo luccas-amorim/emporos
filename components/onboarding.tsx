@@ -11,8 +11,7 @@ import {
 
 import { useTema } from '@/hooks/use-tema';
 import type { Paleta } from '@/constants/theme';
-
-const STORAGE_KEY = '@paridade:onboarding_visto';
+import { CHAVES, lerComMigracao } from '@/services/armazenamento';
 
 interface Slide {
   emoji: string;
@@ -45,7 +44,7 @@ export function useOnboarding() {
   const [visivel, setVisivel] = useState(false);
 
   useEffect(() => {
-    AsyncStorage.getItem(STORAGE_KEY)
+    lerComMigracao(CHAVES.onboarding)
       .then((visto) => {
         if (!visto) setVisivel(true);
       })
@@ -54,7 +53,7 @@ export function useOnboarding() {
 
   const concluir = () => {
     setVisivel(false);
-    AsyncStorage.setItem(STORAGE_KEY, '1').catch(() => {});
+    AsyncStorage.setItem(CHAVES.onboarding, '1').catch(() => {});
   };
 
   return { visivel, concluir };

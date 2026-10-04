@@ -3,8 +3,8 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import type { CurrencyCode } from '@/constants/currencies';
 import type { AlertaCambio, DirecaoAlerta } from '@/services/alertas';
+import { CHAVES, lerComMigracao } from '@/services/armazenamento';
 
-const STORAGE_KEY = '@paridade:alertas_cambio';
 const LIMITE_ALERTAS = 20;
 
 export function useAlertasCambio() {
@@ -13,7 +13,7 @@ export function useAlertasCambio() {
   const carregou = useRef(false);
 
   useEffect(() => {
-    AsyncStorage.getItem(STORAGE_KEY)
+    lerComMigracao(CHAVES.alertas)
       .then((bruto) => {
         if (bruto) setAlertas(JSON.parse(bruto));
       })
@@ -26,7 +26,7 @@ export function useAlertasCambio() {
 
   useEffect(() => {
     if (!carregou.current) return;
-    AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(alertas)).catch((error) =>
+    AsyncStorage.setItem(CHAVES.alertas, JSON.stringify(alertas)).catch((error) =>
       console.error('❌ Erro ao salvar alertas:', error)
     );
   }, [alertas]);

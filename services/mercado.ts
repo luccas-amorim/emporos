@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import type { CurrencyCode } from '@/constants/currencies';
+import { CHAVES, lerComMigracao } from '@/services/armazenamento';
 import { buscarCotacoesRede } from '@/services/cambio';
 import { buscarSelicRede, taxaMensalEquivalente } from '@/services/selic';
 
@@ -14,8 +15,6 @@ export interface DadosMercado {
   origem: OrigemDados;
 }
 
-const CACHE_KEY = '@paridade:dados_mercado';
-
 // Último recurso, usado apenas se nunca houve uma busca bem-sucedida neste aparelho.
 const PADRAO: Omit<DadosMercado, 'origem'> = {
   cotacoes: { USD: 5.1, EUR: 5.8, GBP: 6.9, JPY: 0.031, ARS: 0.0035, CLP: 0.0055 },
@@ -26,7 +25,7 @@ const PADRAO: Omit<DadosMercado, 'origem'> = {
 
 async function lerCache(): Promise<Omit<DadosMercado, 'origem'> | null> {
   try {
-    const bruto = await AsyncStorage.getItem(CACHE_KEY);
+    const bruto = await lerComMigracao(CHAVES.dadosMercado);
     return bruto ? JSON.parse(bruto) : null;
   } catch {
     return null;
@@ -43,7 +42,7 @@ export async function carregarDadosMercado(codigos: CurrencyCode[]): Promise<Dad
       selicMensal: resSelic.value.selicMensal,
       atualizadoEm: new Date().toISOString(),
     };
-    AsyncStorage.setItem(CACHE_KEY, JSON.stringify(frescos)).catch(() => {});
+    AsyncStorage.setItem(CHAVES.dadosMercado, JSON.stringify(frescos)).catch(() => {});
     return { ...frescos, origem: 'rede' };
   }
 

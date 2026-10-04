@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import type { CurrencyCode } from '@/constants/currencies';
 import type { Cenario, FormaPagamento } from '@/core/calculadora';
+import { CHAVES, lerComMigracao } from '@/services/armazenamento';
 
 export interface SimulacaoSalva {
   id: string;
@@ -49,7 +50,6 @@ export function paramsRecalculo(item: SimulacaoSalva): Record<string, string> {
   };
 }
 
-const STORAGE_KEY = '@vale_importar:historico_simulacoes';
 const LIMITE_HISTORICO = 50;
 
 export function useHistoricoSimulacoes() {
@@ -60,7 +60,7 @@ export function useHistoricoSimulacoes() {
   useEffect(() => {
     async function carregar() {
       try {
-        const bruto = await AsyncStorage.getItem(STORAGE_KEY);
+        const bruto = await lerComMigracao(CHAVES.historico);
         if (bruto) setHistorico(JSON.parse(bruto));
       } catch (error) {
         console.error('❌ Erro ao carregar histórico:', error);
@@ -77,7 +77,7 @@ export function useHistoricoSimulacoes() {
   // o storage com [] antes do carregamento inicial terminar.
   useEffect(() => {
     if (!carregouDoStorage.current) return;
-    AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(historico)).catch((error) =>
+    AsyncStorage.setItem(CHAVES.historico, JSON.stringify(historico)).catch((error) =>
       console.error('❌ Erro ao salvar histórico:', error)
     );
   }, [historico]);

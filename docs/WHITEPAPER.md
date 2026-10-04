@@ -1,4 +1,4 @@
-# 📄 Whitepaper: Vale importar? — Calculadora de Paridade de Importação
+# 📄 Whitepaper: Empóros — Calculadora de Paridade de Importação
 
 **Versão:** 2.0  
 **Data:** 20/07/2026 (original: 30/11/2025)  
@@ -13,7 +13,7 @@ O consumidor brasileiro enfrenta um dilema constante ao adquirir bens de alto va
 A decisão raramente é óbvia. Envolve variáveis complexas: taxa de câmbio volátil, impostos flutuantes (IOF), taxas de serviço (spread) e, crucialmente, o **custo de oportunidade** do dinheiro no tempo (Taxa Selic).
 
 ### A Solução
-O aplicativo **"Vale Importar?"** não é apenas um comparador de preços. É uma calculadora financeira de **Valor Presente Líquido (VPL)** que automatiza a tomada de decisão. Ele nivela as duas opções de compra para a data presente (t=0), permitindo uma comparação matematicamente justa.
+O app (que o usuário vê como **"Vale importar?"**) não é apenas um comparador de preços. É uma calculadora financeira de **Valor Presente Líquido (VPL)** que automatiza a tomada de decisão. Ele nivela as duas opções de compra para a data presente (t=0), permitindo uma comparação matematicamente justa.
 
 ### Modelo de Negócio
 1.  **Gratuito e completo:** todos os recursos e moedas para todos, sem anúncios, sem links de afiliados e sem compras dentro do app.

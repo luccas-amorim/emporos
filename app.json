@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "Vale importar?",
-    "slug": "vale-importar",
+    "slug": "emporos",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -13,22 +13,17 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.lucavicchi.valeimportar"
+      "bundleIdentifier": "io.github.luccasamorim.emporos"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.lucavicchi.valeimportar"
+      "package": "io.github.luccasamorim.emporos"
     },
     "web": {
       "favicon": "./assets/images/favicon.png"
-    },
-    "extra": {
-      "eas": {
-        "projectId": "8e3695f6-b56e-4eb3-91aa-ab088b18ba02"
-      }
     },
     "plugins": [
       "expo-font",
