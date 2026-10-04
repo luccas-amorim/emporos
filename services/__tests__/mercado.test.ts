@@ -2,7 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { CHAVES } from '@/services/armazenamento';
 import { buscarCotacoesRede } from '@/services/cambio';
-import { carregarDadosMercado, descreverIdade } from '@/services/mercado';
+import { carregarDadosMercado, cotacaoDesatualizada, descreverHorario, descreverIdade } from '@/services/mercado';
 import { buscarSelicRede } from '@/services/selic';
 
 const CODIGOS = ['USD', 'EUR'] as const;
@@ -120,5 +120,32 @@ describe('descreverIdade', () => {
     expect(descreverIdade(new Date(agora - 5 * 60_000).toISOString())).toBe('há 5 min');
     expect(descreverIdade(new Date(agora - 3 * 3_600_000).toISOString())).toBe('há 3 h');
     expect(descreverIdade(new Date(agora - 49 * 3_600_000).toISOString())).toBe('há 2 dias');
+  });
+});
+
+describe('cotacaoDesatualizada', () => {
+  const agora = new Date('2026-10-04T12:00:00.000Z');
+  const base = { cotacoes: {} as never, selicAnual: 15, selicMensal: 0.0117 };
+
+  it('trata cache e referência como desatualizados', () => {
+    expect(cotacaoDesatualizada({ ...base, origem: 'cache', atualizadoEm: agora.toISOString() }, agora)).toBe(true);
+    expect(cotacaoDesatualizada({ ...base, origem: 'padrao', atualizadoEm: agora.toISOString() }, agora)).toBe(true);
+  });
+
+  it('cotação da rede fica velha depois de uma hora', () => {
+    const recente = new Date(agora.getTime() - 3 * 60000).toISOString();
+    const antiga = new Date(agora.getTime() - 2 * 3600000).toISOString();
+    expect(cotacaoDesatualizada({ ...base, origem: 'rede', atualizadoEm: recente }, agora)).toBe(false);
+    expect(cotacaoDesatualizada({ ...base, origem: 'rede', atualizadoEm: antiga }, agora)).toBe(true);
+  });
+});
+
+describe('descreverHorario', () => {
+  const agora = new Date(2026, 9, 4, 12, 0);
+
+  it('diz hoje, ontem ou a data, com a hora local', () => {
+    expect(descreverHorario(new Date(2026, 9, 4, 7, 40).toISOString(), agora)).toBe('de hoje às 7:40');
+    expect(descreverHorario(new Date(2026, 9, 3, 22, 5).toISOString(), agora)).toBe('de ontem às 22:05');
+    expect(descreverHorario(new Date(2026, 9, 2, 9, 0).toISOString(), agora)).toBe('de 02/10 às 9:00');
   });
 });

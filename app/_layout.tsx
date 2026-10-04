@@ -49,6 +49,7 @@ function ConteudoRaiz() {
       <View style={{ flex: 1 }}>
         <Stack>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="resultado" options={{ headerShown: false }} />
         </Stack>
         <Onboarding visivel={onboarding.visivel} aoConcluir={onboarding.concluir} />
       </View>

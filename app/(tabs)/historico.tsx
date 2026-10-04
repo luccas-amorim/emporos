@@ -177,7 +177,7 @@ export default function HistoricoScreen() {
       </View>
 
       {!carregando && historico.length === 0 && (
-        <Text style={styles.vazio}>Nenhuma simulação salva ainda. Calcule na aba Home para começar.</Text>
+        <Text style={styles.vazio}>Nenhuma simulação salva ainda. Compare na aba Comparar e toque em Salvar.</Text>
       )}
 
       <FlatList

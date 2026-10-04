@@ -1,4 +1,11 @@
-import { formatarBRL, formatarCotacaoBR, formatarNumeroBR, formatarPct } from '@/core/formato';
+import {
+  formatarBRL,
+  formatarCotacaoBR,
+  formatarMoeda,
+  formatarNumeroBR,
+  formatarPct,
+  formatarPctCurto,
+} from '@/core/formato';
 
 describe('formatarNumeroBR', () => {
   it('usa ponto para milhar e vírgula para decimal', () => {
@@ -39,5 +46,26 @@ describe('formatarPct', () => {
   it('formata percentual com vírgula', () => {
     expect(formatarPct(12.5)).toBe('12,5%');
     expect(formatarPct(0.89, 2)).toBe('0,89%');
+  });
+});
+
+describe('formatarMoeda', () => {
+  it('omite os centavos quando o valor é inteiro', () => {
+    expect(formatarMoeda(399, 'US$')).toBe('US$ 399');
+    expect(formatarMoeda(3799, 'R$')).toBe('R$ 3.799');
+    expect(formatarMoeda(160.5, '€')).toBe('€ 160,50');
+  });
+
+  it('aceita casas fixas e valores negativos', () => {
+    expect(formatarMoeda(399, 'US$', 2)).toBe('US$ 399,00');
+    expect(formatarMoeda(-82.43, 'R$')).toBe('-R$ 82,43');
+  });
+});
+
+describe('formatarPctCurto', () => {
+  it('mostra inteiros sem casas e o resto com uma', () => {
+    expect(formatarPctCurto(8)).toBe('8%');
+    expect(formatarPctCurto(12.5)).toBe('12,5%');
+    expect(formatarPctCurto(3.5)).toBe('3,5%');
   });
 });

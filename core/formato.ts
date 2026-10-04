@@ -22,3 +22,16 @@ export function formatarCotacaoBR(valor: number): string {
 export function formatarPct(valor: number, decimais = 1): string {
   return `${formatarNumeroBR(valor, decimais)}%`;
 }
+
+// Valor numa moeda, sem casas quando é inteiro ("US$ 399", "€ 160,50", "R$ 3.799").
+export function formatarMoeda(valor: number, simbolo: string, decimais?: number): string {
+  const casas = decimais ?? (Number.isInteger(Math.round(valor * 100) / 100) ? 0 : 2);
+  const negativo = valor < 0;
+  return `${negativo ? '-' : ''}${simbolo} ${formatarNumeroBR(Math.abs(valor), casas)}`;
+}
+
+// Percentual sem casas quando é inteiro ("8%", "12,5%").
+export function formatarPctCurto(valor: number): string {
+  const arredondado = Math.round(valor * 10) / 10;
+  return formatarPct(arredondado, Number.isInteger(arredondado) ? 0 : 1);
+}

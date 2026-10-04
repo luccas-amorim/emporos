@@ -9,6 +9,7 @@ export const CHAVES = {
   alertas: '@emporos:alertas_cambio',
   dadosMercado: '@emporos:dados_mercado',
   icms: '@emporos:icms_estado',
+  premissas: '@emporos:premissas',
 } as const;
 
 export type Chave = (typeof CHAVES)[keyof typeof CHAVES];

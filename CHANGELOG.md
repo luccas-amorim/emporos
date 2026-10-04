@@ -5,6 +5,17 @@ Histórico das entregas por rodada de desenvolvimento (branches mergeadas em `ma
 ## Em desenvolvimento — v3.0.0 · Revamp do Vale importar?
 Redesign completo, feito em fases (uma branch por fase). Especificação e protótipos em `docs/design_handoff_revamp_vale_importar/`.
 
+### Fase B — Comparar e Resultado (`feature/revamp-b-comparar-resultado`)
+- **Comparar** (aba renomeada de Home): pill com a cotação e a idade dela (em âmbar quando vem do cache, da referência ou tem mais de 1 h), banner "Sem conexão", campo de link, card do produto, **dois cards de preço** ("Lá fora" × "No Brasil", digitados no próprio card; moeda, frete, parcelas e "sem juros" em sheets), card de tax free em Viagem e **premissas em chips** com o sheet "Premissas" (controles segmentados, stepper de spread, "Restaurar padrão" e "Aplicar"). As premissas aplicadas viram o padrão das próximas comparações. Botão "Comparar" fixo, desabilitado com a dica enquanto faltam os preços.
+- **Resultado vira tela própria** (`app/resultado.tsx`): veredito em 38pt ("Compre no Brasil." / "Vale importar." / **"Tanto faz."** quando a diferença fica abaixo de 1%), frase de apoio, barras comparativas, recibo "De onde vem o custo de importar" com a regra de cada linha, caixa "Por que R$ X?" explicando o valor presente, **ponto de virada**, avisos e rodapé com a data das regras. O leitor de tela anuncia o veredito primeiro.
+- **Ponto de virada** (`calcularPontoDeVirada` em `core/calculadora.ts`): a cotação em que importar e comprar no Brasil empatam. Testado em encomenda com e sem Remessa Conforme, em dólar e em euro, viagem dentro e acima da cota e compra à vista. Documentado na seção 3.5 do WHITEPAPER.
+- **Salvar é explícito:** a simulação só vai para o histórico quando o usuário toca em "Salvar" no Resultado. O histórico virou um store único para o app (antes, cada tela tinha o seu e uma podia sobrescrever o que a outra salvou).
+- **Sheet "De onde vêm os números"**: normas com link, data da conferência, idade do câmbio, Selic e o atalho para avisar no GitHub uma regra desatualizada.
+- **Sheet "Ajustes"** (engrenagem no Comparar): tema, ICMS do estado e moeda padrão. O chip de tema saiu do cabeçalho; por padrão, o app segue o sistema.
+- **Onboarding novo**: três passos com um recibo de exemplo calculado pela própria calculadora.
+- `core/resultado.ts` (frases, barras, recibo, valor presente, ponto de virada) e `core/premissas.ts` (chips, stepper de spread, cota de bagagem), com testes. Textos do veredito mudaram de caixa alta para frase com ponto final.
+- Removidos `components/formulario/*`, `botao-opcao`, `resultado-calculo`, `status-mercado` e `currency-select`, substituídos pelos componentes acima.
+
 ### Fase A — Fundação visual (`feature/revamp-a-fundacao-visual`)
 - **Paleta nova "tinta e papel"** em `constants/theme.ts`, no lugar da "Petróleo": interface neutra, verde = comprar no Brasil, azul = importar, âmbar = atenção. Chaves novas `surface2`, `textMuted`, `textSubtle`, `brasil`/`brasilSoft`, `exterior`/`exteriorSoft`, `warn`/`warnSoft`, `action`/`actionText`; as chaves antigas continuam na `Paleta`, marcadas como obsoletas e apontando para as novas, até a última tela migrar. O `textSubtle` ficou um pouco mais escuro que no protótipo (#68696d / #8a8c90) para passar de 4,5:1 de contraste.
 - **Fontes Geist e Geist Mono** (OFL), via `@expo-google-fonts/geist` e `@expo-google-fonts/geist-mono`, carregadas em `app/_layout.tsx` com a splash segura até o fim do carregamento. Só os pesos 400, 500 e 600 entram no bundle.

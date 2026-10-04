@@ -1,9 +1,19 @@
-import { aliquotaICMSValida, FONTES_FISCAIS, REGRAS_FISCAIS, rotuloRevisao } from '@/constants/regras-fiscais';
+import {
+  aliquotaICMSValida,
+  dataRevisao,
+  FONTES_FISCAIS,
+  REGRAS_FISCAIS,
+  rotuloRevisao,
+} from '@/constants/regras-fiscais';
 
 describe('regras fiscais', () => {
   it('tem data de revisão válida e não futura', () => {
     expect(REGRAS_FISCAIS.revisadoEm).toMatch(/^\d{4}-\d{2}-\d{2}$/);
     expect(new Date(REGRAS_FISCAIS.revisadoEm).getTime()).toBeLessThanOrEqual(Date.now());
+  });
+
+  it('formata a revisão como data completa', () => {
+    expect(dataRevisao('2026-10-03')).toBe('03/10/2026');
   });
 
   it('formata a revisão como mês/ano', () => {

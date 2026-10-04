@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useSyncExternalStore } from 'react';
 
 import type { CurrencyCode } from '@/constants/currencies';
 import type { Cenario, FormaPagamento } from '@/core/calculadora';
@@ -56,51 +56,78 @@ export function paramsRecalculo(item: SimulacaoSalva): Record<string, string> {
 
 const LIMITE_HISTORICO = 50;
 
+// O histórico é um só para o app inteiro: Comparar, Resultado e Histórico leem e
+// escrevem a mesma lista. Cada tela com o seu próprio estado acabava sobrescrevendo
+// no armazenamento o que outra tinha acabado de salvar.
+interface EstadoHistorico {
+  historico: SimulacaoSalva[];
+  carregando: boolean;
+}
+
+let estado: EstadoHistorico = { historico: [], carregando: true };
+let carga: Promise<void> | null = null;
+const ouvintes = new Set<() => void>();
+
+function publicar(novo: EstadoHistorico) {
+  estado = novo;
+  ouvintes.forEach((ouvinte) => ouvinte());
+}
+
+function assinar(ouvinte: () => void) {
+  ouvintes.add(ouvinte);
+  return () => ouvintes.delete(ouvinte);
+}
+
+/** Relê o histórico do armazenamento (abertura do app, aba em foco, testes). */
+export function recarregarHistorico(): Promise<void> {
+  carga = (async () => {
+    try {
+      const bruto = await lerComMigracao(CHAVES.historico);
+      publicar({ historico: bruto ? JSON.parse(bruto) : [], carregando: false });
+    } catch (error) {
+      console.error('❌ Erro ao carregar histórico:', error);
+      publicar({ ...estado, carregando: false });
+    }
+  })();
+  return carga;
+}
+
+async function alterar(mudanca: (atual: SimulacaoSalva[]) => SimulacaoSalva[]) {
+  // Nunca grava antes da primeira leitura: sobrescreveria o que está salvo.
+  await (carga ?? recarregarHistorico());
+  const historico = mudanca(estado.historico);
+  publicar({ ...estado, historico });
+  try {
+    await AsyncStorage.setItem(CHAVES.historico, JSON.stringify(historico));
+  } catch (error) {
+    console.error('❌ Erro ao salvar histórico:', error);
+  }
+}
+
+export function novoIdSimulacao(): string {
+  return `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
 export function useHistoricoSimulacoes() {
-  const [historico, setHistorico] = useState<SimulacaoSalva[]>([]);
-  const [carregando, setCarregando] = useState(true);
-  const carregouDoStorage = useRef(false);
+  const { historico, carregando } = useSyncExternalStore(assinar, () => estado);
 
   useEffect(() => {
-    async function carregar() {
-      try {
-        const bruto = await lerComMigracao(CHAVES.historico);
-        if (bruto) setHistorico(JSON.parse(bruto));
-      } catch (error) {
-        console.error('❌ Erro ao carregar histórico:', error);
-      } finally {
-        carregouDoStorage.current = true;
-        setCarregando(false);
-      }
-    }
-    carregar();
+    if (!carga) recarregarHistorico();
   }, []);
 
-  // Persiste sempre que o histórico mudar, num efeito próprio — evita side effects
-  // dentro do updater de setState (que pode rodar mais de uma vez) e evita sobrescrever
-  // o storage com [] antes do carregamento inicial terminar.
-  useEffect(() => {
-    if (!carregouDoStorage.current) return;
-    AsyncStorage.setItem(CHAVES.historico, JSON.stringify(historico)).catch((error) =>
-      console.error('❌ Erro ao salvar histórico:', error)
-    );
-  }, [historico]);
-
-  const adicionarSimulacao = useCallback((simulacao: Omit<SimulacaoSalva, 'id' | 'data'>) => {
-    const nova: SimulacaoSalva = {
-      ...simulacao,
-      id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-      data: new Date().toISOString(),
-    };
-    setHistorico((atual) => [nova, ...atual].slice(0, LIMITE_HISTORICO));
+  /** Salva no topo da lista e devolve o id. */
+  const adicionarSimulacao = useCallback((simulacao: Omit<SimulacaoSalva, 'id' | 'data'> & { id?: string }) => {
+    const nova: SimulacaoSalva = { ...simulacao, id: simulacao.id ?? novoIdSimulacao(), data: new Date().toISOString() };
+    alterar((atual) => [nova, ...atual.filter((item) => item.id !== nova.id)].slice(0, LIMITE_HISTORICO));
+    return nova.id;
   }, []);
 
   const removerSimulacao = useCallback((id: string) => {
-    setHistorico((atual) => atual.filter((item) => item.id !== id));
+    alterar((atual) => atual.filter((item) => item.id !== id));
   }, []);
 
   const limparHistorico = useCallback(() => {
-    setHistorico([]);
+    alterar(() => []);
   }, []);
 
   return { historico, carregando, adicionarSimulacao, removerSimulacao, limparHistorico };

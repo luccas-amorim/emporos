@@ -73,3 +73,25 @@ export function descreverIdade(atualizadoEmISO: string): string {
   const dias = Math.floor(horas / 24);
   return `há ${dias} dia${dias > 1 ? 's' : ''}`;
 }
+
+/** Depois disso, a cotação de rede também é tratada como velha (pill em âmbar). */
+export const IDADE_MAXIMA_COTACAO_MIN = 60;
+
+// A cotação em uso merece atenção: veio do cache ou da referência, ou é antiga.
+export function cotacaoDesatualizada(dados: DadosMercado, agora: Date = new Date()): boolean {
+  if (dados.origem !== 'rede') return true;
+  return agora.getTime() - new Date(dados.atualizadoEm).getTime() > IDADE_MAXIMA_COTACAO_MIN * 60000;
+}
+
+// "de hoje às 7:40", "de ontem às 22:05", "de 02/10 às 9:00" (horário do aparelho).
+export function descreverHorario(iso: string, agora: Date = new Date()): string {
+  const data = new Date(iso);
+  const hora = `${data.getHours()}:${String(data.getMinutes()).padStart(2, '0')}`;
+  const dia = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+  const dias = Math.round((dia(agora) - dia(data)) / 86400000);
+  if (dias === 0) return `de hoje às ${hora}`;
+  if (dias === 1) return `de ontem às ${hora}`;
+  const dd = String(data.getDate()).padStart(2, '0');
+  const mm = String(data.getMonth() + 1).padStart(2, '0');
+  return `de ${dd}/${mm} às ${hora}`;
+}
