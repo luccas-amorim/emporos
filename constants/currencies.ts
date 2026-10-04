@@ -17,6 +17,12 @@ export const MOEDAS: Currency[] = [
   { code: 'CLP', nome: 'Peso Chileno', bandeira: 'CL' },
 ];
 
+export const CODIGOS_MOEDA: CurrencyCode[] = MOEDAS.map((m) => m.code);
+
+export function ehCodigoMoeda(valor: string | null | undefined): valor is CurrencyCode {
+  return !!valor && (CODIGOS_MOEDA as string[]).includes(valor);
+}
+
 export function moedaPorCodigo(code: CurrencyCode): Currency {
   return MOEDAS.find((m) => m.code === code)!;
 }

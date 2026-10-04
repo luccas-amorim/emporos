@@ -1,4 +1,4 @@
-import { FONTES_FISCAIS, REGRAS_FISCAIS, rotuloRevisao } from '@/constants/regras-fiscais';
+import { aliquotaICMSValida, FONTES_FISCAIS, REGRAS_FISCAIS, rotuloRevisao } from '@/constants/regras-fiscais';
 
 describe('regras fiscais', () => {
   it('tem data de revisão válida e não futura', () => {
@@ -29,6 +29,14 @@ describe('regras fiscais', () => {
 
   it('usa como padrão uma das opções de ICMS', () => {
     expect(REGRAS_FISCAIS.icms.opcoes).toContain(REGRAS_FISCAIS.icms.padrao);
+  });
+
+  it('aceita só alíquotas de ICMS conhecidas', () => {
+    expect(aliquotaICMSValida('0.2')).toBe(0.2);
+    expect(aliquotaICMSValida('0.17')).toBe(0.17);
+    expect(aliquotaICMSValida('0.18')).toBeNull();
+    expect(aliquotaICMSValida('')).toBeNull();
+    expect(aliquotaICMSValida(null)).toBeNull();
   });
 
   it('cita uma fonte oficial com link para cada regra', () => {

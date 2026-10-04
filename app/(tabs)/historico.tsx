@@ -5,6 +5,7 @@ import { FlatList, Linking, Share, StyleSheet, Text, TouchableOpacity, View } fr
 import { FlagIcon } from '@/components/flag-icon';
 import { moedaPorCodigo } from '@/constants/currencies';
 import type { Paleta } from '@/constants/theme';
+import { textoCompartilhamento } from '@/core/compartilhamento';
 import { formatarBRL, formatarCotacaoBR, formatarPct } from '@/core/formato';
 import { paramsRecalculo, useHistoricoSimulacoes, type SimulacaoSalva } from '@/hooks/use-historico-simulacoes';
 import { useTema } from '@/hooks/use-tema';
@@ -40,14 +41,8 @@ function ItemHistorico({
   const veredito = item.valeImportar ? '✈️ Exterior venceu' : 'Brasil venceu';
 
   const compartilhar = async () => {
-    const nome = item.nomeProduto || 'um produto';
     try {
-      await Share.share({
-        message:
-          `Simulei ${nome} no Vale importar?: ${item.valeImportar ? 'vale importar' : 'melhor comprar no Brasil'}! ` +
-          `Brasil: ${formatarBRL(item.custoBR)} × Exterior: ${formatarBRL(item.custoExt)} ` +
-          `(diferença de ${formatarBRL(item.economia)}, ${formatarPct(economiaPctDe(item))}).`,
-      });
+      await Share.share({ message: textoCompartilhamento({ ...item, economiaPct: economiaPctDe(item) }) });
     } catch {
       // usuário cancelou o share
     }

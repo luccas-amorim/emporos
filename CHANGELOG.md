@@ -9,6 +9,10 @@ Histórico das entregas por rodada de desenvolvimento (branches mergeadas em `ma
 - **Correção — IOF desatualizado:** o app seguia o cronograma de redução do Decreto nº 11.153/2022 (2,38% no cartão em 2026; 1,1% em espécie), abandonado em 2025. Agora usa os 3,5% do Decreto nº 12.499/2025 para cartão e espécie.
 - **Correção — Remessa Conforme:** II de 0% até US$ 50 e desconto de US$ 30 acima (Portaria MF nº 1.342/2026), no lugar de 20% e US$ 20. Novo seletor de **ICMS do estado** (17% ou 20%, lembrado entre usos) e opção para **site fora do Remessa Conforme** (60% sem desconto).
 - **Regras fiscais datadas** em `constants/regras-fiscais.ts`: valores, data de revisão e fonte oficial de cada regra. O resultado mostra "Regras fiscais de out/2026" e as fontes com link, e avisa quando a encomenda passa de US$ 3.000 ou a compra de viagem passa da cota de bagagem.
+- **Organização do código:** a Home caiu de ~720 para ~170 linhas. O estado do formulário foi para `hooks/use-formulario-calculo.ts` (funções puras `montarSimulacao` e `camposDoPrefill`, testadas), a tela foi dividida em `components/formulario/*`, `StatusMercado`, `ResultadoCalculo` e `BotaoOpcao`, e o texto de compartilhar ficou único em `core/compartilhamento.ts` (Home e Histórico).
+- **Testes de tela** com a Testing Library (`__tests__/tela-home.test.tsx`): cálculo, ICMS, site fora do Remessa Conforme, histórico, aviso de bagagem e "Recalcular hoje".
+- Correção: o "Recalcular hoje" podia ter a moeda trocada pela última moeda salva, se o carregamento do armazenamento terminasse depois.
+- `CONTRIBUTING.md`, modelos de issue (problema, sugestão e **regra fiscal desatualizada**) e de PR.
 - Chaves do AsyncStorage unificadas em `services/armazenamento.ts` sob o prefixo `@emporos:`, com migração automática das chaves antigas (`@paridade:*`, `@vale_importar:*`) na primeira leitura — nada se perde.
 
 ## 2026-10-02 — v2.1.0 · App gratuito e código aberto (`feature/app-gratuito-mit`)

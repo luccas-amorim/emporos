@@ -1,0 +1,32 @@
+name: Problema
+description: Algo não funciona como deveria
+labels: [bug]
+body:
+  - type: textarea
+    id: oque
+    attributes:
+      label: O que aconteceu?
+      description: Descreva o problema e o que você esperava ver.
+    validations:
+      required: true
+  - type: textarea
+    id: passos
+    attributes:
+      label: Como reproduzir
+      description: Valores digitados, cenário (Encomenda ou Viagem), moeda, forma de pagamento.
+      placeholder: |
+        1. Cenário Encomenda, moeda USD
+        2. Preço no Brasil R$ 1.500, preço lá fora US$ 200
+        3. Toquei em Calcular e...
+    validations:
+      required: true
+  - type: input
+    id: aparelho
+    attributes:
+      label: Aparelho e sistema
+      placeholder: "Ex.: Galaxy S23, Android 15"
+  - type: input
+    id: versao
+    attributes:
+      label: Versão do app
+      placeholder: "Ex.: 2.2.0"
