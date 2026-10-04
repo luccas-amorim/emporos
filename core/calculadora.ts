@@ -206,7 +206,7 @@ export function calcularParidade(input: CalculoInput): CalculoResultado {
   const diff = custoBR - custoExt;
   const maisCaro = Math.max(custoBR, custoExt);
   const economiaPct = maisCaro > 0 ? (Math.abs(diff) / maisCaro) * 100 : 0;
-  const veredito: Veredito = economiaPct < LIMITE_EMPATE_PCT ? 'empate' : diff > 0 ? 'exterior' : 'brasil';
+  const veredito = vereditoDeCustos(custoBR, custoExt);
 
   return {
     valeImportar: diff > 0,
@@ -220,6 +220,14 @@ export function calcularParidade(input: CalculoInput): CalculoResultado {
     msg: TEXTO_VEREDITO[veredito],
     pontoDeVirada: custoExt > 0 ? (cotacao * custoBR) / custoExt : Infinity,
   };
+}
+
+/** Veredito a partir dos dois custos (também usado nas simulações salvas). */
+export function vereditoDeCustos(custoBR: number, custoExt: number): Veredito {
+  const maisCaro = Math.max(custoBR, custoExt);
+  const pct = maisCaro > 0 ? (Math.abs(custoBR - custoExt) / maisCaro) * 100 : 0;
+  if (pct < LIMITE_EMPATE_PCT) return 'empate';
+  return custoBR > custoExt ? 'exterior' : 'brasil';
 }
 
 export const TEXTO_VEREDITO: Record<Veredito, string> = {

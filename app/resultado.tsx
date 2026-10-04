@@ -104,6 +104,7 @@ export default function Resultado() {
       custoBR: resultado.custoBR,
       custoExt: resultado.custoExt,
       economia: resultado.economia,
+      vereditoOriginal: resultado.veredito,
     });
     marcarSimulacaoSalva(id);
   };

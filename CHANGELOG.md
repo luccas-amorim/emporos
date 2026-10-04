@@ -5,6 +5,13 @@ Histórico das entregas por rodada de desenvolvimento (branches mergeadas em `ma
 ## Em desenvolvimento — v3.0.0 · Revamp do Vale importar?
 Redesign completo, feito em fases (uma branch por fase). Especificação e protótipos em `docs/design_handoff_revamp_vale_importar/`.
 
+### Fase D — Histórico vivo (`feature/revamp-d-historico-vivo`)
+- **O Histórico se recalcula ao abrir a aba**, com a cotação e a Selic do dia (e as regras fiscais vigentes), reaproveitando a mesma montagem do "Recalcular hoje". Cada card mostra o veredito e a diferença de hoje ("Brasil · R$ 716"), e o subtítulo diz se a conta usou o câmbio de hoje ou a última cotação salva.
+- **"Mudou"**: quando o veredito inverteu desde o dia em que a simulação foi salva, o card ganha borda na cor do novo veredito, a pill "Mudou" e as colunas "Na época" × "Hoje", e o topo mostra "1 decisão mudou" com uma frase sobre o caso. Empate não conta como inversão.
+- **Migração do histórico salvo, sem perda**: o formato passa de lista solta (v1) para `{ versao: 2, simulacoes }`, e cada simulação ganha o `vereditoOriginal`, calculado a partir dos custos guardados. A migração roda na primeira leitura e regrava no formato novo. Se o conteúdo salvo estiver ilegível, ele é copiado para `@emporos:historico_simulacoes_ilegivel` antes de qualquer gravação.
+- Tocar num card abre o Resultado recalculado. O menu "…" de cada card tem "Editar na Comparar" (o antigo "Recalcular hoje"), "Compartilhar", "Abrir o link do produto" e "Excluir"; "Limpar" pede confirmação.
+- `core/historico.ts` (formato salvo, migração, recálculo, resumo das mudanças) e `vereditoDeCustos` em `core/calculadora.ts`, com testes.
+
 ### Fase C — Aba Câmbio (`feature/revamp-c-aba-cambio`)
 - **Aba nova "Câmbio"** (`app/(tabs)/cambio.tsx`): USD/EUR/GBP, cotação em destaque com a variação do dia (verde quando cai, âmbar quando sobe), **gráfico de 90 dias** com a média tracejada (`react-native-svg`, instalado com `npx expo install`) e **insight comparativo** ("O dólar está 2,5% abaixo da média de 90 dias."), que cita a última simulação salva na moeda e sempre termina com "Comparação com o passado, não previsão.".
 - **Série diária da AwesomeAPI** (`/json/daily/<MOEDA>-BRL/90`, conferido: 90 cotações de dias úteis, da mais recente para a mais antiga) em `services/cambio.ts`, com **cache de um dia por moeda** em `services/mercado.ts`, reaproveitado sem rede. Funções puras em `core/cambio.ts` (`mediaMinMax`, `desvioDaMedia`, variação do dia, insight, geometria do gráfico), com testes.

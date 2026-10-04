@@ -49,6 +49,9 @@ const MAPPING = {
   checkmark: 'check',
   'info.circle': 'info-outline',
   'doc.on.clipboard': 'content-paste',
+  ellipsis: 'more-horiz',
+  pencil: 'edit',
+  photo: 'image',
 } as IconMapping;
 
 /**

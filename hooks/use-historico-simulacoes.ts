@@ -1,37 +1,20 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useCallback, useEffect, useSyncExternalStore } from 'react';
+import { useCallback, useEffect, useMemo, useSyncExternalStore } from 'react';
 
 import type { CurrencyCode } from '@/constants/currencies';
-import type { Cenario, FormaPagamento } from '@/core/calculadora';
+import {
+  type HistoricoSalvo,
+  historicoDesatualizado,
+  type MercadoHoje,
+  migrarHistorico,
+  recalcularSimulacao,
+  type SimulacaoRecalculada,
+  type SimulacaoSalva,
+  VERSAO_HISTORICO,
+} from '@/core/historico';
 import { CHAVES, lerComMigracao } from '@/services/armazenamento';
 
-export interface SimulacaoSalva {
-  id: string;
-  data: string; // ISO 8601
-  nomeProduto?: string;
-  link?: string;
-  observacao?: string;
-  precoBR: number;
-  parcelasBR: number;
-  precoExt: number;
-  moeda: CurrencyCode;
-  pgto: FormaPagamento;
-  spread: number;
-  valeImportar: boolean;
-  custoBR: number;
-  custoExt: number;
-  economia: number;
-  // Campos adicionados depois do lançamento do histórico — opcionais para
-  // manter compatibilidade com simulações já salvas no aparelho.
-  cenario?: Cenario;
-  freteExt?: number;
-  taxFreePct?: number;
-  icms?: number; // alíquota de ICMS usada (Encomenda)
-  siteCertificado?: boolean; // site no Remessa Conforme (Encomenda)
-  pais?: string; // código ISO do país da compra
-  cotacao?: number;
-  selicAnual?: number;
-}
+export type { SimulacaoSalva } from '@/core/historico';
 
 // Parâmetros do "Recalcular hoje" (Histórico → Home). Todo campo vai preenchido, mesmo
 // vazio: a Home aplica todos, para não herdar valores da simulação que estava na tela.
@@ -90,14 +73,33 @@ function assinar(ouvinte: () => void) {
   return () => ouvintes.delete(ouvinte);
 }
 
+// Se o histórico salvo estiver ilegível, ele é copiado para esta chave antes de qualquer
+// gravação, para nada se perder de vez.
+const CHAVE_COPIA_ILEGIVEL = `${CHAVES.historico}_ilegivel`;
+
+function serializar(historico: SimulacaoSalva[]): string {
+  const salvo: HistoricoSalvo = { versao: VERSAO_HISTORICO, simulacoes: historico };
+  return JSON.stringify(salvo);
+}
+
 /** Relê o histórico do armazenamento (abertura do app, aba em foco, testes). */
 export function recarregarHistorico(): Promise<void> {
   carga = (async () => {
+    let bruto: string | null = null;
     try {
-      const bruto = await lerComMigracao(CHAVES.historico);
-      publicar({ historico: bruto ? JSON.parse(bruto) : [], carregando: false });
+      bruto = await lerComMigracao(CHAVES.historico);
+      if (!bruto) {
+        publicar({ historico: [], carregando: false });
+        return;
+      }
+      const conteudo = JSON.parse(bruto);
+      const { simulacoes } = migrarHistorico(conteudo);
+      publicar({ historico: simulacoes, carregando: false });
+      // Lista solta da v1 (ou versão antiga): regrava já no formato atual.
+      if (historicoDesatualizado(conteudo)) await AsyncStorage.setItem(CHAVES.historico, serializar(simulacoes));
     } catch (error) {
       console.error('❌ Erro ao carregar histórico:', error);
+      if (bruto) await AsyncStorage.setItem(CHAVE_COPIA_ILEGIVEL, bruto).catch(() => {});
       publicar({ ...estado, carregando: false });
     }
   })();
@@ -110,7 +112,7 @@ async function alterar(mudanca: (atual: SimulacaoSalva[]) => SimulacaoSalva[]) {
   const historico = mudanca(estado.historico);
   publicar({ ...estado, historico });
   try {
-    await AsyncStorage.setItem(CHAVES.historico, JSON.stringify(historico));
+    await AsyncStorage.setItem(CHAVES.historico, serializar(historico));
   } catch (error) {
     console.error('❌ Erro ao salvar histórico:', error);
   }
@@ -143,4 +145,14 @@ export function useHistoricoSimulacoes() {
   }, []);
 
   return { historico, carregando, adicionarSimulacao, removerSimulacao, limparHistorico };
+}
+
+// Histórico "vivo": cada simulação refeita com a cotação e a Selic de hoje, com o
+// veredito da época ao lado do de hoje.
+export function useHistoricoRecalculado(mercado: MercadoHoje | null): SimulacaoRecalculada[] | null {
+  const { historico } = useHistoricoSimulacoes();
+  return useMemo(
+    () => (mercado ? historico.map((item) => recalcularSimulacao(item, mercado)) : null),
+    [historico, mercado]
+  );
 }

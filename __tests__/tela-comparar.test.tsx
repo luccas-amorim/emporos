@@ -144,7 +144,7 @@ describe('Comparar', () => {
     await fireEvent.press(screen.getByLabelText('Salvar no histórico'));
 
     await waitFor(async () => {
-      const salvo = JSON.parse((await AsyncStorage.getItem(CHAVES.historico)) ?? '[]');
+      const salvo = JSON.parse((await AsyncStorage.getItem(CHAVES.historico)) ?? '{}').simulacoes ?? [];
       expect(salvo).toHaveLength(1);
       expect(salvo[0]).toMatchObject({ nomeProduto: 'Fone', precoBR: 1000, precoExt: 100, icms: 0.17, siteCertificado: true });
     });
