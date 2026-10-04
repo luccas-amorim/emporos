@@ -2,7 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as BackgroundTask from 'expo-background-task';
 import * as TaskManager from 'expo-task-manager';
 
-import { type AlertaCambio, atualizarAlertas, textoNotificacao } from '@/services/alertas';
+import { type AlertaCambio, alertaAtivo, atualizarAlertas, textoNotificacao } from '@/services/alertas';
 import { CHAVES, lerComMigracao } from '@/services/armazenamento';
 import { buscarCotacoesRede } from '@/services/cambio';
 import { notificacoesDisponiveis, notificar } from '@/services/notificacoes';
@@ -18,9 +18,11 @@ const INTERVALO_MINIMO_MINUTOS = 60;
 export async function verificarAlertasSalvos(agora: Date = new Date()): Promise<number> {
   const bruto = await lerComMigracao(CHAVES.alertas);
   const alertas: AlertaCambio[] = bruto ? JSON.parse(bruto) : [];
-  if (alertas.length === 0) return 0;
+  // Alertas desligados na aba Câmbio não contam: sem nenhum ligado, nem busca cotação.
+  const ligados = alertas.filter(alertaAtivo);
+  if (ligados.length === 0) return 0;
 
-  const moedas = [...new Set(alertas.map((alerta) => alerta.moeda))];
+  const moedas = [...new Set(ligados.map((alerta) => alerta.moeda))];
   const cotacoes = await buscarCotacoesRede(moedas);
   const { alertas: atualizados, disparados, mudou } = atualizarAlertas(alertas, cotacoes, agora);
 

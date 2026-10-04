@@ -5,6 +5,12 @@ Histórico das entregas por rodada de desenvolvimento (branches mergeadas em `ma
 ## Em desenvolvimento — v3.0.0 · Revamp do Vale importar?
 Redesign completo, feito em fases (uma branch por fase). Especificação e protótipos em `docs/design_handoff_revamp_vale_importar/`.
 
+### Fase F — Lançamento (`feature/revamp-f-lancamento`)
+- **Ícone novo** na linguagem do revamp — quadrado de tinta com as duas barras do Resultado —, gerado por `scripts/gerar-icones.js` (sem dependências) para iOS, Android adaptativo e monocromático, splash e web. Splash sobre o fundo papel (`#f4f3ef`).
+- Versão **3.0.0** no `app.json` e no `package.json`.
+- **`docs/LANCAMENTO.md`**: lista das seis capturas das lojas (temas e legendas), textos da ficha em PT-BR, respostas de privacidade das lojas, convite e roteiro do teste fechado (com a meta de tempo até o primeiro veredito) e checklist de saída. ROADMAP atualizado.
+- Correção: a verificação em segundo plano não consulta mais a cotação quando todos os alertas estão desligados.
+
 ### Fase E — Colar link (`feature/revamp-e-colar-link`)
 - **"Colar" no card do link**: o app lê a área de transferência (`expo-clipboard`, instalado com `npx expo install`), acha o link mesmo no meio de um texto compartilhado e **o próprio celular baixa a página da loja** para ler nome, preço, moeda e imagem. Também lê o link digitado, ao confirmar ou sair do campo. Sem servidor: a requisição vai do aparelho direto para a loja.
 - **Parser puro** em `core/parser-produto.ts`, nesta ordem: JSON-LD `Product.offers` (inclusive `@graph` e `AggregateOffer`) → metas `og:price:amount` / `product:price:amount` / `og:price:currency` → `/products/<handle>.json` das lojas Shopify. O nome sai do `og:title`; a moeda, da página ou, sem ambiguidade, do domínio (`.co.uk` → GBP, `.de` → EUR…). Testado com HTML de exemplo em `core/__tests__/fixtures/`. A busca (`services/produto.ts`) tem tempo limite de 8 s e nunca lança.

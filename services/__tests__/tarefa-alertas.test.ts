@@ -36,6 +36,12 @@ describe('verificarAlertasSalvos', () => {
     expect(buscarMock).not.toHaveBeenCalled();
   });
 
+  it('não consulta a rede quando todos os alertas estão desligados', async () => {
+    await salvar([alerta({ ativo: false })]);
+    expect(await verificarAlertasSalvos(agora)).toBe(0);
+    expect(buscarMock).not.toHaveBeenCalled();
+  });
+
   it('busca só as moedas dos alertas, notifica quem atingiu o alvo e grava o estado', async () => {
     await salvar([alerta({ id: 'a' }), alerta({ id: 'b', moeda: 'EUR', alvo: 5, direcao: 'abaixo' })]);
     buscarMock.mockResolvedValue({ USD: 5.1, EUR: 5.9 });
