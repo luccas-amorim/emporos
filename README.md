@@ -4,7 +4,7 @@
 
 > Uma calculadora de decisão de compra que usa Valor Presente para comparar o custo real de importar um produto com o de comprá-lo no Brasil, inclusive parcelado.
 
-![Status](https://img.shields.io/badge/Status-MVP_Mobile-green) ![License](https://img.shields.io/badge/Licença-MIT-yellow) ![Version](https://img.shields.io/badge/Versão-2.1.0-blue) ![Stack](https://img.shields.io/badge/Tech-React_Native-violet)
+![Status](https://img.shields.io/badge/Status-MVP_Mobile-green) ![License](https://img.shields.io/badge/Licença-MIT-yellow) ![Version](https://img.shields.io/badge/Versão-2.1.0-blue) ![Stack](https://img.shields.io/badge/Tech-React_Native-violet) [![CI](https://github.com/luccas-amorim/emporos/actions/workflows/ci.yml/badge.svg)](https://github.com/luccas-amorim/emporos/actions/workflows/ci.yml)
 
 > ⚠️ **Aviso:** os resultados são estimativas para comparação e não constituem aconselhamento financeiro, tributário ou de investimento. Câmbio, alíquotas e regras de importação mudam; confirme as condições reais antes de comprar.
 
@@ -39,7 +39,10 @@ npm install        # dependências
 npx expo start     # inicia (QR Code p/ Expo Go, `a` Android, `i` iOS, `w` web)
 npm test           # testes unitários (core financeiro, formatação, services)
 npm run lint       # ESLint
+npm run typecheck  # TypeScript
 ```
+
+Cada PR passa pelo CI (GitHub Actions): lint, tipos, testes e `expo-doctor`, que confere se as dependências batem com o Expo SDK. Para atualizar dependências do Expo, use `npx expo install --fix`.
 
 ## 🗺️ Roadmap
 O plano de evolução e os próximos passos rumo à publicação estão em **[docs/ROADMAP.md](docs/ROADMAP.md)** — incluindo o que depende de ações externas (contas de developer, beta da Play Store). O histórico do que já foi entregue está no **[CHANGELOG.md](CHANGELOG.md)**.
