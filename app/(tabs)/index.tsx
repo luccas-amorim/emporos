@@ -3,6 +3,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
+  Linking,
   Platform,
   RefreshControl,
   ScrollView,
@@ -21,23 +22,24 @@ import { CurrencySelect } from '@/components/currency-select';
 import { FlagIcon } from '@/components/flag-icon';
 import { moedaPorCodigo, parStatus, type CurrencyCode } from '@/constants/currencies';
 import { ALERTAS_CAMBIO_ATIVO } from '@/constants/feature-flags';
+import { type AliquotaICMS, FONTES_FISCAIS, REGRAS_FISCAIS, rotuloRevisao } from '@/constants/regras-fiscais';
 import type { Paleta } from '@/constants/theme';
 import {
   calcularParidade,
   type CalculoResultado,
   type Cenario,
   type FormaPagamento,
-  getIOFPorAno,
   parseNumeroLocal,
+  rotuloAliquota,
 } from '@/core/calculadora';
-import { formatarBRL, formatarCotacaoBR, formatarPct } from '@/core/formato';
+import { formatarBRL, formatarCotacaoBR, formatarNumeroBR, formatarPct } from '@/core/formato';
 import { useHistoricoSimulacoes } from '@/hooks/use-historico-simulacoes';
 import { useTema } from '@/hooks/use-tema';
 import { CHAVES, lerComMigracao } from '@/services/armazenamento';
 import { carregarDadosMercado, type DadosMercado, descreverIdade } from '@/services/mercado';
 
-const IOF_CARTAO_ATUAL = getIOFPorAno();
-const IOF_DINHEIRO = 0.011;
+const IOF_CARTAO = REGRAS_FISCAIS.iof.cartao;
+const IOF_ESPECIE = REGRAS_FISCAIS.iof.especie;
 const CODIGOS_MOEDA: CurrencyCode[] = ['USD', 'EUR', 'GBP', 'JPY', 'ARS', 'CLP'];
 
 type ModoEntradaBR = 'total' | 'parcela';
@@ -69,6 +71,9 @@ export default function App() {
   const [pgto, setPgto] = useState<FormaPagamento>('Cartao');
 
   const [taxFree, setTaxFree] = useState('');
+  const [siteCertificado, setSiteCertificado] = useState(true);
+  const [icms, setIcms] = useState<AliquotaICMS>(REGRAS_FISCAIS.icms.padrao);
+  const [fontesVisiveis, setFontesVisiveis] = useState(false);
   const [nomeProduto, setNomeProduto] = useState('');
   const [link, setLink] = useState('');
   const [observacao, setObservacao] = useState('');
@@ -77,6 +82,7 @@ export default function App() {
 
   const { adicionarSimulacao } = useHistoricoSimulacoes();
   const moedaRestaurada = React.useRef(false);
+  const icmsRestaurado = React.useRef(false);
 
   const buscarDados = useCallback(async () => {
     const carregados = await carregarDadosMercado(CODIGOS_MOEDA);
@@ -106,6 +112,24 @@ export default function App() {
     AsyncStorage.setItem(CHAVES.moeda, moeda).catch(() => {});
   }, [moeda]);
 
+  // O ICMS depende do estado de quem compra: lembramos a última escolha.
+  useEffect(() => {
+    lerComMigracao(CHAVES.icms)
+      .then((salvo) => {
+        const valor = aliquotaICMSValida(salvo);
+        if (valor !== null) setIcms(valor);
+      })
+      .catch(() => {})
+      .finally(() => {
+        icmsRestaurado.current = true;
+      });
+  }, []);
+
+  useEffect(() => {
+    if (!icmsRestaurado.current) return;
+    AsyncStorage.setItem(CHAVES.icms, String(icms)).catch(() => {});
+  }, [icms]);
+
   // Prefill vindo do Histórico ("Recalcular hoje"). Os campos opcionais são aplicados
   // mesmo vazios, para não herdar valores da simulação que estava na tela.
   useEffect(() => {
@@ -119,6 +143,9 @@ export default function App() {
     if (params.spread) setSpread(params.spread);
     if (params.cenario) setCenario(params.cenario as Cenario);
     setTaxFree(params.taxFree ?? '');
+    setSiteCertificado(params.certificado !== 'nao');
+    const icmsSalvo = aliquotaICMSValida(params.icms);
+    if (icmsSalvo !== null) setIcms(icmsSalvo);
     setNomeProduto(params.nomeProduto ?? '');
     setLink(params.link ?? '');
     setObservacao(params.observacao ?? '');
@@ -157,8 +184,10 @@ export default function App() {
       spread: valSpread,
       pgto,
       selicMensal: dados.selicMensal,
-      iofCartao: IOF_CARTAO_ATUAL,
-      iofDinheiro: IOF_DINHEIRO,
+      iofCartao: IOF_CARTAO,
+      iofDinheiro: IOF_ESPECIE,
+      icms,
+      siteCertificado,
     });
 
     setResultado(novoResultado);
@@ -173,6 +202,8 @@ export default function App() {
       freteExt: valFrete,
       taxFreePct: valTaxFree,
       cenario,
+      icms: cenario === 'Encomenda' ? icms : undefined,
+      siteCertificado: cenario === 'Encomenda' ? siteCertificado : undefined,
       moeda,
       pgto,
       spread: valSpread,
@@ -282,8 +313,8 @@ export default function App() {
           </View>
           {cenario === 'Viagem' && (
             <Text style={styles.obs}>
-              Compras acima da cota de isenção (US$ 1.000 em voos) pagam 50% sobre o excedente — não
-              incluído no cálculo.
+              Compras acima da cota de isenção (US$ {formatarNumeroBR(REGRAS_FISCAIS.bagagem.cotaUSD, 0)} em voos) pagam{' '}
+              {rotuloAliquota(REGRAS_FISCAIS.bagagem.aliquotaExcedente)} sobre o excedente — não incluído no cálculo.
             </Text>
           )}
         </View>
@@ -392,6 +423,58 @@ export default function App() {
             </View>
           </View>
 
+          {cenario === 'Encomenda' && (
+            <>
+              <Text style={styles.label}>O site está no Remessa Conforme?</Text>
+              <View style={styles.row}>
+                <TouchableOpacity
+                  style={[styles.optionBtn, siteCertificado && styles.selectedOption]}
+                  onPress={() => setSiteCertificado(true)}
+                  accessibilityRole="button"
+                  accessibilityLabel="Site certificado no Remessa Conforme"
+                  accessibilityState={{ selected: siteCertificado }}>
+                  <Text style={[styles.optionTextBig, siteCertificado && styles.selectedText]}>Sim</Text>
+                  <Text style={[styles.optionTextSmall, siteCertificado && styles.selectedText]}>
+                    II {rotuloAliquota(REGRAS_FISCAIS.remessaConforme.aliquotaFaixaBaixa)} até US${' '}
+                    {REGRAS_FISCAIS.remessaConforme.limiteFaixaBaixaUSD}
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.optionBtn, !siteCertificado && styles.selectedOption]}
+                  onPress={() => setSiteCertificado(false)}
+                  accessibilityRole="button"
+                  accessibilityLabel="Site fora do Remessa Conforme"
+                  accessibilityState={{ selected: !siteCertificado }}>
+                  <Text style={[styles.optionTextBig, !siteCertificado && styles.selectedText]}>Não</Text>
+                  <Text style={[styles.optionTextSmall, !siteCertificado && styles.selectedText]}>
+                    II de {rotuloAliquota(REGRAS_FISCAIS.aliquotaForaRemessaConforme)}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+
+              <Text style={styles.label}>ICMS do seu estado</Text>
+              <View style={styles.row}>
+                {REGRAS_FISCAIS.icms.opcoes.map((opcao) => (
+                  <TouchableOpacity
+                    key={opcao}
+                    style={[styles.optionBtn, icms === opcao && styles.selectedOption]}
+                    onPress={() => setIcms(opcao)}
+                    accessibilityRole="button"
+                    accessibilityLabel={`ICMS de ${rotuloAliquota(opcao)}`}
+                    accessibilityState={{ selected: icms === opcao }}>
+                    <Text style={[styles.optionTextBig, icms === opcao && styles.selectedText]}>
+                      {rotuloAliquota(opcao)}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+              <Text style={styles.obs}>
+                Varia por estado (a maioria cobra {rotuloAliquota(REGRAS_FISCAIS.icms.padrao)}). Confira o seu na
+                tabela do Comsefaz, nas fontes do resultado.
+              </Text>
+            </>
+          )}
+
           {cenario === 'Viagem' && (
             <>
               <Text style={styles.label}>Tax free / VAT a recuperar (%)</Text>
@@ -421,7 +504,7 @@ export default function App() {
               accessibilityState={{ selected: pgto === 'Cartao' }}>
               <Text style={[styles.optionTextBig, pgto === 'Cartao' && styles.selectedText]}>Cartão</Text>
               <Text style={[styles.optionTextSmall, pgto === 'Cartao' && styles.selectedText]}>
-                IOF de {formatarPct(IOF_CARTAO_ATUAL * 100, 2)}
+                IOF de {rotuloAliquota(IOF_CARTAO)}
               </Text>
             </TouchableOpacity>
 
@@ -433,7 +516,7 @@ export default function App() {
               accessibilityState={{ selected: pgto === 'Dinheiro' }}>
               <Text style={[styles.optionTextBig, pgto === 'Dinheiro' && styles.selectedText]}>Dinheiro</Text>
               <Text style={[styles.optionTextSmall, pgto === 'Dinheiro' && styles.selectedText]}>
-                IOF de {formatarPct(IOF_DINHEIRO * 100, 1)}
+                IOF de {rotuloAliquota(IOF_ESPECIE)}
               </Text>
             </TouchableOpacity>
           </View>
@@ -513,12 +596,39 @@ export default function App() {
               </View>
             ))}
 
+            {resultado.avisos.map((aviso) => (
+              <Text key={aviso} style={styles.aviso}>
+                ⚠️ {aviso}
+              </Text>
+            ))}
+
             {valParcelasBR > 1 && (
               <Text style={styles.resObs}>
                 &ldquo;Equivalente à vista&rdquo; é quanto as parcelas do Brasil valem hoje,
                 descontadas pelo rendimento que esse dinheiro renderia investido na Selic.
               </Text>
             )}
+
+            <TouchableOpacity
+              onPress={() => setFontesVisiveis(!fontesVisiveis)}
+              accessibilityRole="button"
+              accessibilityLabel={fontesVisiveis ? 'Ocultar as fontes das regras fiscais' : 'Ver as fontes das regras fiscais'}>
+              <Text style={styles.regrasTexto}>
+                Regras fiscais de {rotuloRevisao()} · {fontesVisiveis ? 'ocultar fontes' : 'ver fontes'}
+              </Text>
+            </TouchableOpacity>
+            {fontesVisiveis &&
+              FONTES_FISCAIS.map((fonte) => (
+                <TouchableOpacity
+                  key={fonte.url}
+                  onPress={() => Linking.openURL(fonte.url)}
+                  accessibilityRole="link"
+                  accessibilityLabel={`${fonte.regra}: ${fonte.norma}`}>
+                  <Text style={styles.fonteTexto}>
+                    {fonte.regra} — <Text style={styles.fonteLink}>{fonte.norma}</Text>
+                  </Text>
+                </TouchableOpacity>
+              ))}
 
             <TouchableOpacity
               style={styles.shareButton}
@@ -586,15 +696,24 @@ function criarStyles(cores: Paleta) {
     divider: { height: 1, backgroundColor: cores.borderSoft, marginVertical: 10 },
     resLine: { fontSize: 15, color: cores.text, marginTop: 2 },
     resObs: { fontSize: 11, color: cores.muted, fontStyle: 'italic', marginTop: 8 },
+    aviso: { fontSize: 12, color: cores.warnText, backgroundColor: cores.warnBg, padding: 10, borderRadius: 8, marginTop: 10, lineHeight: 17 },
+    regrasTexto: { fontSize: 11, color: cores.muted, marginTop: 12, textAlign: 'center' },
+    fonteTexto: { fontSize: 11, color: cores.subtext, marginTop: 6, lineHeight: 16 },
+    fonteLink: { color: cores.primary, textDecorationLine: 'underline' },
 
     breakdownTitulo: { fontSize: 12, fontWeight: 'bold', color: cores.subtext, textTransform: 'uppercase', marginBottom: 6 },
     breakdownLinha: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 2 },
     breakdownLabel: { fontSize: 13, color: cores.subtext, flexShrink: 1, marginRight: 10 },
-    breakdownValor: { fontSize: 13, color: cores.text, fontWeight: '600' },
+    breakdownValor: { fontSize: 13, color: cores.text, fontWeight: '600', flexShrink: 0 },
 
     shareButton: { marginTop: 14, alignSelf: 'center', paddingVertical: 8, paddingHorizontal: 16, borderRadius: 20, borderWidth: 1, borderColor: cores.border, backgroundColor: cores.card },
     shareButtonText: { fontSize: 13, color: cores.text, fontWeight: '600' },
 
     disclaimer: { fontSize: 10, color: cores.muted, textAlign: 'center', marginTop: 6, marginBottom: 30, lineHeight: 15 },
   });
+}
+
+function aliquotaICMSValida(valor: string | null | undefined): AliquotaICMS | null {
+  const numero = Number(valor);
+  return (REGRAS_FISCAIS.icms.opcoes as readonly number[]).includes(numero) ? (numero as AliquotaICMS) : null;
 }

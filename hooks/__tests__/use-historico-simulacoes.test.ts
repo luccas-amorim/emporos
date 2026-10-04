@@ -34,10 +34,18 @@ describe('paramsRecalculo', () => {
       spread: '2',
       cenario: 'Encomenda',
       taxFree: '',
+      icms: '',
+      certificado: 'sim',
       nomeProduto: '',
       link: '',
       observacao: '',
     });
+  });
+
+  it('leva o ICMS e o Remessa Conforme da encomenda de volta para a Home', () => {
+    const params = paramsRecalculo({ ...base, cenario: 'Encomenda', icms: 0.2, siteCertificado: false });
+    expect(params.icms).toBe('0.2');
+    expect(params.certificado).toBe('nao');
   });
 
   it('trata simulações antigas sem cenário como viagem', () => {

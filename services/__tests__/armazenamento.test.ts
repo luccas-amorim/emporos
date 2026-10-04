@@ -23,6 +23,12 @@ describe('lerComMigracao', () => {
     expect(await AsyncStorage.getItem('@vale_importar:historico_simulacoes')).toBeNull();
   });
 
+  it('lê normalmente chaves que não existiam antes do rename', async () => {
+    expect(await lerComMigracao(CHAVES.icms)).toBeNull();
+    await AsyncStorage.setItem(CHAVES.icms, '0.2');
+    expect(await lerComMigracao(CHAVES.icms)).toBe('0.2');
+  });
+
   it('devolve null quando não há valor em nenhuma das chaves', async () => {
     expect(await lerComMigracao(CHAVES.moeda)).toBeNull();
   });

@@ -1,3 +1,6 @@
+import { REGRAS_FISCAIS } from '@/constants/regras-fiscais';
+import { formatarNumeroBR, formatarPct } from '@/core/formato';
+
 export type FormaPagamento = 'Cartao' | 'Dinheiro';
 export type Cenario = 'Viagem' | 'Encomenda';
 
@@ -19,6 +22,10 @@ export interface CalculoInput {
   selicMensal: number;
   iofCartao: number;
   iofDinheiro: number;
+  /** Alíquota de ICMS do estado de destino (só Encomenda). */
+  icms: number;
+  /** Site certificado no Remessa Conforme (só Encomenda). */
+  siteCertificado: boolean;
 }
 
 export interface ItemBreakdown {
@@ -33,18 +40,10 @@ export interface CalculoResultado {
   economia: number;
   economiaPct: number; // % de economia sobre a opção mais cara
   breakdown: ItemBreakdown[];
+  /** Situações que o cálculo não cobre e o usuário precisa saber. */
+  avisos: string[];
   msg: string;
 }
-
-// Remessa Conforme (encomendas internacionais), regras vigentes:
-// - até US$ 50: Imposto de Importação de 20%
-// - acima de US$ 50: II de 60% com desconto fixo de US$ 20
-// - ICMS de 20% "por dentro" sobre (valor aduaneiro + II) em qualquer faixa
-export const LIMITE_REMESSA_USD = 50;
-export const II_ALIQUOTA_BAIXA = 0.2;
-export const II_ALIQUOTA_ALTA = 0.6;
-export const II_DESCONTO_USD = 20;
-export const ICMS_ALIQUOTA = 0.2;
 
 // Aceita tanto "1500,50" / "1.500,00" (formato BR) quanto "1500.50" / "1,500.00" (formato
 // internacional): o último separador (, ou .) da string é tratado como decimal, o resto
@@ -66,16 +65,6 @@ export function parseNumeroLocal(texto: string): number {
   return Number.isNaN(valor) ? 0 : valor;
 }
 
-// Decreto nº 11.153/2022: redução gradual do IOF sobre operações com cartão no exterior.
-export function getIOFPorAno(ano: number = new Date().getFullYear()): number {
-  if (ano === 2024) return 0.0438;
-  if (ano === 2025) return 0.0338;
-  if (ano === 2026) return 0.0238;
-  if (ano === 2027) return 0.0138;
-  if (ano >= 2028) return 0.0;
-  return 0.0438;
-}
-
 export function calcularParidade(input: CalculoInput): CalculoResultado {
   const {
     precoBR,
@@ -91,7 +80,11 @@ export function calcularParidade(input: CalculoInput): CalculoResultado {
     selicMensal,
     iofCartao,
     iofDinheiro,
+    icms: aliquotaICMS,
+    siteCertificado,
   } = input;
+  const { remessaConforme: rc, bagagem } = REGRAS_FISCAIS;
+  const avisos: string[] = [];
 
   const cotacaoFinal = cotacao * (1 + spread / 100);
   const iofFinal = pgto === 'Dinheiro' ? iofDinheiro : iofCartao;
@@ -104,32 +97,50 @@ export function calcularParidade(input: CalculoInput): CalculoResultado {
   const valorIOF = valorPagamento * iofFinal;
 
   breakdown.push({ label: `Produto${cenario === 'Encomenda' && freteExt > 0 ? ' + frete' : ''} (câmbio + spread)`, valor: valorPagamento });
-  breakdown.push({ label: `IOF (${(iofFinal * 100).toFixed(2).replace('.', ',')}%)`, valor: valorIOF });
+  breakdown.push({ label: `IOF (${rotuloAliquota(iofFinal)})`, valor: valorIOF });
 
   let custoExt = valorPagamento + valorIOF;
+  const emUSD = (valorBRL: number) => (cotacaoUSD > 0 ? valorBRL / cotacaoUSD : Infinity);
 
   if (cenario === 'Encomenda') {
-    // Tributos da Remessa Conforme incidem sobre o valor aduaneiro (produto + frete),
+    // Tributos incidem sobre o valor aduaneiro (produto + frete) pela cotação comercial,
     // sem IOF, pois são cobrados em reais.
     const valorAduaneiro = valorMoedaExt * cotacao;
-    const valorUSD = cotacaoUSD > 0 ? (valorMoedaExt * cotacao) / cotacaoUSD : Infinity;
+    const valorUSD = emUSD(valorAduaneiro);
 
-    const impostoImportacao =
-      valorUSD <= LIMITE_REMESSA_USD
-        ? valorAduaneiro * II_ALIQUOTA_BAIXA
-        : Math.max(0, valorAduaneiro * II_ALIQUOTA_ALTA - II_DESCONTO_USD * cotacaoUSD);
+    let impostoImportacao: number;
+    let rotuloII: string;
+    if (!siteCertificado) {
+      impostoImportacao = valorAduaneiro * REGRAS_FISCAIS.aliquotaForaRemessaConforme;
+      rotuloII = `${rotuloAliquota(REGRAS_FISCAIS.aliquotaForaRemessaConforme)}, site fora do Remessa Conforme`;
+    } else if (valorUSD <= rc.limiteFaixaBaixaUSD) {
+      impostoImportacao = valorAduaneiro * rc.aliquotaFaixaBaixa;
+      rotuloII = `${rotuloAliquota(rc.aliquotaFaixaBaixa)} até US$ ${rc.limiteFaixaBaixaUSD}`;
+    } else {
+      impostoImportacao = Math.max(
+        0,
+        valorAduaneiro * rc.aliquotaFaixaAlta - rc.descontoFaixaAltaUSD * cotacaoUSD
+      );
+      rotuloII = `${rotuloAliquota(rc.aliquotaFaixaAlta)} − US$ ${rc.descontoFaixaAltaUSD}`;
+    }
 
     const baseICMS = valorAduaneiro + impostoImportacao;
-    const icms = (baseICMS / (1 - ICMS_ALIQUOTA)) * ICMS_ALIQUOTA;
+    const valorICMS = (baseICMS / (1 - aliquotaICMS)) * aliquotaICMS;
 
-    breakdown.push({
-      label: `Imposto de Importação (${valorUSD <= LIMITE_REMESSA_USD ? '20%' : '60% − US$ 20'})`,
-      valor: impostoImportacao,
-    });
-    breakdown.push({ label: `ICMS (${ICMS_ALIQUOTA * 100}%, por dentro)`, valor: icms });
+    breakdown.push({ label: `Imposto de Importação (${rotuloII})`, valor: impostoImportacao });
+    breakdown.push({ label: `ICMS (${rotuloAliquota(aliquotaICMS)}, por dentro)`, valor: valorICMS });
 
+    custoExt += impostoImportacao + valorICMS;
 
-    custoExt += impostoImportacao + icms;
+    if (valorUSD > rc.limiteRegimeUSD) {
+      avisos.push(
+        `Acima de US$ ${formatarNumeroBR(rc.limiteRegimeUSD, 0)}, a encomenda sai do regime simplificado e segue a importação comum — este cálculo não vale para esse caso.`
+      );
+    }
+  } else if (emUSD(precoExt * cotacao) > bagagem.cotaUSD) {
+    avisos.push(
+      `Passa da cota de isenção de US$ ${formatarNumeroBR(bagagem.cotaUSD, 0)} na bagagem: a Receita cobra ${rotuloAliquota(bagagem.aliquotaExcedente)} sobre o excedente, valor não incluído no cálculo.`
+    );
   }
 
   // Tax free: só existe em compra presencial (Viagem). O turista paga o preço cheio,
@@ -160,6 +171,13 @@ export function calcularParidade(input: CalculoInput): CalculoResultado {
     economia: Math.abs(diff),
     economiaPct: maisCaro > 0 ? (Math.abs(diff) / maisCaro) * 100 : 0,
     breakdown,
+    avisos,
     msg: diff > 0 ? '✈️ COMPRE NO EXTERIOR' : 'COMPRE NO BRASIL',
   };
+}
+
+// Alíquota (0,035) como texto curto ("3,5%"; "60%" sem casas quando inteira).
+export function rotuloAliquota(aliquota: number): string {
+  const v = Math.round(aliquota * 1000) / 10;
+  return formatarPct(v, Number.isInteger(v) ? 0 : 1);
 }

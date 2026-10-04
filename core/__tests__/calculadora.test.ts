@@ -1,10 +1,5 @@
-import {
-  calcularParidade,
-  type CalculoInput,
-  getIOFPorAno,
-  ICMS_ALIQUOTA,
-  parseNumeroLocal,
-} from '@/core/calculadora';
+import { REGRAS_FISCAIS } from '@/constants/regras-fiscais';
+import { calcularParidade, type CalculoInput, parseNumeroLocal, rotuloAliquota } from '@/core/calculadora';
 import { taxaMensalEquivalente } from '@/services/selic';
 
 describe('parseNumeroLocal', () => {
@@ -36,18 +31,12 @@ describe('parseNumeroLocal', () => {
   });
 });
 
-describe('getIOFPorAno', () => {
-  it('segue o cronograma do Decreto nº 11.153/2022', () => {
-    expect(getIOFPorAno(2024)).toBeCloseTo(0.0438);
-    expect(getIOFPorAno(2025)).toBeCloseTo(0.0338);
-    expect(getIOFPorAno(2026)).toBeCloseTo(0.0238);
-    expect(getIOFPorAno(2027)).toBeCloseTo(0.0138);
-    expect(getIOFPorAno(2028)).toBe(0);
-    expect(getIOFPorAno(2030)).toBe(0);
-  });
-
-  it('usa o fallback de 4.38% para anos fora do cronograma conhecido', () => {
-    expect(getIOFPorAno(2023)).toBeCloseTo(0.0438);
+describe('rotuloAliquota', () => {
+  it('mostra alíquotas inteiras sem casas e as demais com uma', () => {
+    expect(rotuloAliquota(0.6)).toBe('60%');
+    expect(rotuloAliquota(0.17)).toBe('17%');
+    expect(rotuloAliquota(0.035)).toBe('3,5%');
+    expect(rotuloAliquota(0)).toBe('0%');
   });
 });
 
@@ -63,8 +52,10 @@ const baseViagem: CalculoInput = {
   spread: 2.0,
   pgto: 'Cartao',
   selicMensal: taxaMensalEquivalente(11.25),
-  iofCartao: getIOFPorAno(2025),
-  iofDinheiro: 0.011,
+  iofCartao: REGRAS_FISCAIS.iof.cartao,
+  iofDinheiro: REGRAS_FISCAIS.iof.especie,
+  icms: 0.17,
+  siteCertificado: true,
 };
 
 describe('calcularParidade — cenário Viagem', () => {
@@ -72,7 +63,8 @@ describe('calcularParidade — cenário Viagem', () => {
   it('reproduz o exemplo do whitepaper (vale importar)', () => {
     const resultado = calcularParidade(baseViagem);
 
-    expect(resultado.custoExt).toBeCloseTo(4217.9, 1);
+    // 800 × 5,10 × 1,035
+    expect(resultado.custoExt).toBeCloseTo(4222.8, 1);
     expect(resultado.valeImportar).toBe(true);
     expect(resultado.economia).toBeCloseTo(resultado.custoBR - resultado.custoExt, 5);
     expect(resultado.economia).toBeGreaterThan(400);
@@ -95,13 +87,23 @@ describe('calcularParidade — cenário Viagem', () => {
     expect(resultado.custoBR).toBe(1000);
   });
 
-  it('usa o IOF de dinheiro em espécie quando o pagamento é em Dinheiro', () => {
+  it('usa o IOF de cada forma de pagamento', () => {
     const base = { ...baseViagem, precoBR: 1000, parcelasBR: 1, precoExt: 100, spread: 0 };
-    const noCartao = calcularParidade({ ...base, pgto: 'Cartao' as const });
-    const noDinheiro = calcularParidade({ ...base, pgto: 'Dinheiro' as const });
+    const noCartao = calcularParidade({ ...base, pgto: 'Cartao' as const, iofCartao: 0.035, iofDinheiro: 0.01 });
+    const noDinheiro = calcularParidade({ ...base, pgto: 'Dinheiro' as const, iofCartao: 0.035, iofDinheiro: 0.01 });
 
-    expect(noCartao.custoExt).toBeCloseTo(100 * 5.0 * 1.0338, 5);
-    expect(noDinheiro.custoExt).toBeCloseTo(100 * 5.0 * 1.011, 5);
+    expect(noCartao.custoExt).toBeCloseTo(100 * 5.0 * 1.035, 5);
+    expect(noDinheiro.custoExt).toBeCloseTo(100 * 5.0 * 1.01, 5);
+  });
+
+  it('avisa quando o produto passa da cota de bagagem, sem incluir o imposto', () => {
+    // US$ 1.200 > cota de US$ 1.000
+    const acima = calcularParidade({ ...baseViagem, precoExt: 1200 });
+    const dentro = calcularParidade({ ...baseViagem, precoExt: 900 });
+
+    expect(acima.avisos.join(' ')).toMatch(/cota de isenção/);
+    expect(dentro.avisos).toEqual([]);
+    expect(acima.custoExt).toBeCloseTo(1200 * 5.1 * 1.035, 5);
   });
 });
 
@@ -112,44 +114,67 @@ describe('calcularParidade — cenário Encomenda (Remessa Conforme)', () => {
     spread: 0,
     parcelasBR: 1,
   };
+  const linha = (resultado: ReturnType<typeof calcularParidade>, trecho: string) =>
+    resultado.breakdown.find((i) => i.label.includes(trecho))!;
 
-  it('aplica II de 20% até US$50 e ICMS de 20% por dentro', () => {
-    // US$40 → aduaneiro R$200; II 20% = R$40; ICMS = (240/0.8)*0.2 = R$60
+  it('zera o II até US$ 50 e cobra só o ICMS por dentro', () => {
+    // US$40 → aduaneiro R$200; II 0; ICMS 17% = (200/0,83)*0,17
     const resultado = calcularParidade({ ...baseEncomenda, precoExt: 40 });
 
-    const ii = resultado.breakdown.find((i) => i.label.includes('Importação'))!;
-    const icms = resultado.breakdown.find((i) => i.label.includes('ICMS'))!;
-
-    expect(ii.valor).toBeCloseTo(40, 5);
-    expect(icms.valor).toBeCloseTo(60, 5);
-    // pagamento 200 + IOF 3.38% (6.76) + II 40 + ICMS 60
-    expect(resultado.custoExt).toBeCloseTo(200 + 200 * 0.0338 + 40 + 60, 5);
+    expect(linha(resultado, 'Importação').valor).toBe(0);
+    expect(linha(resultado, 'Importação').label).toContain('0% até US$ 50');
+    expect(linha(resultado, 'ICMS').valor).toBeCloseTo((200 / 0.83) * 0.17, 5);
+    // pagamento 200 + IOF 3,5% (7) + II 0 + ICMS
+    expect(resultado.custoExt).toBeCloseTo(200 + 7 + (200 / 0.83) * 0.17, 5);
   });
 
-  it('aplica II de 60% com desconto de US$20 acima de US$50', () => {
-    // US$100 → aduaneiro R$500; II = 0.6*500 − 20*5 = R$200; ICMS = (700/0.8)*0.2 = R$175
+  it('aplica II de 60% com desconto de US$ 30 acima de US$ 50', () => {
+    // US$100 → aduaneiro R$500; II = 0,6*500 − 30*5 = R$150; ICMS = (650/0,83)*0,17
     const resultado = calcularParidade({ ...baseEncomenda, precoExt: 100 });
 
-    const ii = resultado.breakdown.find((i) => i.label.includes('Importação'))!;
-    const icms = resultado.breakdown.find((i) => i.label.includes('ICMS'))!;
-
-    expect(ii.valor).toBeCloseTo(200, 5);
-    expect(icms.valor).toBeCloseTo(175, 5);
+    expect(linha(resultado, 'Importação').valor).toBeCloseTo(150, 5);
+    expect(linha(resultado, 'Importação').label).toContain('60% − US$ 30');
+    expect(linha(resultado, 'ICMS').valor).toBeCloseTo((650 / 0.83) * 0.17, 5);
   });
 
-  it('inclui o frete no valor aduaneiro e no limite de US$50', () => {
-    // produto US$40 + frete US$20 = US$60 → cruza o limite e cai na alíquota de 60%
+  it('usa a alíquota de ICMS informada (20% em alguns estados)', () => {
+    const resultado = calcularParidade({ ...baseEncomenda, precoExt: 100, icms: 0.2 });
+    expect(linha(resultado, 'ICMS').valor).toBeCloseTo((650 / 0.8) * 0.2, 5);
+    expect(linha(resultado, 'ICMS').label).toContain('20%');
+  });
+
+  it('cobra 60% sem desconto quando o site não está no Remessa Conforme', () => {
+    // mesmo abaixo de US$ 50: US$40 → aduaneiro R$200; II = R$120
+    const resultado = calcularParidade({ ...baseEncomenda, precoExt: 40, siteCertificado: false });
+    expect(linha(resultado, 'Importação').valor).toBeCloseTo(120, 5);
+    expect(linha(resultado, 'Importação').label).toContain('fora do Remessa Conforme');
+    expect(linha(resultado, 'ICMS').valor).toBeCloseTo((320 / 0.83) * 0.17, 5);
+  });
+
+  it('inclui o frete no valor aduaneiro e no limite de US$ 50', () => {
+    // produto US$40 + frete US$20 = US$60 → cruza o limite
     const resultado = calcularParidade({ ...baseEncomenda, precoExt: 40, freteExt: 20 });
-    const ii = resultado.breakdown.find((i) => i.label.includes('Importação'))!;
-    // aduaneiro R$300; II = 0.6*300 − 100 = R$80
-    expect(ii.valor).toBeCloseTo(80, 5);
+    // aduaneiro R$300; II = 0,6*300 − 150 = R$30
+    expect(linha(resultado, 'Importação').valor).toBeCloseTo(30, 5);
   });
 
   it('usa a cotação do dólar para o limite quando a moeda não é USD', () => {
-    // produto 60 EUR × 6.0 = R$360 → em USD (cotação 5.0) = US$72 → alíquota alta
+    // produto 60 EUR × 6,0 = R$360 → em USD (cotação 5,0) = US$72 → faixa alta
     const resultado = calcularParidade({ ...baseEncomenda, precoExt: 60, cotacao: 6.0, cotacaoUSD: 5.0 });
-    const ii = resultado.breakdown.find((i) => i.label.includes('Importação'))!;
-    expect(ii.valor).toBeCloseTo(0.6 * 360 - 20 * 5.0, 5);
+    expect(linha(resultado, 'Importação').valor).toBeCloseTo(0.6 * 360 - 30 * 5.0, 5);
+  });
+
+  it('nunca deixa o II negativo logo acima do limite', () => {
+    // US$51 → 0,6*255 − 150 = 3 (positivo); o piso em 0 cobre descontos maiores que o imposto
+    const resultado = calcularParidade({ ...baseEncomenda, precoExt: 51 });
+    expect(linha(resultado, 'Importação').valor).toBeGreaterThanOrEqual(0);
+  });
+
+  it('avisa quando a compra passa do limite do regime simplificado', () => {
+    const acima = calcularParidade({ ...baseEncomenda, precoExt: 3500 });
+    const dentro = calcularParidade({ ...baseEncomenda, precoExt: 2500 });
+    expect(acima.avisos.join(' ')).toMatch(/US\$ 3\.000/);
+    expect(dentro.avisos).toEqual([]);
   });
 
   it('a soma do breakdown bate com o custo externo total', () => {
@@ -177,7 +202,7 @@ describe('calcularParidade — tax free (informado pelo usuário)', () => {
   });
 
   it('a soma do breakdown continua batendo com o custo total', () => {
-    const resultado = calcularParidade({ ...base, taxFreePct: 12, spread: 2, iofCartao: 0.0338 });
+    const resultado = calcularParidade({ ...base, taxFreePct: 12, spread: 2, iofCartao: 0.035 });
     const soma = resultado.breakdown.reduce((acc, i) => acc + i.valor, 0);
     expect(soma).toBeCloseTo(resultado.custoExt, 5);
   });
