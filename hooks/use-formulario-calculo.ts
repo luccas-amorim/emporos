@@ -4,6 +4,8 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { type CurrencyCode, ehCodigoMoeda } from '@/constants/currencies';
 import { type AliquotaICMS, aliquotaICMSValida, REGRAS_FISCAIS } from '@/constants/regras-fiscais';
 import { type CalculoInput, type Cenario, type FormaPagamento, parseNumeroLocal } from '@/core/calculadora';
+import { formatarNumeroBR } from '@/core/formato';
+import { type Premissas, PREMISSAS_PADRAO } from '@/core/premissas';
 import type { SimulacaoSalva } from '@/hooks/use-historico-simulacoes';
 import { CHAVES, lerComMigracao } from '@/services/armazenamento';
 import type { DadosMercado } from '@/services/mercado';
@@ -17,6 +19,8 @@ export interface CamposFormulario {
   modoBR: ModoEntradaBR;
   valorBR: string;
   parcelasBR: string;
+  /** Parcelas sem juros (o preço total é o mesmo à vista e parcelado). */
+  semJuros: boolean;
   precoExt: string;
   freteExt: string;
   moeda: CurrencyCode;
@@ -37,18 +41,51 @@ export const CAMPOS_INICIAIS: CamposFormulario = {
   modoBR: 'total',
   valorBR: '',
   parcelasBR: '1',
+  semJuros: true,
   precoExt: '',
   freteExt: '',
   moeda: 'USD',
-  spread: '2.0', // média de Wise/Nomad/C6
-  pgto: 'Cartao',
+  spread: textoSpread(PREMISSAS_PADRAO.spread),
+  pgto: PREMISSAS_PADRAO.pgto,
   taxFree: '',
-  siteCertificado: true,
+  siteCertificado: PREMISSAS_PADRAO.siteCertificado,
   icms: REGRAS_FISCAIS.icms.padrao,
   nomeProduto: '',
   link: '',
   observacao: '',
 };
+
+/** Spread numérico no formato do campo ("2,0"). */
+export function textoSpread(spread: number): string {
+  return formatarNumeroBR(spread, 1);
+}
+
+/** Premissas atuais do formulário. */
+export function premissasDe(campos: CamposFormulario): Premissas {
+  return {
+    cenario: campos.cenario,
+    siteCertificado: campos.siteCertificado,
+    icms: campos.icms,
+    pgto: campos.pgto,
+    spread: parseNumeroLocal(campos.spread),
+  };
+}
+
+/** Lê as premissas salvas, descartando o que for inválido. */
+export function premissasSalvas(bruto: string | null): Partial<Premissas> {
+  if (!bruto) return {};
+  try {
+    const salvo = JSON.parse(bruto);
+    const p: Partial<Premissas> = {};
+    if (salvo.cenario === 'Encomenda' || salvo.cenario === 'Viagem') p.cenario = salvo.cenario;
+    if (typeof salvo.siteCertificado === 'boolean') p.siteCertificado = salvo.siteCertificado;
+    if (salvo.pgto === 'Cartao' || salvo.pgto === 'Dinheiro') p.pgto = salvo.pgto;
+    if (typeof salvo.spread === 'number' && salvo.spread >= 0 && salvo.spread <= 100) p.spread = salvo.spread;
+    return p;
+  } catch {
+    return {};
+  }
+}
 
 export function valoresNumericos(campos: CamposFormulario) {
   const parcelas = parseInt(campos.parcelasBR, 10) || 1;
@@ -61,7 +98,7 @@ export function valoresNumericos(campos: CamposFormulario) {
   };
 }
 
-type RegistroSimulacao = Omit<SimulacaoSalva, 'id' | 'data' | 'valeImportar' | 'custoBR' | 'custoExt' | 'economia'>;
+export type RegistroSimulacao = Omit<SimulacaoSalva, 'id' | 'data' | 'valeImportar' | 'custoBR' | 'custoExt' | 'economia'>;
 
 export interface SimulacaoMontada {
   entrada: CalculoInput;
@@ -155,14 +192,19 @@ export function useFormularioCalculo() {
   const veioDoHistorico = useRef(false);
 
   useEffect(() => {
-    Promise.all([lerComMigracao(CHAVES.moeda), lerComMigracao(CHAVES.icms)])
-      .then(([moeda, icms]) => {
+    Promise.all([lerComMigracao(CHAVES.moeda), lerComMigracao(CHAVES.icms), lerComMigracao(CHAVES.premissas)])
+      .then(([moeda, icms, premissas]) => {
         // Se o "Recalcular hoje" chegou antes, os valores dele prevalecem.
         if (veioDoHistorico.current) return;
+        const salvas = premissasSalvas(premissas);
         setCampos((atual) => ({
           ...atual,
           moeda: ehCodigoMoeda(moeda) ? moeda : atual.moeda,
           icms: aliquotaICMSValida(icms) ?? atual.icms,
+          cenario: salvas.cenario ?? atual.cenario,
+          siteCertificado: salvas.siteCertificado ?? atual.siteCertificado,
+          pgto: salvas.pgto ?? atual.pgto,
+          spread: salvas.spread !== undefined ? textoSpread(salvas.spread) : atual.spread,
         }));
       })
       .catch(() => {})
@@ -190,5 +232,20 @@ export function useFormularioCalculo() {
     setCampos((atual) => camposDoPrefill(params, atual));
   }, []);
 
-  return { campos, definir, aplicarPrefill };
+  // Premissas aplicadas no sheet viram o padrão das próximas comparações.
+  const aplicarPremissas = useCallback((p: Premissas & { taxFree?: string }) => {
+    setCampos((atual) => ({
+      ...atual,
+      cenario: p.cenario,
+      siteCertificado: p.siteCertificado,
+      icms: p.icms as AliquotaICMS,
+      pgto: p.pgto,
+      spread: textoSpread(p.spread),
+      taxFree: p.taxFree ?? atual.taxFree,
+    }));
+    const { cenario, siteCertificado, pgto, spread } = p;
+    AsyncStorage.setItem(CHAVES.premissas, JSON.stringify({ cenario, siteCertificado, pgto, spread })).catch(() => {});
+  }, []);
+
+  return { campos, definir, aplicarPrefill, aplicarPremissas };
 }

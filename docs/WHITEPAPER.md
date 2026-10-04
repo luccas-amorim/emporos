@@ -113,6 +113,18 @@ Em sites fora do Remessa Conforme, $II = 0{,}60 \times VA$ em qualquer faixa, se
 
 O limite de US$ 50 é aferido em dólar: para compras em outras moedas, o app converte via cotação cruzada ($VA_{USD} = VA_{BRL} / FX_{USD}$). O resultado exibe o *breakdown* de cada componente (pagamento, IOF, II, ICMS), e a soma dos componentes é validada por teste automatizado contra o custo total.
 
+### 3.5. Ponto de Virada
+
+O custo de importar é linear na cotação: câmbio com spread, IOF, II, ICMS por dentro e tax free são todos proporcionais ao valor convertido, e as faixas do Remessa Conforme e a cota de bagagem são definidas em dólar. Se o real se valoriza ou desvaloriza na mesma proporção $k$ contra todas as moedas, então $Custo_{Ext}(k \cdot FX) = k \cdot Custo_{Ext}(FX)$ (o desconto de US$ 30 também escala, porque é convertido pela cotação do dólar). A cotação em que as duas opções empatam é:
+
+$$
+FX^{*} = FX \times \frac{VP}{Custo_{Ext}}
+$$
+
+Abaixo de $FX^{*}$, importar passa a valer a pena; acima, o Brasil vence. O valor aparece no resultado ("Importar passa a valer a pena com o dólar abaixo de R$ X") e serve de alvo sugerido para os alertas de câmbio. Os testes conferem, para encomenda (com e sem Remessa Conforme, em dólar e em euro), viagem dentro e acima da cota e compra à vista, que os dois custos são iguais em $FX^{*}$.
+
+Quando a diferença entre as opções fica abaixo de 1% da mais cara, o veredito é "Tanto faz.".
+
 -----
 
 ## 4\. Regras Fiscais Datadas

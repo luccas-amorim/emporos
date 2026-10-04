@@ -6,15 +6,19 @@ export interface Currency {
   code: CurrencyCode;
   nome: string;
   bandeira: FlagCode;
+  /** Prefixo dos valores ("US$ 399"). */
+  simbolo: string;
+  /** Nome em frase, com artigo: "Importar passa a valer a pena com o dólar abaixo de…". */
+  nomeFrase: string;
 }
 
 export const MOEDAS: Currency[] = [
-  { code: 'USD', nome: 'Dólar Americano', bandeira: 'US' },
-  { code: 'EUR', nome: 'Euro', bandeira: 'EU' },
-  { code: 'GBP', nome: 'Libra Esterlina', bandeira: 'GB' },
-  { code: 'JPY', nome: 'Iene Japonês', bandeira: 'JP' },
-  { code: 'ARS', nome: 'Peso Argentino', bandeira: 'AR' },
-  { code: 'CLP', nome: 'Peso Chileno', bandeira: 'CL' },
+  { code: 'USD', nome: 'Dólar Americano', bandeira: 'US', simbolo: 'US$', nomeFrase: 'o dólar' },
+  { code: 'EUR', nome: 'Euro', bandeira: 'EU', simbolo: '€', nomeFrase: 'o euro' },
+  { code: 'GBP', nome: 'Libra Esterlina', bandeira: 'GB', simbolo: '£', nomeFrase: 'a libra' },
+  { code: 'JPY', nome: 'Iene Japonês', bandeira: 'JP', simbolo: '¥', nomeFrase: 'o iene' },
+  { code: 'ARS', nome: 'Peso Argentino', bandeira: 'AR', simbolo: 'ARS', nomeFrase: 'o peso argentino' },
+  { code: 'CLP', nome: 'Peso Chileno', bandeira: 'CL', simbolo: 'CLP', nomeFrase: 'o peso chileno' },
 ];
 
 export const CODIGOS_MOEDA: CurrencyCode[] = MOEDAS.map((m) => m.code);

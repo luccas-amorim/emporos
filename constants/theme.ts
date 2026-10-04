@@ -1,115 +1,199 @@
-import { Platform } from 'react-native';
-
 export interface Paleta {
+  /** Fundo das telas. */
   background: string;
+  /** Superfície de cards, tab bar e sheets sobre o fundo. */
   card: string;
+  /** Trilho do controle segmentado, botões secundários, caixas de apoio. */
+  surface2: string;
   text: string;
-  subtext: string;
-  muted: string;
+  /** Texto secundário. */
+  textMuted: string;
+  /** Rótulos e metadados. */
+  textSubtle: string;
+  /** Bordas de 1px (o app não usa sombra). */
   border: string;
-  borderSoft: string;
-  inputBg: string;
-  primary: string;
-  primarySoft: string;
-  success: string;
-  successBg: string;
-  successBorder: string;
-  info: string;
-  infoBg: string;
-  infoBorder: string;
-  warnText: string;
-  warnBg: string;
+  /** Tudo que significa "comprar no Brasil". */
+  brasil: string;
+  brasilSoft: string;
+  /** Tudo que significa "importar". */
+  exterior: string;
+  exteriorSoft: string;
+  /** Atenção: offline, cotação velha, avisos fiscais. */
+  warn: string;
+  warnSoft: string;
+  /** Erro e ações destrutivas (excluir, limpar). */
   danger: string;
-  optionBg: string;
+  /** Botão primário e o texto sobre ele. */
+  action: string;
+  actionText: string;
+  /** Véu atrás de sheets e modais. */
   overlay: string;
+
+  // Chaves da paleta anterior, mantidas para as telas que ainda não passaram pelo
+  // revamp. Cada uma aponta para um token novo; saem quando a última tela migrar.
+  /** @deprecated use `textMuted` */
+  subtext: string;
+  /** @deprecated use `textSubtle` */
+  muted: string;
+  /** @deprecated use `border` */
+  borderSoft: string;
+  /** @deprecated use `card` */
+  inputBg: string;
+  /** @deprecated use `action` (fundo) ou `text` (texto) */
+  primary: string;
+  /** @deprecated use `surface2` */
+  primarySoft: string;
+  /** @deprecated use `brasil` */
+  success: string;
+  /** @deprecated use `brasilSoft` */
+  successBg: string;
+  /** @deprecated use `brasil` */
+  successBorder: string;
+  /** @deprecated use `exterior` */
+  info: string;
+  /** @deprecated use `exteriorSoft` */
+  infoBg: string;
+  /** @deprecated use `exterior` */
+  infoBorder: string;
+  /** @deprecated use `warn` */
+  warnText: string;
+  /** @deprecated use `warnSoft` */
+  warnBg: string;
+  /** @deprecated use `background` */
+  optionBg: string;
+  /** @deprecated use `textSubtle` */
   icon: string;
+  /** @deprecated use `text` */
   tint: string;
+  /** @deprecated use `textSubtle` */
   tabIconDefault: string;
+  /** @deprecated use `text` */
   tabIconSelected: string;
 }
 
-// Identidade "Petróleo": azul-esverdeado profundo — confiança do azul + associação
-// monetária do verde, num território de cor livre no mercado financeiro brasileiro.
-// As cores semânticas (success/info/warn/danger) são propositalmente distintas da
-// cor de marca para não misturar "identidade" com "significado" nos resultados.
+type TokensBase = Omit<
+  Paleta,
+  | 'subtext'
+  | 'muted'
+  | 'borderSoft'
+  | 'inputBg'
+  | 'primary'
+  | 'primarySoft'
+  | 'success'
+  | 'successBg'
+  | 'successBorder'
+  | 'info'
+  | 'infoBg'
+  | 'infoBorder'
+  | 'warnText'
+  | 'warnBg'
+  | 'optionBg'
+  | 'icon'
+  | 'tint'
+  | 'tabIconDefault'
+  | 'tabIconSelected'
+>;
+
+function comChavesAntigas(t: TokensBase, inputBg: string): Paleta {
+  return {
+    ...t,
+    subtext: t.textMuted,
+    muted: t.textSubtle,
+    borderSoft: t.border,
+    inputBg,
+    primary: t.action,
+    primarySoft: t.surface2,
+    success: t.brasil,
+    successBg: t.brasilSoft,
+    successBorder: t.brasil,
+    info: t.exterior,
+    infoBg: t.exteriorSoft,
+    infoBorder: t.exterior,
+    warnText: t.warn,
+    warnBg: t.warnSoft,
+    optionBg: t.background,
+    icon: t.textSubtle,
+    tint: t.text,
+    tabIconDefault: t.textSubtle,
+    tabIconSelected: t.text,
+  };
+}
+
+// "Tinta e papel": a interface é neutra e a cor só aparece quando quer dizer alguma
+// coisa — verde é Brasil, azul é importar, âmbar é atenção. Os acentos vêm de oklch
+// (L 0,52 no claro, 0,78 no escuro, C 0,14); os hex são os do handoff, que passam de
+// 4,5:1 também sobre os fundos "Soft". O textSubtle foi escurecido em relação ao
+// protótipo (#7d7f83 / #7c7e82) para passar de 4,5:1 sobre fundo, card e surface2.
 export const Colors: { light: Paleta; dark: Paleta } = {
-  light: {
-    background: '#eef3f2',
-    card: '#ffffff',
-    text: '#2f3634',
-    subtext: '#5c6763',
-    muted: '#8f9995',
-    border: '#d5dedb',
-    borderSoft: '#e6edea',
-    inputBg: '#ffffff',
-    primary: '#0f6e56',
-    primarySoft: '#e1f5ee',
-    success: '#137333',
-    successBg: '#e6f4ea',
-    successBorder: '#34a853',
-    info: '#1967d2',
-    infoBg: '#e8f0fe',
-    infoBorder: '#4285f4',
-    warnText: '#a35a00',
-    warnBg: '#fff4e0',
-    danger: '#d93025',
-    optionBg: '#f5f8f7',
-    overlay: 'rgba(4,52,44,0.45)',
-    icon: '#687670',
-    tint: '#0f6e56',
-    tabIconDefault: '#687670',
-    tabIconSelected: '#0f6e56',
-  },
-  dark: {
-    background: '#0e1413',
-    card: '#19211f',
-    text: '#e1e7e5',
-    subtext: '#9faba7',
-    muted: '#6c7874',
-    border: '#313c39',
-    borderSoft: '#28312e',
-    inputBg: '#202a27',
-    primary: '#5dcaa5',
-    primarySoft: '#123529',
-    success: '#81c995',
-    successBg: '#17281d',
-    successBorder: '#2e7d4f',
-    info: '#8ab4f8',
-    infoBg: '#182636',
-    infoBorder: '#3b6db0',
-    warnText: '#fdd663',
-    warnBg: '#33290f',
-    danger: '#f28b82',
-    optionBg: '#202a27',
-    overlay: 'rgba(0,0,0,0.6)',
-    icon: '#93a19c',
-    tint: '#5dcaa5',
-    tabIconDefault: '#93a19c',
-    tabIconSelected: '#5dcaa5',
-  },
+  light: comChavesAntigas(
+    {
+      background: '#f4f3ef',
+      card: '#ffffff',
+      surface2: '#ebeae5',
+      text: '#17181a',
+      textMuted: '#4f5155',
+      textSubtle: '#68696d',
+      border: '#e1e0db',
+      brasil: '#1f7a4a',
+      brasilSoft: '#e3f3e8',
+      exterior: '#2f63b8',
+      exteriorSoft: '#e6eefb',
+      warn: '#9a5b12',
+      warnSoft: '#f8eedb',
+      danger: '#b3261e',
+      action: '#17181a',
+      actionText: '#f4f3ef',
+      overlay: 'rgba(0,0,0,0.45)',
+    },
+    '#ffffff'
+  ),
+  dark: comChavesAntigas(
+    {
+      background: '#0e0f10',
+      card: '#18191b',
+      surface2: '#232427',
+      text: '#eeede9',
+      textMuted: '#b0b1b4',
+      textSubtle: '#8a8c90',
+      border: '#2b2c2f',
+      brasil: '#6fcf97',
+      brasilSoft: '#173323',
+      exterior: '#8db8ff',
+      exteriorSoft: '#172640',
+      warn: '#f0b45a',
+      warnSoft: '#3a2c14',
+      danger: '#f2b8b5',
+      action: '#eeede9',
+      actionText: '#0e0f10',
+      overlay: 'rgba(0,0,0,0.45)',
+    },
+    '#232427'
+  ),
 };
 
-export const Fonts = Platform.select({
-  ios: {
-    /** iOS `UIFontDescriptorSystemDesignDefault` */
-    sans: 'system-ui',
-    /** iOS `UIFontDescriptorSystemDesignSerif` */
-    serif: 'ui-serif',
-    /** iOS `UIFontDescriptorSystemDesignRounded` */
-    rounded: 'ui-rounded',
-    /** iOS `UIFontDescriptorSystemDesignMonospaced` */
-    mono: 'ui-monospace',
-  },
-  default: {
-    sans: 'normal',
-    serif: 'serif',
-    rounded: 'normal',
-    mono: 'monospace',
-  },
-  web: {
-    sans: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
-    serif: "Georgia, 'Times New Roman', serif",
-    rounded: "'SF Pro Rounded', 'Hiragino Maru Gothic ProN', Meiryo, 'MS PGothic', sans-serif",
-    mono: "SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
-  },
-});
+// Geist (texto) e Geist Mono (valores, cotações e datas), OFL. Com fonte customizada,
+// o Android não escolhe o arquivo pelo fontWeight: cada peso é uma família própria,
+// e quem escolhe é `familiaFonte`.
+export type PesoFonte = 400 | 500 | 600;
+
+const FAMILIAS = {
+  sans: { 400: 'Geist-Regular', 500: 'Geist-Medium', 600: 'Geist-SemiBold' },
+  mono: { 400: 'GeistMono-Regular', 500: 'GeistMono-Medium', 600: 'GeistMono-SemiBold' },
+} as const;
+
+export function familiaFonte(mono: boolean, peso: PesoFonte): string {
+  return FAMILIAS[mono ? 'mono' : 'sans'][peso];
+}
+
+/** Arquivos para o `useFonts` de `app/_layout.tsx`. */
+export const ARQUIVOS_FONTES = {
+  [FAMILIAS.sans[400]]: require('@expo-google-fonts/geist/400Regular/Geist_400Regular.ttf'),
+  [FAMILIAS.sans[500]]: require('@expo-google-fonts/geist/500Medium/Geist_500Medium.ttf'),
+  [FAMILIAS.sans[600]]: require('@expo-google-fonts/geist/600SemiBold/Geist_600SemiBold.ttf'),
+  [FAMILIAS.mono[400]]: require('@expo-google-fonts/geist-mono/400Regular/GeistMono_400Regular.ttf'),
+  [FAMILIAS.mono[500]]: require('@expo-google-fonts/geist-mono/500Medium/GeistMono_500Medium.ttf'),
+  [FAMILIAS.mono[600]]: require('@expo-google-fonts/geist-mono/600SemiBold/GeistMono_600SemiBold.ttf'),
+};
+
+/** Raios do sistema visual. */
+export const Raios = { pequeno: 10, item: 14, botao: 16, card: 20, cardLista: 18, sheet: 28, pill: 999 } as const;

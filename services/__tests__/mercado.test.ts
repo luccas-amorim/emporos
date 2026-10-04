@@ -1,8 +1,8 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-import { CHAVES } from '@/services/armazenamento';
-import { buscarCotacoesRede } from '@/services/cambio';
-import { carregarDadosMercado, descreverIdade } from '@/services/mercado';
+import { CHAVES, chaveSerie } from '@/services/armazenamento';
+import { buscarCotacoesRede, buscarSerieRede } from '@/services/cambio';
+import { carregarDadosMercado, carregarSerie90d, cotacaoDesatualizada, descreverHorario, descreverIdade } from '@/services/mercado';
 import { buscarSelicRede } from '@/services/selic';
 
 const CODIGOS = ['USD', 'EUR'] as const;
@@ -122,3 +122,79 @@ describe('descreverIdade', () => {
     expect(descreverIdade(new Date(agora - 49 * 3_600_000).toISOString())).toBe('há 2 dias');
   });
 });
+
+describe('cotacaoDesatualizada', () => {
+  const agora = new Date('2026-10-04T12:00:00.000Z');
+  const base = { cotacoes: {} as never, selicAnual: 15, selicMensal: 0.0117 };
+
+  it('trata cache e referência como desatualizados', () => {
+    expect(cotacaoDesatualizada({ ...base, origem: 'cache', atualizadoEm: agora.toISOString() }, agora)).toBe(true);
+    expect(cotacaoDesatualizada({ ...base, origem: 'padrao', atualizadoEm: agora.toISOString() }, agora)).toBe(true);
+  });
+
+  it('cotação da rede fica velha depois de uma hora', () => {
+    const recente = new Date(agora.getTime() - 3 * 60000).toISOString();
+    const antiga = new Date(agora.getTime() - 2 * 3600000).toISOString();
+    expect(cotacaoDesatualizada({ ...base, origem: 'rede', atualizadoEm: recente }, agora)).toBe(false);
+    expect(cotacaoDesatualizada({ ...base, origem: 'rede', atualizadoEm: antiga }, agora)).toBe(true);
+  });
+});
+
+describe('descreverHorario', () => {
+  const agora = new Date(2026, 9, 4, 12, 0);
+
+  it('diz hoje, ontem ou a data, com a hora local', () => {
+    expect(descreverHorario(new Date(2026, 9, 4, 7, 40).toISOString(), agora)).toBe('de hoje às 7:40');
+    expect(descreverHorario(new Date(2026, 9, 3, 22, 5).toISOString(), agora)).toBe('de ontem às 22:05');
+    expect(descreverHorario(new Date(2026, 9, 2, 9, 0).toISOString(), agora)).toBe('de 02/10 às 9:00');
+  });
+});
+
+describe('buscarSerieRede e carregarSerie90d', () => {
+  const RESPOSTA_SERIE = [
+    { bid: '5.40', ask: '5.44', timestamp: '1790975871' },
+    { bid: '5.50', ask: '5.52', timestamp: '1790890065' },
+    { bid: 'x', ask: '5.52', timestamp: '1790807485' },
+  ];
+
+  it('devolve a série em ordem cronológica, com a média entre bid e ask', async () => {
+    mockFetchOk({ 'daily/USD-BRL/90': RESPOSTA_SERIE });
+    const pontos = await buscarSerieRede('USD');
+    expect(pontos).toEqual([
+      { data: 1790890065000, valor: 5.51 },
+      { data: 1790975871000, valor: 5.42 },
+    ]);
+  });
+
+  it('guarda a série por um dia e reaproveita o cache no mesmo dia', async () => {
+    mockFetchOk({ 'daily/USD-BRL/90': RESPOSTA_SERIE });
+    const agora = new Date(2026, 9, 4, 10, 0);
+    const primeira = await carregarSerie90d('USD', agora);
+    expect(primeira?.origem).toBe('rede');
+
+    global.fetch = jest.fn(async () => {
+      throw new Error('não devia buscar');
+    }) as jest.Mock;
+    await waitForStorage(chaveSerie('USD'));
+    const segunda = await carregarSerie90d('USD', new Date(2026, 9, 4, 18, 0));
+    expect(segunda).toMatchObject({ origem: 'cache', pontos: primeira!.pontos });
+  });
+
+  it('sem rede, usa o cache antigo; sem cache, devolve null', async () => {
+    jest.spyOn(console, 'error').mockImplementation(() => {});
+    global.fetch = jest.fn(async () => {
+      throw new Error('offline');
+    }) as jest.Mock;
+    expect(await carregarSerie90d('EUR', new Date(2026, 9, 4))).toBeNull();
+
+    await AsyncStorage.setItem(
+      chaveSerie('EUR'),
+      JSON.stringify({ pontos: [{ data: 1, valor: 6 }], atualizadoEm: new Date(2026, 9, 1).toISOString() })
+    );
+    expect(await carregarSerie90d('EUR', new Date(2026, 9, 4))).toMatchObject({ origem: 'cache' });
+  });
+});
+
+async function waitForStorage(chave: string) {
+  for (let i = 0; i < 20 && !(await AsyncStorage.getItem(chave)); i++) await new Promise((r) => setTimeout(r, 5));
+}

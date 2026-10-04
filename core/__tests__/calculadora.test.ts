@@ -1,5 +1,11 @@
 import { REGRAS_FISCAIS } from '@/constants/regras-fiscais';
-import { calcularParidade, type CalculoInput, parseNumeroLocal, rotuloAliquota } from '@/core/calculadora';
+import {
+  calcularParidade,
+  calcularPontoDeVirada,
+  type CalculoInput,
+  parseNumeroLocal,
+  rotuloAliquota,
+} from '@/core/calculadora';
 import { taxaMensalEquivalente } from '@/services/selic';
 
 describe('parseNumeroLocal', () => {
@@ -236,5 +242,97 @@ describe('calcularParidade — economia percentual', () => {
   it('retorna 0% quando ambos os custos são zero', () => {
     const resultado = calcularParidade({ ...baseViagem, precoBR: 0, parcelasBR: 1, precoExt: 0 });
     expect(resultado.economiaPct).toBe(0);
+  });
+});
+
+describe('calcularParidade — veredito', () => {
+  const base = { ...baseViagem, parcelasBR: 1, spread: 0, iofCartao: 0 };
+
+  it('diz "Compre no Brasil." quando o Brasil sai mais barato', () => {
+    const r = calcularParidade({ ...base, precoBR: 400, precoExt: 100 });
+    expect(r.veredito).toBe('brasil');
+    expect(r.msg).toBe('Compre no Brasil.');
+  });
+
+  it('diz "Vale importar." quando importar sai mais barato', () => {
+    const r = calcularParidade({ ...base, precoBR: 1000, precoExt: 100 });
+    expect(r.veredito).toBe('exterior');
+    expect(r.msg).toBe('Vale importar.');
+  });
+
+  it('diz "Tanto faz." quando a diferença fica abaixo de 1%', () => {
+    // custoExt = 500; custoBR = 503 → 0,6%
+    const r = calcularParidade({ ...base, precoBR: 503, precoExt: 100 });
+    expect(r.veredito).toBe('empate');
+    expect(r.msg).toBe('Tanto faz.');
+    // valeImportar continua refletindo o lado mais barato (histórico salvo)
+    expect(r.valeImportar).toBe(true);
+  });
+
+  it('classifica cada linha do detalhamento pelo tipo', () => {
+    const r = calcularParidade({ ...baseViagem, cenario: 'Encomenda', precoExt: 100, parcelasBR: 1 });
+    expect(r.breakdown.map((i) => i.tipo)).toEqual(['produto', 'iof', 'ii', 'icms']);
+    expect(r.breakdown[2]).toMatchObject({ regraII: 'faixaAlta', aliquota: 0.6 });
+  });
+});
+
+describe('calcularPontoDeVirada', () => {
+  // Na cotação de equilíbrio, as duas opções custam o mesmo. O real se move contra
+  // todas as moedas na mesma proporção: o dólar escala junto com a moeda da compra.
+  function custosNaCotacao(input: CalculoInput, cotacao: number) {
+    const k = cotacao / input.cotacao;
+    return calcularParidade({ ...input, cotacao, cotacaoUSD: input.cotacaoUSD * k });
+  }
+
+  function confereEquilibrio(input: CalculoInput) {
+    const ponto = calcularPontoDeVirada(input);
+    const naVirada = custosNaCotacao(input, ponto);
+    expect(naVirada.custoExt).toBeCloseTo(naVirada.custoBR, 6);
+    return ponto;
+  }
+
+  const encomenda: CalculoInput = { ...baseViagem, cenario: 'Encomenda', precoBR: 3799, parcelasBR: 10, precoExt: 399 };
+
+  it('encomenda no Remessa Conforme (faixa com desconto de US$ 30)', () => {
+    const ponto = confereEquilibrio(encomenda);
+    // Brasil mais barato hoje → a virada fica abaixo da cotação atual
+    expect(calcularParidade(encomenda).valeImportar).toBe(false);
+    expect(ponto).toBeLessThan(encomenda.cotacao);
+  });
+
+  it('encomenda até US$ 50 (II zero)', () => {
+    confereEquilibrio({ ...encomenda, precoExt: 40, precoBR: 300 });
+  });
+
+  it('encomenda fora do Remessa Conforme', () => {
+    confereEquilibrio({ ...encomenda, siteCertificado: false });
+  });
+
+  it('encomenda em euro, com o limite de US$ 50 lido pela cotação do dólar', () => {
+    confereEquilibrio({ ...encomenda, cotacao: 6.2, cotacaoUSD: 5.4, precoExt: 300 });
+  });
+
+  it('viagem dentro da cota, com tax free', () => {
+    const viagem = { ...baseViagem, taxFreePct: 8 };
+    const ponto = confereEquilibrio(viagem);
+    // importar vale hoje → a virada fica acima da cotação atual
+    expect(ponto).toBeGreaterThan(viagem.cotacao);
+  });
+
+  it('viagem acima da cota: o excedente não entra no custo, e a relação continua proporcional', () => {
+    const acima = { ...baseViagem, precoExt: 1500 };
+    expect(calcularParidade(acima).avisos.join(' ')).toMatch(/cota de isenção/);
+    confereEquilibrio(acima);
+  });
+
+  it('sem parcelamento, compara com o preço cheio do Brasil', () => {
+    const aVista = { ...baseViagem, parcelasBR: 1, precoBR: 4500 };
+    const r = calcularParidade(aVista);
+    expect(r.pontoDeVirada).toBeCloseTo((aVista.cotacao * 4500) / r.custoExt, 8);
+    confereEquilibrio(aVista);
+  });
+
+  it('é infinito quando não há custo no exterior', () => {
+    expect(calcularPontoDeVirada({ ...baseViagem, precoExt: 0 })).toBe(Infinity);
   });
 });

@@ -1,217 +1,224 @@
-import { useRouter } from 'expo-router';
-import React, { useMemo } from 'react';
-import { FlatList, Linking, Share, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useFocusEffect, useRouter } from 'expo-router';
+import React, { useCallback, useMemo, useState } from 'react';
+import { FlatList, Linking, Pressable, Share, StyleSheet, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { FlagIcon } from '@/components/flag-icon';
-import { moedaPorCodigo } from '@/constants/currencies';
+import { CartaoSimulacao } from '@/components/historico/cartao-simulacao';
+import { Botao } from '@/components/ui/botao';
+import { Cartao } from '@/components/ui/cartao';
+import { Sheet } from '@/components/ui/sheet';
+import { Texto } from '@/components/ui/texto';
+import { CODIGOS_MOEDA, moedaPorCodigo } from '@/constants/currencies';
 import type { Paleta } from '@/constants/theme';
 import { textoCompartilhamento } from '@/core/compartilhamento';
-import { formatarBRL, formatarCotacaoBR, formatarPct } from '@/core/formato';
-import { paramsRecalculo, useHistoricoSimulacoes, type SimulacaoSalva } from '@/hooks/use-historico-simulacoes';
+import { resumoMudancas, type SimulacaoRecalculada } from '@/core/historico';
+import {
+  paramsRecalculo,
+  recarregarHistorico,
+  useHistoricoRecalculado,
+  useHistoricoSimulacoes,
+} from '@/hooks/use-historico-simulacoes';
+import { definirSimulacaoAtual } from '@/hooks/use-simulacao-atual';
 import { useTema } from '@/hooks/use-tema';
+import { carregarDadosMercado, type DadosMercado } from '@/services/mercado';
 
-function formatarData(iso: string): string {
-  return new Date(iso).toLocaleString('pt-BR', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
-}
+// Tela 04: o histórico refeito com o câmbio de hoje, destacando o que mudou de lado.
+export default function HistoricoScreen() {
+  const { cores } = useTema();
+  const styles = useMemo(() => criarStyles(cores), [cores]);
+  const insets = useSafeAreaInsets();
+  const router = useRouter();
+  const { historico, carregando, removerSimulacao, limparHistorico } = useHistoricoSimulacoes();
+  const [dados, setDados] = useState<DadosMercado | null>(null);
+  const [acoes, setAcoes] = useState<SimulacaoRecalculada | null>(null);
+  const [confirmarLimpeza, setConfirmarLimpeza] = useState(false);
+  const recalculadas = useHistoricoRecalculado(dados);
 
-function economiaPctDe(item: SimulacaoSalva): number {
-  const maisCaro = Math.max(item.custoBR, item.custoExt);
-  return maisCaro > 0 ? (item.economia / maisCaro) * 100 : 0;
-}
+  // Ao focar a aba: relê o histórico e busca a cotação de hoje.
+  useFocusEffect(
+    useCallback(() => {
+      recarregarHistorico();
+      carregarDadosMercado(CODIGOS_MOEDA).then(setDados);
+    }, [])
+  );
 
-function ItemHistorico({
-  item,
-  styles,
-  cores,
-  aoRemover,
-  aoRecalcular,
-}: {
-  item: SimulacaoSalva;
-  styles: ReturnType<typeof criarStyles>;
-  cores: Paleta;
-  aoRemover: (id: string) => void;
-  aoRecalcular: (item: SimulacaoSalva) => void;
-}) {
-  const veredito = item.valeImportar ? '✈️ Exterior venceu' : 'Brasil venceu';
+  const resumo = recalculadas ? resumoMudancas(recalculadas, (m) => moedaPorCodigo(m).nomeFrase) : null;
 
-  const compartilhar = async () => {
+  const abrir = (r: SimulacaoRecalculada) => {
+    if (!dados) return;
+    const { id: _id, data: _data, valeImportar: _v, custoBR: _b, custoExt: _e, economia: _ec, ...registro } = r.item;
+    definirSimulacaoAtual({
+      entrada: r.entrada,
+      registro: { ...registro, cotacao: r.entrada.cotacao, selicAnual: dados.selicAnual },
+      resultado: r.resultado,
+      dados,
+      moeda: r.item.moeda,
+      salvaComo: r.item.id,
+    });
+    router.push('/resultado');
+  };
+
+  const editar = (r: SimulacaoRecalculada) => {
+    setAcoes(null);
+    router.push({ pathname: '/', params: { prefill: String(Date.now()), ...paramsRecalculo(r.item) } });
+  };
+
+  const compartilhar = async (r: SimulacaoRecalculada) => {
+    setAcoes(null);
     try {
-      await Share.share({ message: textoCompartilhamento({ ...item, economiaPct: economiaPctDe(item) }) });
+      await Share.share({ message: textoCompartilhamento({ ...r.resultado, nomeProduto: r.item.nomeProduto }) });
     } catch {
       // usuário cancelou o share
     }
   };
 
+  const offline = dados && dados.origem !== 'rede';
+
   return (
-    <View style={[styles.card, item.valeImportar ? styles.cardExt : styles.cardBr]}>
-      <View style={styles.cardHeader}>
-        <View style={styles.cardMsgRow}>
-          {!item.valeImportar && <FlagIcon code="BR" size={12} style={{ marginRight: 4 }} />}
-          <Text style={styles.cardMsg} numberOfLines={1}>
-            {item.nomeProduto || veredito}
-          </Text>
-        </View>
-        <Text style={styles.cardData}>{formatarData(item.data)}</Text>
-      </View>
+    <View style={styles.tela}>
+      <FlatList
+        data={recalculadas ?? []}
+        keyExtractor={(r) => r.item.id}
+        contentContainerStyle={[styles.conteudo, { paddingTop: insets.top + 10 }]}
+        ListHeaderComponent={
+          <View style={styles.cabeca}>
+            <View style={styles.titulos}>
+              <View style={styles.linhaTitulo}>
+                <Texto variante="tituloAba" accessibilityRole="header">
+                  Histórico
+                </Texto>
+                {historico.length > 0 ? (
+                  <Pressable
+                    onPress={() => setConfirmarLimpeza(true)}
+                    hitSlop={12}
+                    accessibilityRole="button"
+                    accessibilityLabel="Limpar todo o histórico">
+                    <Texto tamanho={13} cor="textSubtle">
+                      Limpar
+                    </Texto>
+                  </Pressable>
+                ) : null}
+              </View>
+              {historico.length > 0 ? (
+                <Texto tamanho={13} cor="textSubtle">
+                  {offline ? 'Recalculado com a última cotação salva' : 'Recalculado com o câmbio de hoje'}
+                </Texto>
+              ) : null}
+            </View>
+            {resumo ? (
+              <Cartao tom={resumo.sentido} raio={18} style={{ gap: 4 }} accessibilityRole="summary">
+                <Texto tamanho={14} peso={600} cor={resumo.sentido}>
+                  {resumo.titulo}
+                </Texto>
+                <Texto tamanho={13} style={{ lineHeight: 18 }}>
+                  {resumo.texto}
+                </Texto>
+              </Cartao>
+            ) : null}
+          </View>
+        }
+        ListEmptyComponent={
+          !carregando && historico.length === 0 ? (
+            <Texto tamanho={14} cor="textMuted" style={styles.vazio}>
+              Nenhuma simulação salva ainda. Compare na aba Comparar e toque em Salvar.
+            </Texto>
+          ) : null
+        }
+        renderItem={({ item }) => (
+          <CartaoSimulacao simulacao={item} aoAbrir={() => abrir(item)} aoMaisAcoes={() => setAcoes(item)} />
+        )}
+      />
 
-      {item.nomeProduto && <Text style={styles.cardSubMsg}>{veredito}</Text>}
-      {item.cenario && (
-        <Text style={styles.cardSubMsg}>
-          {item.cenario === 'Encomenda' ? '📦 Encomenda (com II + ICMS)' : '🧳 Compra em viagem'}
-        </Text>
-      )}
+      <Sheet visivel={!!acoes} aoFechar={() => setAcoes(null)} titulo={acoes?.item.nomeProduto?.trim() || 'Simulação'}>
+        {acoes ? (
+          <View style={[styles.grupo, { backgroundColor: cores.card, borderColor: cores.border }]}>
+            <LinhaAcao rotulo="Editar na Comparar" acessivel="Recalcular esta simulação com a cotação de hoje" aoTocar={() => editar(acoes)} />
+            <LinhaAcao rotulo="Compartilhar" acessivel="Compartilhar esta simulação" aoTocar={() => compartilhar(acoes)} divisor />
+            {acoes.item.link ? (
+              <LinhaAcao
+                rotulo="Abrir o link do produto"
+                acessivel="Abrir link do produto"
+                aoTocar={() => Linking.openURL(acoes.item.link!)}
+                divisor
+              />
+            ) : null}
+            <LinhaAcao
+              rotulo="Excluir"
+              acessivel="Excluir esta simulação"
+              perigo
+              divisor
+              aoTocar={() => {
+                removerSimulacao(acoes.item.id);
+                setAcoes(null);
+              }}
+            />
+          </View>
+        ) : null}
+      </Sheet>
 
-      {item.link && (
-        <TouchableOpacity
-          onPress={() => Linking.openURL(item.link!)}
-          accessibilityRole="link"
-          accessibilityLabel="Abrir link do produto">
-          <Text style={styles.cardLink} numberOfLines={1}>
-            🔗 {item.link}
-          </Text>
-        </TouchableOpacity>
-      )}
-      {item.observacao && <Text style={styles.cardObs}>📝 {item.observacao}</Text>}
-
-      <View style={styles.cardLineRow}>
-        <Text style={styles.cardLine}>
-          BR: {formatarBRL(item.precoBR)} em {item.parcelasBR}x · Ext:{' '}
-        </Text>
-        <FlagIcon code={moedaPorCodigo(item.moeda).bandeira} size={11} style={{ marginRight: 3 }} />
-        <Text style={styles.cardLine}>
-          {item.moeda} {item.precoExt.toFixed(2)}
-          {item.freteExt ? ` + frete ${item.freteExt.toFixed(2)}` : ''} ({item.pgto}, spread {item.spread}%)
-        </Text>
-      </View>
-
-      {item.cotacao != null && item.selicAnual != null && (
-        <Text style={styles.cardTaxas}>
-          Na época: {item.moeda} a {formatarCotacaoBR(item.cotacao)} · Selic {formatarPct(item.selicAnual, 2)}
-        </Text>
-      )}
-
-      <View style={styles.divider} />
-      <Text style={styles.cardLine}>Custo Brasil (equiv. à vista): {formatarBRL(item.custoBR)}</Text>
-      <Text style={styles.cardLine}>Custo Exterior: {formatarBRL(item.custoExt)}</Text>
-      <Text style={styles.cardEconomia}>
-        Diferença: {formatarBRL(item.economia)} ({formatarPct(economiaPctDe(item))})
-      </Text>
-
-      <View style={styles.acoesRow}>
-        <TouchableOpacity
-          style={styles.acaoBtn}
-          onPress={() => aoRecalcular(item)}
-          accessibilityRole="button"
-          accessibilityLabel="Recalcular esta simulação com a cotação de hoje">
-          <Text style={styles.acaoTexto}>🔄 Recalcular hoje</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.acaoBtn}
-          onPress={compartilhar}
-          accessibilityRole="button"
-          accessibilityLabel="Compartilhar esta simulação">
-          <Text style={styles.acaoTexto}>📤 Compartilhar</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.acaoBtn}
-          onPress={() => aoRemover(item.id)}
-          accessibilityRole="button"
-          accessibilityLabel="Excluir esta simulação">
-          <Text style={[styles.acaoTexto, { color: cores.danger }]}>🗑️ Excluir</Text>
-        </TouchableOpacity>
-      </View>
+      <Sheet
+        visivel={confirmarLimpeza}
+        aoFechar={() => setConfirmarLimpeza(false)}
+        titulo="Limpar o histórico?"
+        subtitulo="As simulações salvas somem deste aparelho. Os alertas de câmbio continuam."
+        rodape={
+          <View style={{ gap: 10 }}>
+            <Botao
+              titulo={`Apagar ${historico.length} ${historico.length === 1 ? 'simulação' : 'simulações'}`}
+              accessibilityLabel="Confirmar limpeza do histórico"
+              aoTocar={() => {
+                limparHistorico();
+                setConfirmarLimpeza(false);
+              }}
+            />
+            <Botao titulo="Cancelar" variante="secundario" aoTocar={() => setConfirmarLimpeza(false)} />
+          </View>
+        }>
+        <View />
+      </Sheet>
     </View>
   );
 }
 
-export default function HistoricoScreen() {
+function LinhaAcao({
+  rotulo,
+  acessivel,
+  aoTocar,
+  perigo,
+  divisor,
+}: {
+  rotulo: string;
+  acessivel: string;
+  aoTocar: () => void;
+  perigo?: boolean;
+  divisor?: boolean;
+}) {
   const { cores } = useTema();
-  const styles = useMemo(() => criarStyles(cores), [cores]);
-  const router = useRouter();
-  const { historico, carregando, removerSimulacao, limparHistorico } = useHistoricoSimulacoes();
-
-  const recalcular = (item: SimulacaoSalva) => {
-    router.push({
-      pathname: '/',
-      params: { prefill: String(Date.now()), ...paramsRecalculo(item) },
-    });
-  };
-
   return (
-    <View style={styles.container}>
-      <View style={styles.headerRow}>
-        <Text style={styles.titulo}>📊 Histórico</Text>
-        {historico.length > 0 && (
-          <TouchableOpacity
-            onPress={limparHistorico}
-            accessibilityRole="button"
-            accessibilityLabel="Limpar todo o histórico">
-            <Text style={styles.limparTexto}>Limpar tudo</Text>
-          </TouchableOpacity>
-        )}
-      </View>
-
-      {!carregando && historico.length === 0 && (
-        <Text style={styles.vazio}>Nenhuma simulação salva ainda. Calcule na aba Home para começar.</Text>
-      )}
-
-      <FlatList
-        data={historico}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <ItemHistorico
-            item={item}
-            styles={styles}
-            cores={cores}
-            aoRemover={removerSimulacao}
-            aoRecalcular={recalcular}
-          />
-        )}
-        contentContainerStyle={styles.lista}
-      />
-    </View>
+    <Pressable
+      onPress={aoTocar}
+      accessibilityRole="button"
+      accessibilityLabel={acessivel}
+      style={({ pressed }) => [
+        { minHeight: 48, justifyContent: 'center', paddingHorizontal: 14 },
+        divisor && { borderTopWidth: 1, borderTopColor: cores.border },
+        pressed && { backgroundColor: cores.surface2 },
+      ]}>
+      <Texto tamanho={15} cor={perigo ? 'danger' : 'text'}>
+        {rotulo}
+      </Texto>
+    </Pressable>
   );
 }
 
 function criarStyles(cores: Paleta) {
   return StyleSheet.create({
-    container: { flex: 1, backgroundColor: cores.background, paddingTop: 60, paddingHorizontal: 20 },
-    headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 },
-    titulo: { fontSize: 26, fontWeight: 'bold', color: cores.primary },
-    limparTexto: { color: cores.danger, fontWeight: '600' },
-    vazio: { color: cores.subtext, fontSize: 14, textAlign: 'center', marginTop: 40 },
-    lista: { paddingBottom: 40 },
-    card: { backgroundColor: cores.card, padding: 15, borderRadius: 12, marginBottom: 12, borderWidth: 1 },
-    cardBr: { borderColor: cores.successBorder },
-    cardExt: { borderColor: cores.infoBorder },
-    cardHeader: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 },
-    cardMsgRow: { flexDirection: 'row', alignItems: 'center', flexShrink: 1, marginRight: 8 },
-    cardMsg: { fontSize: 15, fontWeight: 'bold', color: cores.text },
-    cardSubMsg: { fontSize: 12, color: cores.subtext, marginBottom: 2 },
-    cardData: { fontSize: 11, color: cores.muted },
-    cardLink: { fontSize: 12, color: cores.primary, marginVertical: 2 },
-    cardObs: { fontSize: 12, color: cores.subtext, fontStyle: 'italic', marginVertical: 2 },
-    cardLineRow: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', marginTop: 4 },
-    cardLine: { fontSize: 13, color: cores.text },
-    cardTaxas: { fontSize: 11, color: cores.muted, marginTop: 4 },
-    cardEconomia: { fontSize: 14, fontWeight: 'bold', color: cores.primary, marginTop: 6 },
-    divider: { height: 1, backgroundColor: cores.borderSoft, marginVertical: 8 },
-    acoesRow: { flexDirection: 'row', gap: 8, marginTop: 12 },
-    acaoBtn: {
-      flex: 1,
-      paddingVertical: 8,
-      borderRadius: 8,
-      borderWidth: 1,
-      borderColor: cores.border,
-      backgroundColor: cores.optionBg,
-      alignItems: 'center',
-    },
-    acaoTexto: { fontSize: 11, color: cores.text, fontWeight: '600' },
+    tela: { flex: 1, backgroundColor: cores.background },
+    conteudo: { paddingHorizontal: 16, paddingBottom: 24, gap: 10 },
+    cabeca: { gap: 14, marginBottom: 4 },
+    titulos: { gap: 4, paddingHorizontal: 4 },
+    linhaTitulo: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+    vazio: { textAlign: 'center', marginTop: 40, paddingHorizontal: 20, lineHeight: 20 },
+    grupo: { borderRadius: 18, borderWidth: 1, overflow: 'hidden' },
   });
 }

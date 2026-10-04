@@ -85,3 +85,9 @@ export function rotuloRevisao(revisadoEm: string = REGRAS_FISCAIS.revisadoEm): s
   const [ano, mes] = revisadoEm.split('-');
   return `${MESES[Number(mes) - 1]}/${ano}`;
 }
+
+/** "03/10/2026" a partir de "2026-10-03". */
+export function dataRevisao(revisadoEm: string = REGRAS_FISCAIS.revisadoEm): string {
+  const [ano, mes, dia] = revisadoEm.split('-');
+  return `${dia}/${mes}/${ano}`;
+}

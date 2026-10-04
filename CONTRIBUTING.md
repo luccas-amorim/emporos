@@ -24,7 +24,7 @@ Todo PR passa pelo CI (lint, tipos, testes e `expo-doctor`). Para adicionar ou a
 | Pasta | O que vai lá |
 | --- | --- |
 | `app/` | Telas (Expo Router). Só montam componentes; nada de regra de negócio. |
-| `components/` | Componentes visuais. `components/formulario/` tem as seções do formulário da Home. |
+| `components/` | Componentes visuais. `components/ui/` tem os primitivos (Texto, Cartao, Chip, ControleSegmentado, Sheet, Botao, Stepper); `comparar/` e `resultado/`, as peças de cada tela. |
 | `core/` | Lógica pura e testada: cálculo, formatação, textos. Sem React, sem rede, sem storage. |
 | `constants/` | Dados estáveis: moedas, tema e **regras fiscais** (`regras-fiscais.ts`). |
 | `hooks/` | Estado das telas e persistência. Funções puras exportadas junto, com testes. |

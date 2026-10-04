@@ -1,4 +1,9 @@
-import { paramsRecalculo, type SimulacaoSalva } from '@/hooks/use-historico-simulacoes';
+import {
+  paramsRecalculo,
+  pontoDeViradaSalvo,
+  type SimulacaoSalva,
+  ultimaSimulacaoNaMoeda,
+} from '@/hooks/use-historico-simulacoes';
 
 const base: SimulacaoSalva = {
   id: '1',
@@ -50,5 +55,21 @@ describe('paramsRecalculo', () => {
 
   it('trata simulações antigas sem cenário como viagem', () => {
     expect(paramsRecalculo(base).cenario).toBe('Viagem');
+  });
+});
+
+describe('ultimaSimulacaoNaMoeda e pontoDeViradaSalvo', () => {
+  const antigaSemCotacao: SimulacaoSalva = { ...base, id: 'a', moeda: 'USD' };
+  const dolar: SimulacaoSalva = { ...base, id: 'b', moeda: 'USD', cotacao: 5.4, custoBR: 1400, custoExt: 1300 };
+  const euro: SimulacaoSalva = { ...base, id: 'c', moeda: 'EUR', cotacao: 6.2 };
+
+  it('pega a mais recente da moeda que tem cotação da época', () => {
+    expect(ultimaSimulacaoNaMoeda([euro, antigaSemCotacao, dolar], 'USD')?.id).toBe('b');
+    expect(ultimaSimulacaoNaMoeda([euro], 'GBP')).toBeNull();
+  });
+
+  it('calcula o ponto de virada com a cotação e os custos da época', () => {
+    expect(pontoDeViradaSalvo(dolar)).toBeCloseTo((5.4 * 1400) / 1300, 10);
+    expect(pontoDeViradaSalvo(antigaSemCotacao)).toBeNull();
   });
 });

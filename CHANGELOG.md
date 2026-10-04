@@ -2,6 +2,56 @@
 
 Histórico das entregas por rodada de desenvolvimento (branches mergeadas em `main`). A partir da 2.1.0, cada entrada traz também a versão (SemVer).
 
+## Em desenvolvimento — v3.0.0 · Revamp do Vale importar?
+Redesign completo, feito em fases (uma branch por fase). Especificação e protótipos em `docs/design_handoff_revamp_vale_importar/`.
+
+### Fase F — Lançamento (`feature/revamp-f-lancamento`)
+- **Ícone novo** na linguagem do revamp — quadrado de tinta com as duas barras do Resultado —, gerado por `scripts/gerar-icones.js` (sem dependências) para iOS, Android adaptativo e monocromático, splash e web. Splash sobre o fundo papel (`#f4f3ef`).
+- Versão **3.0.0** no `app.json` e no `package.json`.
+- **`docs/LANCAMENTO.md`**: lista das seis capturas das lojas (temas e legendas), textos da ficha em PT-BR, respostas de privacidade das lojas, convite e roteiro do teste fechado (com a meta de tempo até o primeiro veredito) e checklist de saída. ROADMAP atualizado.
+- Correção: a verificação em segundo plano não consulta mais a cotação quando todos os alertas estão desligados.
+
+### Fase E — Colar link (`feature/revamp-e-colar-link`)
+- **"Colar" no card do link**: o app lê a área de transferência (`expo-clipboard`, instalado com `npx expo install`), acha o link mesmo no meio de um texto compartilhado e **o próprio celular baixa a página da loja** para ler nome, preço, moeda e imagem. Também lê o link digitado, ao confirmar ou sair do campo. Sem servidor: a requisição vai do aparelho direto para a loja.
+- **Parser puro** em `core/parser-produto.ts`, nesta ordem: JSON-LD `Product.offers` (inclusive `@graph` e `AggregateOffer`) → metas `og:price:amount` / `product:price:amount` / `og:price:currency` → `/products/<handle>.json` das lojas Shopify. O nome sai do `og:title`; a moeda, da página ou, sem ambiguidade, do domínio (`.co.uk` → GBP, `.de` → EUR…). Testado com HTML de exemplo em `core/__tests__/fixtures/`. A busca (`services/produto.ts`) tem tempo limite de 8 s e nunca lança.
+- Lido o link, o card mostra a linha do produto (miniatura, nome editável, loja e a pill "do link") e preenche o preço e a moeda de "Lá fora". **Se não der para ler** (loja que bloqueia, página sem preço, sem rede), aparece em silêncio a tela 11: "Não conseguimos ler o preço desta página. Digite abaixo — o link fica salvo com a simulação.", e o foco vai para o card "Lá fora", destacado.
+- **Política de privacidade** atualizada: a leitura do link é feita pelo aparelho, direto com a loja; o link é opcional. Também cita o histórico de 90 dias e as premissas salvas no aparelho.
+- No Expo web, a leitura do link costuma falhar por CORS e cai no preenchimento manual; no Android e no iOS, a requisição é feita sem essa restrição. Receber o link pelo menu de compartilhar do navegador (`expo-share-intent`) fica para depois do lançamento.
+
+### Fase D — Histórico vivo (`feature/revamp-d-historico-vivo`)
+- **O Histórico se recalcula ao abrir a aba**, com a cotação e a Selic do dia (e as regras fiscais vigentes), reaproveitando a mesma montagem do "Recalcular hoje". Cada card mostra o veredito e a diferença de hoje ("Brasil · R$ 716"), e o subtítulo diz se a conta usou o câmbio de hoje ou a última cotação salva.
+- **"Mudou"**: quando o veredito inverteu desde o dia em que a simulação foi salva, o card ganha borda na cor do novo veredito, a pill "Mudou" e as colunas "Na época" × "Hoje", e o topo mostra "1 decisão mudou" com uma frase sobre o caso. Empate não conta como inversão.
+- **Migração do histórico salvo, sem perda**: o formato passa de lista solta (v1) para `{ versao: 2, simulacoes }`, e cada simulação ganha o `vereditoOriginal`, calculado a partir dos custos guardados. A migração roda na primeira leitura e regrava no formato novo. Se o conteúdo salvo estiver ilegível, ele é copiado para `@emporos:historico_simulacoes_ilegivel` antes de qualquer gravação.
+- Tocar num card abre o Resultado recalculado. O menu "…" de cada card tem "Editar na Comparar" (o antigo "Recalcular hoje"), "Compartilhar", "Abrir o link do produto" e "Excluir"; "Limpar" pede confirmação.
+- `core/historico.ts` (formato salvo, migração, recálculo, resumo das mudanças) e `vereditoDeCustos` em `core/calculadora.ts`, com testes.
+
+### Fase C — Aba Câmbio (`feature/revamp-c-aba-cambio`)
+- **Aba nova "Câmbio"** (`app/(tabs)/cambio.tsx`): USD/EUR/GBP, cotação em destaque com a variação do dia (verde quando cai, âmbar quando sobe), **gráfico de 90 dias** com a média tracejada (`react-native-svg`, instalado com `npx expo install`) e **insight comparativo** ("O dólar está 2,5% abaixo da média de 90 dias."), que cita a última simulação salva na moeda e sempre termina com "Comparação com o passado, não previsão.".
+- **Série diária da AwesomeAPI** (`/json/daily/<MOEDA>-BRL/90`, conferido: 90 cotações de dias úteis, da mais recente para a mais antiga) em `services/cambio.ts`, com **cache de um dia por moeda** em `services/mercado.ts`, reaproveitado sem rede. Funções puras em `core/cambio.ts` (`mediaMinMax`, `desvioDaMedia`, variação do dia, insight, geometria do gráfico), com testes.
+- **Alertas saem da Comparar e vêm para a aba Câmbio**: lista agrupada com "USD abaixo de R$ 5,30 · Falta 2,2%" e um **switch para ligar e desligar** sem apagar (alertas antigos contam como ligados); tocar num alerta abre a edição, com "Excluir alerta".
+- **Sheet "Novo alerta"**: stepper de R$ 0,05, cotação de hoje e mínima de 90 dias, direção (cair/subir) e **o ponto de virada como sugestão de alvo**. No Resultado de uma encomenda, o botão principal vira **"Avisar se o dólar cair"** e abre o mesmo sheet com o ponto de virada da simulação; o alerta guarda a simulação de origem.
+- Os alertas viraram um store único (aba Câmbio, Resultado e tarefa em segundo plano escrevem na mesma lista). A verificação em segundo plano só fica ligada enquanto houver alerta ligado.
+- A notificação deixou de dizer "Bom momento para simular a compra": agora convida a refazer a comparação com a cotação de hoje.
+
+### Fase B — Comparar e Resultado (`feature/revamp-b-comparar-resultado`)
+- **Comparar** (aba renomeada de Home): pill com a cotação e a idade dela (em âmbar quando vem do cache, da referência ou tem mais de 1 h), banner "Sem conexão", campo de link, card do produto, **dois cards de preço** ("Lá fora" × "No Brasil", digitados no próprio card; moeda, frete, parcelas e "sem juros" em sheets), card de tax free em Viagem e **premissas em chips** com o sheet "Premissas" (controles segmentados, stepper de spread, "Restaurar padrão" e "Aplicar"). As premissas aplicadas viram o padrão das próximas comparações. Botão "Comparar" fixo, desabilitado com a dica enquanto faltam os preços.
+- **Resultado vira tela própria** (`app/resultado.tsx`): veredito em 38pt ("Compre no Brasil." / "Vale importar." / **"Tanto faz."** quando a diferença fica abaixo de 1%), frase de apoio, barras comparativas, recibo "De onde vem o custo de importar" com a regra de cada linha, caixa "Por que R$ X?" explicando o valor presente, **ponto de virada**, avisos e rodapé com a data das regras. O leitor de tela anuncia o veredito primeiro.
+- **Ponto de virada** (`calcularPontoDeVirada` em `core/calculadora.ts`): a cotação em que importar e comprar no Brasil empatam. Testado em encomenda com e sem Remessa Conforme, em dólar e em euro, viagem dentro e acima da cota e compra à vista. Documentado na seção 3.5 do WHITEPAPER.
+- **Salvar é explícito:** a simulação só vai para o histórico quando o usuário toca em "Salvar" no Resultado. O histórico virou um store único para o app (antes, cada tela tinha o seu e uma podia sobrescrever o que a outra salvou).
+- **Sheet "De onde vêm os números"**: normas com link, data da conferência, idade do câmbio, Selic e o atalho para avisar no GitHub uma regra desatualizada.
+- **Sheet "Ajustes"** (engrenagem no Comparar): tema, ICMS do estado e moeda padrão. O chip de tema saiu do cabeçalho; por padrão, o app segue o sistema.
+- **Onboarding novo**: três passos com um recibo de exemplo calculado pela própria calculadora.
+- `core/resultado.ts` (frases, barras, recibo, valor presente, ponto de virada) e `core/premissas.ts` (chips, stepper de spread, cota de bagagem), com testes. Textos do veredito mudaram de caixa alta para frase com ponto final.
+- Removidos `components/formulario/*`, `botao-opcao`, `resultado-calculo`, `status-mercado` e `currency-select`, substituídos pelos componentes acima.
+
+### Fase A — Fundação visual (`feature/revamp-a-fundacao-visual`)
+- **Paleta nova "tinta e papel"** em `constants/theme.ts`, no lugar da "Petróleo": interface neutra, verde = comprar no Brasil, azul = importar, âmbar = atenção. Chaves novas `surface2`, `textMuted`, `textSubtle`, `brasil`/`brasilSoft`, `exterior`/`exteriorSoft`, `warn`/`warnSoft`, `action`/`actionText`; as chaves antigas continuam na `Paleta`, marcadas como obsoletas e apontando para as novas, até a última tela migrar. O `textSubtle` ficou um pouco mais escuro que no protótipo (#68696d / #8a8c90) para passar de 4,5:1 de contraste.
+- **Fontes Geist e Geist Mono** (OFL), via `@expo-google-fonts/geist` e `@expo-google-fonts/geist-mono`, carregadas em `app/_layout.tsx` com a splash segura até o fim do carregamento. Só os pesos 400, 500 e 600 entram no bundle.
+- **Primitivos de interface** em `components/ui/`: `Texto` (escala tipográfica, Mono com números tabulares, fonte dinâmica até 130%), `ControleSegmentado`, `Cartao`, `Chip` e `Sheet` (bottom sheet sem dependência nova), com testes em `__tests__/primitivos.test.tsx`.
+- **Emojis trocados por `IconSymbol`** (SF Symbols no iOS, Material no Android) em todas as telas; o `FlagIcon` fica só onde há moeda ou país.
+- Tab bar nova, só com texto: a aba ativa é uma pill. Cards com borda de 1px no lugar de sombra.
+- Nenhuma mudança de comportamento.
+
 ## 2026-10-03 — v2.2.0 · Infraestrutura, regras fiscais e alertas
 - **Alertas de câmbio com notificação:** o aparelho verifica de tempos em tempos, em segundo plano, a cotação das moedas com alerta e manda uma notificação local quando o alvo é atingido (`expo-background-task`, `expo-notifications`, `expo-task-manager`; sem servidor nem push). Cada alerta avisa uma vez e é rearmado quando a cotação sai do alvo. A permissão é pedida ao criar o primeiro alerta, e o card explica que o momento da verificação é do sistema (pode levar horas; no iPhone, costuma ser de madrugada). Com o app aberto, o aviso continua aparecendo na hora. A política de privacidade ganhou a seção sobre notificações.
 - **CI no GitHub Actions** (`.github/workflows/ci.yml`): lint, TypeScript, testes e `expo-doctor` em todo PR e push na `main`. Dependabot mantém as actions atualizadas.

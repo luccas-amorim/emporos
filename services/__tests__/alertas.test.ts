@@ -1,4 +1,14 @@
-import { type AlertaCambio, atualizarAlertas, textoNotificacao, verificarAlertas } from '@/services/alertas';
+import {
+  type AlertaCambio,
+  alvoInicial,
+  atualizarAlertas,
+  distanciaAlvo,
+  passoAlvo,
+  rotuloAlerta,
+  rotuloDistancia,
+  textoNotificacao,
+  verificarAlertas,
+} from '@/services/alertas';
 
 function alerta(parcial: Partial<AlertaCambio> & Pick<AlertaCambio, 'moeda' | 'alvo' | 'direcao'>): AlertaCambio {
   return { id: parcial.id ?? Math.random().toString(36), criadoEm: '2026-07-20T00:00:00.000Z', ...parcial };
@@ -83,13 +93,62 @@ describe('textoNotificacao', () => {
   it('descreve a queda com o nome da moeda, a cotação e o alvo', () => {
     const queda = alerta({ moeda: 'USD', alvo: 5.2, direcao: 'abaixo' });
     expect(textoNotificacao(queda, 5.1)).toEqual({
-      titulo: '🎯 Dólar Americano caiu até o seu alvo',
-      corpo: 'A cotação está em R$ 5,10 (alvo: R$ 5,20). Bom momento para simular a compra.',
+      titulo: 'Dólar Americano caiu até o seu alvo',
+      corpo: 'A cotação está em R$ 5,10 (alvo: R$ 5,20). Abra o app para refazer a comparação com a cotação de hoje.',
     });
   });
 
   it('descreve a alta', () => {
     const alta = alerta({ moeda: 'EUR', alvo: 5.7, direcao: 'acima' });
-    expect(textoNotificacao(alta, 5.8).titulo).toBe('🎯 Euro subiu até o seu alvo');
+    expect(textoNotificacao(alta, 5.8).titulo).toBe('Euro subiu até o seu alvo');
+  });
+});
+
+describe('alertas desligados', () => {
+  const cotacoes = { USD: 5.1 };
+
+  it('não disparam nem mudam, mas continuam na lista', () => {
+    const desligado = alerta({ moeda: 'USD', alvo: 5.2, direcao: 'abaixo', ativo: false });
+    expect(verificarAlertas([desligado], cotacoes)).toEqual([]);
+    const { alertas, disparados, mudou } = atualizarAlertas([desligado], cotacoes, new Date());
+    expect(disparados).toEqual([]);
+    expect(mudou).toBe(false);
+    expect(alertas).toEqual([desligado]);
+  });
+
+  it('alertas antigos, sem o campo, contam como ligados', () => {
+    const antigo = alerta({ moeda: 'USD', alvo: 5.2, direcao: 'abaixo' });
+    expect(verificarAlertas([antigo], cotacoes)).toEqual([antigo]);
+  });
+});
+
+describe('rotulos da lista de alertas', () => {
+  it('descreve o alvo e quanto falta', () => {
+    const queda = alerta({ moeda: 'USD', alvo: 5.3, direcao: 'abaixo' });
+    expect(rotuloAlerta(queda)).toBe('USD abaixo de R$ 5,30');
+    expect(distanciaAlvo(queda, 5.42)).toBeCloseTo(2.214, 3);
+    expect(rotuloDistancia(queda, 5.42)).toBe('Falta 2,2%');
+    expect(rotuloDistancia(queda, 5.25)).toBe('No alvo');
+  });
+
+  it('funciona para alertas de alta', () => {
+    const alta = alerta({ moeda: 'EUR', alvo: 6.5, direcao: 'acima' });
+    expect(rotuloAlerta(alta)).toBe('EUR acima de R$ 6,50');
+    expect(rotuloDistancia(alta, 6.2)).toBe('Falta 4,8%');
+  });
+});
+
+describe('stepper do alvo', () => {
+  it('anda de R$ 0,05 sem erro de ponto flutuante e não passa de zero', () => {
+    expect(passoAlvo(5.3, 1)).toBe(5.35);
+    expect(passoAlvo(5.3, -1)).toBe(5.25);
+    expect(passoAlvo(0.05, -1)).toBe(0.05);
+  });
+
+  it('abre na sugestão ou perto da cotação de hoje', () => {
+    expect(alvoInicial(5.42, 'abaixo', 4.514)).toBe(4.51);
+    expect(alvoInicial(5.42, 'abaixo')).toBe(5.3);
+    expect(alvoInicial(5.42, 'acima')).toBe(5.55);
+    expect(alvoInicial(5.42, 'abaixo', Infinity)).toBe(5.3);
   });
 });

@@ -1,4 +1,5 @@
 import type { CurrencyCode } from '@/constants/currencies';
+import type { PontoSerie } from '@/core/cambio';
 
 // AwesomeAPI (economia.awesomeapi.com.br): pública, gratuita, sem chave, e traz
 // cotação comercial (bid/ask) bem mais próxima de tempo real do que o fechamento
@@ -26,4 +27,27 @@ export async function buscarCotacoesRede(codigos: CurrencyCode[]): Promise<Recor
   }
 
   return valores;
+}
+
+const AWESOME_API_DIARIO = 'https://economia.awesomeapi.com.br/json/daily';
+
+// Série diária (dias úteis) da AwesomeAPI, em ordem cronológica. A API devolve da mais
+// recente para a mais antiga; cada item tem bid/ask e o timestamp em segundos.
+export async function buscarSerieRede(codigo: CurrencyCode, dias = 90): Promise<PontoSerie[]> {
+  const res = await fetch(`${AWESOME_API_DIARIO}/${codigo}-BRL/${dias}`);
+  if (!res.ok) throw new Error(`Série: HTTP ${res.status}`);
+
+  const data = await res.json();
+  if (!Array.isArray(data)) throw new Error('Série: resposta inesperada');
+
+  const pontos: PontoSerie[] = [];
+  for (const item of data) {
+    const bid = parseFloat(item?.bid);
+    const ask = parseFloat(item?.ask);
+    const segundos = Number(item?.timestamp);
+    if (Number.isNaN(bid) || Number.isNaN(ask) || !Number.isFinite(segundos)) continue;
+    pontos.push({ data: segundos * 1000, valor: (bid + ask) / 2 });
+  }
+  if (pontos.length < 2) throw new Error('Série: poucos pontos');
+  return pontos.sort((a, b) => a.data - b.data);
 }

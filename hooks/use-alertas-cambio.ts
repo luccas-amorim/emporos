@@ -1,84 +1,136 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useSyncExternalStore } from 'react';
 import { AppState } from 'react-native';
 
 import type { CurrencyCode } from '@/constants/currencies';
-import { type AlertaCambio, atualizarAlertas, type DirecaoAlerta } from '@/services/alertas';
+import { type AlertaCambio, alertaAtivo, atualizarAlertas, type DirecaoAlerta } from '@/services/alertas';
 import { CHAVES, lerComMigracao } from '@/services/armazenamento';
 import { lerPermissao, pedirPermissao, type StatusPermissao } from '@/services/notificacoes';
 import { sincronizarTarefaAlertas } from '@/services/tarefa-alertas';
 
 const LIMITE_ALERTAS = 20;
 
-export function useAlertasCambio() {
-  const [alertas, setAlertas] = useState<AlertaCambio[]>([]);
-  const [carregando, setCarregando] = useState(true);
-  const [permissao, setPermissao] = useState<StatusPermissao>('pendente');
-  const carregou = useRef(false);
+// Um só estado de alertas para o app: a aba Câmbio e o "Avisar se o dólar cair" do
+// Resultado criam e editam a mesma lista, e a tarefa em segundo plano grava nela.
+interface EstadoAlertas {
+  alertas: AlertaCambio[];
+  carregando: boolean;
+  permissao: StatusPermissao;
+}
 
-  const carregar = useCallback(() => {
-    return lerComMigracao(CHAVES.alertas)
-      .then((bruto) => setAlertas(bruto ? JSON.parse(bruto) : []))
-      .catch((error) => console.error('❌ Erro ao carregar alertas:', error));
-  }, []);
+let estado: EstadoAlertas = { alertas: [], carregando: true, permissao: 'pendente' };
+let carga: Promise<void> | null = null;
+const ouvintes = new Set<() => void>();
+
+function publicar(novo: EstadoAlertas) {
+  estado = novo;
+  ouvintes.forEach((ouvinte) => ouvinte());
+}
+
+function assinar(ouvinte: () => void) {
+  ouvintes.add(ouvinte);
+  return () => ouvintes.delete(ouvinte);
+}
+
+/** Relê os alertas salvos (abertura, volta ao app, testes). */
+export function recarregarAlertas(): Promise<void> {
+  carga = (async () => {
+    try {
+      const bruto = await lerComMigracao(CHAVES.alertas);
+      publicar({ ...estado, alertas: bruto ? JSON.parse(bruto) : [], carregando: false });
+    } catch (error) {
+      console.error('❌ Erro ao carregar alertas:', error);
+      publicar({ ...estado, carregando: false });
+    }
+  })();
+  return carga;
+}
+
+async function alterar(mudanca: (atual: AlertaCambio[]) => AlertaCambio[]) {
+  await (carga ?? recarregarAlertas());
+  const alertas = mudanca(estado.alertas);
+  if (alertas === estado.alertas) return;
+  publicar({ ...estado, alertas });
+  try {
+    await AsyncStorage.setItem(CHAVES.alertas, JSON.stringify(alertas));
+  } catch (error) {
+    console.error('❌ Erro ao salvar alertas:', error);
+  }
+  // A verificação periódica só fica ligada enquanto houver alerta ligado.
+  sincronizarTarefaAlertas(alertas.some(alertaAtivo)).catch((error) =>
+    console.error('❌ Erro ao agendar a verificação de alertas:', error)
+  );
+}
+
+export interface NovoAlerta {
+  moeda: CurrencyCode;
+  alvo: number;
+  direcao: DirecaoAlerta;
+  origem?: string;
+}
+
+export function useAlertasCambio() {
+  const { alertas, carregando, permissao } = useSyncExternalStore(assinar, () => estado);
 
   useEffect(() => {
-    carregar().finally(() => {
-      carregou.current = true;
-      setCarregando(false);
-    });
-    lerPermissao().then(setPermissao).catch(() => {});
+    if (!carga) {
+      recarregarAlertas().then(() =>
+        sincronizarTarefaAlertas(estado.alertas.some(alertaAtivo)).catch((error) =>
+          console.error('❌ Erro ao agendar a verificação de alertas:', error)
+        )
+      );
+    }
+    lerPermissao()
+      .then((p) => publicar({ ...estado, permissao: p }))
+      .catch(() => {});
 
     // A tarefa em segundo plano pode ter gravado alertas enquanto o app estava
     // fechado; relemos ao voltar, para não sobrescrever o que ela marcou.
-    const assinatura = AppState.addEventListener('change', (estado) => {
-      if (estado === 'active') carregar();
+    const assinatura = AppState.addEventListener('change', (estadoApp) => {
+      if (estadoApp === 'active') recarregarAlertas();
     });
     return () => assinatura.remove();
-  }, [carregar]);
+  }, []);
 
-  useEffect(() => {
-    if (!carregou.current) return;
-    AsyncStorage.setItem(CHAVES.alertas, JSON.stringify(alertas)).catch((error) =>
-      console.error('❌ Erro ao salvar alertas:', error)
-    );
-  }, [alertas]);
-
-  // A verificação periódica só fica ligada enquanto houver alertas.
-  const haAlertas = alertas.length > 0;
-  useEffect(() => {
-    if (carregando) return;
-    sincronizarTarefaAlertas(haAlertas).catch((error) =>
-      console.error('❌ Erro ao agendar a verificação de alertas:', error)
-    );
-  }, [haAlertas, carregando]);
-
-  const adicionarAlerta = useCallback((moeda: CurrencyCode, alvo: number, direcao: DirecaoAlerta) => {
-    const novo: AlertaCambio = {
+  const adicionarAlerta = useCallback((novo: NovoAlerta) => {
+    const alerta: AlertaCambio = {
       id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-      moeda,
-      alvo,
-      direcao,
+      ...novo,
+      ativo: true,
       criadoEm: new Date().toISOString(),
     };
-    setAlertas((atual) => [novo, ...atual].slice(0, LIMITE_ALERTAS));
+    alterar((atual) => [alerta, ...atual].slice(0, LIMITE_ALERTAS));
+    return alerta.id;
+  }, []);
+
+  const editarAlerta = useCallback((id: string, mudanca: Partial<Pick<AlertaCambio, 'alvo' | 'direcao' | 'ativo'>>) => {
+    alterar((atual) =>
+      atual.map((a) => {
+        if (a.id !== id) return a;
+        // Mudou o alvo ou a direção: o alerta volta a poder avisar.
+        const rearmar = mudanca.alvo !== undefined || mudanca.direcao !== undefined;
+        const { notificadoEm, ...resto } = a;
+        return { ...(rearmar ? resto : { ...resto, notificadoEm }), ...mudanca };
+      })
+    );
   }, []);
 
   const removerAlerta = useCallback((id: string) => {
-    setAlertas((atual) => atual.filter((a) => a.id !== id));
+    alterar((atual) => atual.filter((a) => a.id !== id));
   }, []);
 
-  // Com o app aberto, o aviso aparece no próprio card; marcamos os alertas como
+  // Com o app aberto, o aviso aparece na própria tela; marcamos os alertas como
   // avisados para a verificação em segundo plano não repetir a mesma notícia.
   const sincronizarComCotacoes = useCallback((cotacoes: Partial<Record<CurrencyCode, number>>) => {
-    setAlertas((atual) => {
+    alterar((atual) => {
       const { alertas: atualizados, mudou } = atualizarAlertas(atual, cotacoes, new Date());
       return mudou ? atualizados : atual;
     });
   }, []);
 
   const pedirPermissaoNotificacao = useCallback(async () => {
-    setPermissao(await pedirPermissao());
+    const p = await pedirPermissao();
+    publicar({ ...estado, permissao: p });
   }, []);
 
   return {
@@ -86,6 +138,7 @@ export function useAlertasCambio() {
     carregando,
     permissao,
     adicionarAlerta,
+    editarAlerta,
     removerAlerta,
     sincronizarComCotacoes,
     pedirPermissaoNotificacao,

@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+</helmet>
+<div ref="{{ root }}" style="display:flex;gap:44px;align-items:flex-start;padding:44px;border-radius:32px;background:var(--bg);font-family:'Geist',system-ui,sans-serif;color:var(--ink);-webkit-font-smoothing:antialiased">
+
+<div style="display:flex;flex-direction:column;gap:14px">
+<div style="font-family:'Geist Mono',monospace;font-size:12px;color:var(--ink2)">06 — Premissas (sheet)</div>
+<div style="width:360px;height:780px;border-radius:48px;border:10px solid #0b0b0c;background:var(--bg);overflow:hidden;position:relative;box-sizing:content-box">
+<sc-if value="{{ ios }}" hint-placeholder-val="{{ true }}"><div style="height:50px;display:flex;align-items:center;justify-content:space-between;padding:0 30px 0 36px;font-size:15px;font-weight:600;position:relative"><span>9:41</span><div style="position:absolute;left:50%;top:11px;transform:translateX(-50%);width:112px;height:32px;border-radius:20px;background:#000"></div><div style="display:flex;gap:5px;align-items:center"><div style="width:17px;height:10px;border-radius:2px;background:var(--ink)"></div><div style="width:25px;height:12px;border-radius:4px;border:1.5px solid var(--ink);padding:1.5px;box-sizing:border-box"><div style="width:70%;height:100%;border-radius:1px;background:var(--ink)"></div></div></div></div></sc-if>
+<sc-if value="{{ android }}"><div style="height:40px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;font-size:13px;font-weight:500;position:relative"><span>9:41</span><div style="position:absolute;left:50%;top:12px;transform:translateX(-50%);width:14px;height:14px;border-radius:7px;background:#000"></div><div style="display:flex;gap:6px;align-items:center"><div style="width:12px;height:12px;border-radius:2px;background:var(--ink)"></div><span>87%</span></div></div></sc-if>
+<div style="padding:10px 20px;font-size:30px;font-weight:600;letter-spacing:-0.03em">Comparar</div>
+<div style="position:absolute;inset:0;background:rgba(0,0,0,0.45)"></div>
+<div style="position:absolute;left:0;right:0;bottom:0;top:96px;background:var(--bg);border-radius:28px 28px 0 0;padding:10px 20px 0;display:flex;flex-direction:column;gap:16px">
+<div style="width:40px;height:5px;border-radius:3px;background:var(--line);align-self:center"></div>
+<div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-size:22px;font-weight:600;letter-spacing:-0.02em">Premissas</span><span style="font-size:13px;color:var(--ink3)">Restaurar padrão</span></div>
+<div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:12px;color:var(--ink3)">Como você compra</span>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;padding:3px;border-radius:13px;background:var(--surf2);font-size:14px;text-align:center"><span style="padding:9px 0;border-radius:10px;background:var(--surf);font-weight:600">Encomenda</span><span style="padding:9px 0;color:var(--ink2)">Viagem</span></div></div>
+<div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:12px;color:var(--ink3)">O site está no Remessa Conforme?</span>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;padding:3px;border-radius:13px;background:var(--surf2);font-size:14px;text-align:center"><span style="padding:9px 0;border-radius:10px;background:var(--surf);font-weight:600">Sim</span><span style="padding:9px 0;color:var(--ink2)">Não</span></div>
+<span style="font-size:12px;line-height:1.4;color:var(--ink2)">II de 0% até US$ 50; acima disso, 60% − US$ 30. Fora do programa: 60%.</span></div>
+<div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:12px;color:var(--ink3)">ICMS do seu estado</span>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;padding:3px;border-radius:13px;background:var(--surf2);font-size:14px;text-align:center;font-family:'Geist Mono',monospace"><span style="padding:9px 0;color:var(--ink2)">17%</span><span style="padding:9px 0;border-radius:10px;background:var(--surf);font-weight:600">20%</span></div>
+<span style="font-size:12px;line-height:1.4;color:var(--ink2)">A maioria dos estados cobra 17%. Confira o seu na tabela do Comsefaz.</span></div>
+<div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:12px;color:var(--ink3)">Pagamento</span>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;padding:3px;border-radius:13px;background:var(--surf2);font-size:14px;text-align:center"><span style="padding:9px 0;border-radius:10px;background:var(--surf);font-weight:600">Cartão · 3,5%</span><span style="padding:9px 0;color:var(--ink2)">Espécie · 3,5%</span></div></div>
+<div style="display:flex;justify-content:space-between;align-items:center;background:var(--surf);border:1px solid var(--line);border-radius:16px;padding:10px 12px">
+<div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:14px;font-weight:500">Spread da operadora</span><span style="font-size:12px;color:var(--ink3)">Acima do câmbio comercial</span></div>
+<div style="display:flex;align-items:center;gap:10px"><span style="width:32px;height:32px;border-radius:10px;background:var(--surf2);display:flex;align-items:center;justify-content:center;font-size:18px">−</span><span style="font-family:'Geist Mono',monospace;font-size:15px;font-weight:600">2,0%</span><span style="width:32px;height:32px;border-radius:10px;background:var(--surf2);display:flex;align-items:center;justify-content:center;font-size:18px">+</span></div>
+</div>
+<div style="margin-top:auto;margin-bottom:34px;height:54px;border-radius:16px;background:var(--btn);color:var(--btnInk);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:600">Aplicar</div>
+</div>
+</div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:14px">
+<div style="font-family:'Geist Mono',monospace;font-size:12px;color:var(--ink2)">07 — Comparar · viagem</div>
+<div style="width:360px;height:780px;border-radius:48px;border:10px solid #0b0b0c;background:var(--bg);overflow:hidden;position:relative;box-sizing:content-box">
+<sc-if value="{{ ios }}" hint-placeholder-val="{{ true }}"><div style="height:50px;display:flex;align-items:center;justify-content:space-between;padding:0 30px 0 36px;font-size:15px;font-weight:600;position:relative"><span>9:41</span><div style="position:absolute;left:50%;top:11px;transform:translateX(-50%);width:112px;height:32px;border-radius:20px;background:#000"></div><div style="display:flex;gap:5px;align-items:center"><div style="width:17px;height:10px;border-radius:2px;background:var(--ink)"></div><div style="width:25px;height:12px;border-radius:4px;border:1.5px solid var(--ink);padding:1.5px;box-sizing:border-box"><div style="width:70%;height:100%;border-radius:1px;background:var(--ink)"></div></div></div></div></sc-if>
+<sc-if value="{{ android }}"><div style="height:40px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;font-size:13px;font-weight:500;position:relative"><span>9:41</span><div style="position:absolute;left:50%;top:12px;transform:translateX(-50%);width:14px;height:14px;border-radius:7px;background:#000"></div><div style="display:flex;gap:6px;align-items:center"><div style="width:12px;height:12px;border-radius:2px;background:var(--ink)"></div><span>87%</span></div></div></sc-if>
+<div style="display:flex;flex-direction:column;gap:14px;padding:10px 16px 0">
+<div style="display:flex;justify-content:space-between;align-items:center;padding:0 4px"><span style="font-size:30px;font-weight:600;letter-spacing:-0.03em">Comparar</span><div style="display:flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;background:var(--surf);border:1px solid var(--line);font-family:'Geist Mono',monospace;font-size:11px;color:var(--ink2)"><div style="width:6px;height:6px;border-radius:3px;background:var(--br)"></div>EUR 6,31 · há 3 min</div></div>
+<div style="background:var(--surf);border:1px dashed var(--line);border-radius:20px;padding:14px;display:flex;gap:10px;align-items:center"><span style="flex:1;font-size:14px;color:var(--ink3)">Colar link ou digitar abaixo</span><div style="padding:8px 12px;border-radius:10px;background:var(--surf2);font-size:13px;font-weight:600">Colar</div></div>
+<div style="background:var(--surf);border:1px solid var(--line);border-radius:20px;padding:14px;display:flex;flex-direction:column;gap:4px"><span style="font-size:12px;color:var(--ink3)">Produto</span><span style="font-size:15px;font-weight:600">Asics Gel-Kayano 31</span></div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+<div style="background:var(--surf);border:1px solid var(--line);border-radius:20px;padding:14px;display:flex;flex-direction:column;gap:6px"><span style="font-size:12px;color:var(--ink3)">Lá fora</span><span style="font-family:'Geist Mono',monospace;font-size:21px;font-weight:600;letter-spacing:-0.02em">€ 160</span><span style="font-size:12px;color:var(--ink2)">na loja, em Lisboa</span></div>
+<div style="background:var(--surf);border:1px solid var(--line);border-radius:20px;padding:14px;display:flex;flex-direction:column;gap:6px"><span style="font-size:12px;color:var(--ink3)">No Brasil</span><span style="font-family:'Geist Mono',monospace;font-size:21px;font-weight:600;letter-spacing:-0.02em">R$ 1.299</span><span style="font-size:12px;color:var(--ink2)">6x de R$ 216,50</span></div>
+</div>
+<div style="background:var(--surf);border:1px solid var(--line);border-radius:20px;padding:14px;display:flex;justify-content:space-between;align-items:center"><div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:14px;font-weight:500">Tax free que você recupera</span><span style="font-size:12px;color:var(--ink3)">O que volta ao bolso, não a alíquota cheia</span></div><span style="font-family:'Geist Mono',monospace;font-size:15px;font-weight:600">8%</span></div>
+<div style="display:flex;flex-wrap:wrap;gap:6px;padding:0 4px">
+<span style="font-size:12.5px;padding:7px 11px;border-radius:999px;border:1px solid var(--line);background:var(--surf)">Viagem</span>
+<span style="font-size:12.5px;padding:7px 11px;border-radius:999px;border:1px solid var(--line);background:var(--surf)">Cartão · IOF 3,5%</span>
+<span style="font-size:12.5px;padding:7px 11px;border-radius:999px;border:1px solid var(--line);background:var(--surf)">Spread 2%</span>
+<span style="font-size:12.5px;padding:7px 11px;border-radius:999px;background:var(--brSoft);color:var(--br);font-weight:600">Dentro da cota de US$ 1.000</span>
+</div>
+</div>
+<div style="position:absolute;left:16px;right:16px;bottom:106px;height:54px;border-radius:16px;background:var(--btn);color:var(--btnInk);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:600">Comparar</div>
+<div style="position:absolute;left:0;right:0;bottom:0;padding:10px 16px 30px;background:var(--surf);border-top:1px solid var(--line);display:flex;gap:6px">
+<div style="flex:1;text-align:center;padding:11px 0;border-radius:12px;background:var(--surf2);font-size:12.5px;font-weight:600">Comparar</div><div style="flex:1;text-align:center;padding:11px 0;font-size:12.5px;color:var(--ink3)">Histórico</div><div style="flex:1;text-align:center;padding:11px 0;font-size:12.5px;color:var(--ink3)">Câmbio</div>
+<div style="position:absolute;left:50%;bottom:9px;transform:translateX(-50%);width:120px;height:4px;border-radius:2px;background:var(--ink)"></div>
+</div>
+</div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:14px">
+<div style="font-family:'Geist Mono',monospace;font-size:12px;color:var(--ink2)">08 — Resultado · vale importar</div>
+<div style="width:360px;height:780px;border-radius:48px;border:10px solid #0b0b0c;background:var(--bg);overflow:hidden;position:relative;box-sizing:content-box">
+<sc-if value="{{ ios }}" hint-placeholder-val="{{ true }}"><div style="height:50px;display:flex;align-items:center;justify-content:space-between;padding:0 30px 0 36px;font-size:15px;font-weight:600;position:relative"><span>9:41</span><div style="position:absolute;left:50%;top:11px;transform:translateX(-50%);width:112px;height:32px;border-radius:20px;background:#000"></div><div style="display:flex;gap:5px;align-items:center"><div style="width:17px;height:10px;border-radius:2px;background:var(--ink)"></div><div style="width:25px;height:12px;border-radius:4px;border:1.5px solid var(--ink);padding:1.5px;box-sizing:border-box"><div style="width:70%;height:100%;border-radius:1px;background:var(--ink)"></div></div></div></div></sc-if>
+<sc-if value="{{ android }}"><div style="height:40px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;font-size:13px;font-weight:500;position:relative"><span>9:41</span><div style="position:absolute;left:50%;top:12px;transform:translateX(-50%);width:14px;height:14px;border-radius:7px;background:#000"></div><div style="display:flex;gap:6px;align-items:center"><div style="width:12px;height:12px;border-radius:2px;background:var(--ink)"></div><span>87%</span></div></div></sc-if>
+<div style="display:flex;justify-content:space-between;padding:6px 20px 0;font-size:15px"><span style="color:var(--ink2)">‹ Comparar</span><span style="font-weight:600">Compartilhar</span></div>
+<div style="display:flex;flex-direction:column;gap:14px;padding:18px 20px 0">
+<div style="display:flex;flex-direction:column;gap:8px">
+<span style="font-size:13px;color:var(--ink3)">Asics Gel-Kayano 31 · viagem</span>
+<span style="font-size:38px;line-height:1;font-weight:600;letter-spacing:-0.04em;color:var(--ext)">Vale importar.</span>
+<span style="font-size:15px;line-height:1.4;color:var(--ink2);text-wrap:pretty">Comprando na viagem, você economiza <span style="color:var(--ink);font-weight:600">R$ 262,97 (21%)</span> sobre o parcelado no Brasil, em valor de hoje.</span>
+</div>
+<div style="background:var(--surf);border:1px solid var(--line);border-radius:20px;padding:16px;display:flex;flex-direction:column;gap:12px">
+<div style="display:flex;flex-direction:column;gap:7px"><div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:var(--ink2)">Na viagem</span><span style="font-family:'Geist Mono',monospace;font-weight:600">R$ 984,03</span></div><div style="height:10px;border-radius:5px;background:var(--surf2)"><div style="width:79%;height:100%;border-radius:5px;background:var(--ext)"></div></div></div>
+<div style="display:flex;flex-direction:column;gap:7px"><div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:var(--ink2)">No Brasil, parcelado</span><span style="font-family:'Geist Mono',monospace;font-weight:600">R$ 1.247,00</span></div><div style="height:10px;border-radius:5px;background:var(--surf2)"><div style="width:100%;height:100%;border-radius:5px;background:var(--br)"></div></div></div>
+</div>
+<div style="display:flex;flex-direction:column;gap:8px">
+<span style="font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink3)">Custo na viagem</span>
+<div style="display:flex;align-items:baseline;gap:6px;font-size:13px"><span style="color:var(--ink2)">Produto · € 160 × 6,44</span><span style="flex:1;border-bottom:1px dotted var(--ink3);opacity:.5"></span><span style="font-family:'Geist Mono',monospace">1.030,40</span></div>
+<div style="display:flex;align-items:baseline;gap:6px;font-size:13px"><span style="color:var(--ink2)">IOF cartão 3,5%</span><span style="flex:1;border-bottom:1px dotted var(--ink3);opacity:.5"></span><span style="font-family:'Geist Mono',monospace">36,06</span></div>
+<div style="display:flex;align-items:baseline;gap:6px;font-size:13px"><span style="color:var(--ink2)">Tax free recuperado 8%</span><span style="flex:1;border-bottom:1px dotted var(--ink3);opacity:.5"></span><span style="font-family:'Geist Mono',monospace;color:var(--br)">−82,43</span></div>
+</div>
+<div style="background:var(--surf2);border-radius:16px;padding:13px 14px;display:flex;flex-direction:column;gap:4px"><span style="font-size:13px;font-weight:600">Ponto de virada</span><span style="font-size:12.5px;line-height:1.45;color:var(--ink2)">Importar continua valendo a pena com o euro até <span style="font-family:'Geist Mono',monospace;color:var(--ink);font-weight:600">R$ 8,00</span>. Hoje: R$ 6,31.</span></div>
+<div style="font-size:11.5px;line-height:1.4;color:var(--ink3)">Compras acima da cota de US$ 1.000 pagam 50% sobre o excedente. Regras fiscais de out/2026 · <span style="text-decoration:underline;color:var(--ink2)">ver fontes</span></div>
+</div>
+<div style="position:absolute;left:0;right:0;bottom:0;padding:12px 16px 30px;background:var(--bg);border-top:1px solid var(--line);display:flex;gap:10px">
+<div style="flex:1;height:50px;border-radius:15px;border:1px solid var(--line);background:var(--surf);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:600">Salvar</div>
+<div style="flex:1.4;height:50px;border-radius:15px;background:var(--btn);color:var(--btnInk);display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:600">Compartilhar</div>
+<div style="position:absolute;left:50%;bottom:9px;transform:translateX(-50%);width:120px;height:4px;border-radius:2px;background:var(--ink)"></div>
+</div>
+</div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:14px">
+<div style="font-family:'Geist Mono',monospace;font-size:12px;color:var(--ink2)">09 — Fontes (sheet)</div>
+<div style="width:360px;height:780px;border-radius:48px;border:10px solid #0b0b0c;background:var(--bg);overflow:hidden;position:relative;box-sizing:content-box">
+<sc-if value="{{ ios }}" hint-placeholder-val="{{ true }}"><div style="height:50px;display:flex;align-items:center;justify-content:space-between;padding:0 30px 0 36px;font-size:15px;font-weight:600;position:relative"><span>9:41</span><div style="position:absolute;left:50%;top:11px;transform:translateX(-50%);width:112px;height:32px;border-radius:20px;background:#000"></div><div style="display:flex;gap:5px;align-items:center"><div style="width:17px;height:10px;border-radius:2px;background:var(--ink)"></div><div style="width:25px;height:12px;border-radius:4px;border:1.5px solid var(--ink);padding:1.5px;box-sizing:border-box"><div style="width:70%;height:100%;border-radius:1px;background:var(--ink)"></div></div></div></div></sc-if>
+<sc-if value="{{ android }}"><div style="height:40px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;font-size:13px;font-weight:500;position:relative"><span>9:41</span><div style="position:absolute;left:50%;top:12px;transform:translateX(-50%);width:14px;height:14px;border-radius:7px;background:#000"></div><div style="display:flex;gap:6px;align-items:center"><div style="width:12px;height:12px;border-radius:2px;background:var(--ink)"></div><span>87%</span></div></div></sc-if>
+<div style="padding:24px 20px;font-size:38px;font-weight:600;letter-spacing:-0.04em;color:var(--br)">Compre no Brasil.</div>
+<div style="position:absolute;inset:0;background:rgba(0,0,0,0.45)"></div>
+<div style="position:absolute;left:0;right:0;bottom:0;top:110px;background:var(--bg);border-radius:28px 28px 0 0;padding:10px 20px 0;display:flex;flex-direction:column;gap:14px">
+<div style="width:40px;height:5px;border-radius:3px;background:var(--line);align-self:center"></div>
+<div style="display:flex;flex-direction:column;gap:4px"><span style="font-size:22px;font-weight:600;letter-spacing:-0.02em">De onde vêm os números</span><span style="font-size:13px;color:var(--ink3)">Regras conferidas em 03/10/2026</span></div>
+<div style="background:var(--surf);border:1px solid var(--line);border-radius:18px;display:flex;flex-direction:column">
+<div style="padding:12px 14px;border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:3px"><span style="font-size:14px;font-weight:500">IOF de 3,5%</span><span style="font-size:12px;line-height:1.35;color:var(--ink2);text-decoration:underline">Decreto nº 6.306/2007, red. Decreto nº 12.499/2025</span></div>
+<div style="padding:12px 14px;border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:3px"><span style="font-size:14px;font-weight:500">Remessa Conforme</span><span style="font-size:12px;line-height:1.35;color:var(--ink2);text-decoration:underline">Portaria MF nº 1.342/2026</span></div>
+<div style="padding:12px 14px;border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:3px"><span style="font-size:14px;font-weight:500">ICMS de 17% a 20%</span><span style="font-size:12px;line-height:1.35;color:var(--ink2);text-decoration:underline">Tabela do Comsefaz</span></div>
+<div style="padding:12px 14px;display:flex;flex-direction:column;gap:3px"><span style="font-size:14px;font-weight:500">Cota de bagagem US$ 1.000</span><span style="font-size:12px;line-height:1.35;color:var(--ink2);text-decoration:underline">Receita Federal — Guia do Viajante</span></div>
+</div>
+<div style="background:var(--surf);border:1px solid var(--line);border-radius:18px;display:flex;flex-direction:column">
+<div style="padding:12px 14px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;font-size:13px"><span style="color:var(--ink2)">Câmbio · AwesomeAPI</span><span style="font-family:'Geist Mono',monospace">há 3 min</span></div>
+<div style="padding:12px 14px;display:flex;justify-content:space-between;font-size:13px"><span style="color:var(--ink2)">Selic · BCB, série 432</span><span style="font-family:'Geist Mono',monospace">15,00% a.a.</span></div>
+</div>
+<span style="font-size:12.5px;line-height:1.45;color:var(--ink2)">Achou uma regra desatualizada? <span style="color:var(--ink);font-weight:600;text-decoration:underline">Avise no GitHub</span>. O cálculo é aberto e testado.</span>
+</div>
+</div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:14px">
+<div style="font-family:'Geist Mono',monospace;font-size:12px;color:var(--ink2)">10 — Novo alerta (sheet)</div>
+<div style="width:360px;height:780px;border-radius:48px;border:10px solid #0b0b0c;background:var(--bg);overflow:hidden;position:relative;box-sizing:content-box">
+<sc-if value="{{ ios }}" hint-placeholder-val="{{ true }}"><div style="height:50px;display:flex;align-items:center;justify-content:space-between;padding:0 30px 0 36px;font-size:15px;font-weight:600;position:relative"><span>9:41</span><div style="position:absolute;left:50%;top:11px;transform:translateX(-50%);width:112px;height:32px;border-radius:20px;background:#000"></div><div style="display:flex;gap:5px;align-items:center"><div style="width:17px;height:10px;border-radius:2px;background:var(--ink)"></div><div style="width:25px;height:12px;border-radius:4px;border:1.5px solid var(--ink);padding:1.5px;box-sizing:border-box"><div style="width:70%;height:100%;border-radius:1px;background:var(--ink)"></div></div></div></div></sc-if>
+<sc-if value="{{ android }}"><div style="height:40px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;font-size:13px;font-weight:500;position:relative"><span>9:41</span><div style="position:absolute;left:50%;top:12px;transform:translateX(-50%);width:14px;height:14px;border-radius:7px;background:#000"></div><div style="display:flex;gap:6px;align-items:center"><div style="width:12px;height:12px;border-radius:2px;background:var(--ink)"></div><span>87%</span></div></div></sc-if>
+<div style="padding:10px 20px;font-size:30px;font-weight:600;letter-spacing:-0.03em">Câmbio</div>
+<div style="position:absolute;inset:0;background:rgba(0,0,0,0.45)"></div>
+<div style="position:absolute;left:0;right:0;bottom:0;top:150px;background:var(--bg);border-radius:28px 28px 0 0;padding:10px 20px 0;display:flex;flex-direction:column;gap:16px">
+<div style="width:40px;height:5px;border-radius:3px;background:var(--line);align-self:center"></div>
+<span style="font-size:22px;font-weight:600;letter-spacing:-0.02em">Avisar quando o dólar ficar abaixo de</span>
+<div style="display:flex;align-items:center;justify-content:space-between;background:var(--surf);border:1px solid var(--line);border-radius:20px;padding:14px">
+<span style="width:40px;height:40px;border-radius:12px;background:var(--surf2);display:flex;align-items:center;justify-content:center;font-size:20px">−</span>
+<span style="font-family:'Geist Mono',monospace;font-size:34px;font-weight:600;letter-spacing:-0.03em">R$ 5,30</span>
+<span style="width:40px;height:40px;border-radius:12px;background:var(--surf2);display:flex;align-items:center;justify-content:center;font-size:20px">+</span>
+</div>
+<div style="display:flex;justify-content:space-between;font-family:'Geist Mono',monospace;font-size:12px;color:var(--ink3)"><span>hoje 5,42</span><span>mín. 90 dias 5,40</span></div>
+<div style="background:var(--extSoft);border-radius:18px;padding:14px;display:flex;flex-direction:column;gap:4px">
+<span style="font-size:14px;font-weight:600;color:var(--ext)">Sugestão: R$ 4,51</span>
+<span style="font-size:12.5px;line-height:1.45;color:var(--ink)">É o ponto de virada do Sony WH-1000XM6: abaixo disso, importar passa a valer mais que parcelar.</span>
+</div>
+<span style="font-size:12px;line-height:1.45;color:var(--ink3)">O celular confere a cotação algumas vezes por dia, sem servidor. A notificação chega mesmo com o app fechado.</span>
+<div style="margin-top:auto;margin-bottom:34px;height:54px;border-radius:16px;background:var(--btn);color:var(--btnInk);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:600">Criar alerta</div>
+</div>
+</div>
+</div>
+
+<div style="display:flex;flex-direction:column;gap:14px">
+<div style="font-family:'Geist Mono',monospace;font-size:12px;color:var(--ink2)">11 — Sem conexão · link não lido</div>
+<div style="width:360px;height:780px;border-radius:48px;border:10px solid #0b0b0c;background:var(--bg);overflow:hidden;position:relative;box-sizing:content-box">
+<sc-if value="{{ ios }}" hint-placeholder-val="{{ true }}"><div style="height:50px;display:flex;align-items:center;justify-content:space-between;padding:0 30px 0 36px;font-size:15px;font-weight:600;position:relative"><span>9:41</span><div style="position:absolute;left:50%;top:11px;transform:translateX(-50%);width:112px;height:32px;border-radius:20px;background:#000"></div><div style="display:flex;gap:5px;align-items:center"><div style="width:17px;height:10px;border-radius:2px;background:var(--ink)"></div><div style="width:25px;height:12px;border-radius:4px;border:1.5px solid var(--ink);padding:1.5px;box-sizing:border-box"><div style="width:70%;height:100%;border-radius:1px;background:var(--ink)"></div></div></div></div></sc-if>
+<sc-if value="{{ android }}"><div style="height:40px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;font-size:13px;font-weight:500;position:relative"><span>9:41</span><div style="position:absolute;left:50%;top:12px;transform:translateX(-50%);width:14px;height:14px;border-radius:7px;background:#000"></div><div style="display:flex;gap:6px;align-items:center"><div style="width:12px;height:12px;border-radius:2px;background:var(--ink)"></div><span>87%</span></div></div></sc-if>
+<div style="display:flex;flex-direction:column;gap:14px;padding:10px 16px 0">
+<div style="display:flex;justify-content:space-between;align-items:center;padding:0 4px"><span style="font-size:30px;font-weight:600;letter-spacing:-0.03em">Comparar</span><div style="display:flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;background:var(--warnSoft);font-family:'Geist Mono',monospace;font-size:11px;color:var(--warn);font-weight:600"><div style="width:6px;height:6px;border-radius:3px;background:var(--warn)"></div>USD 5,44 · há 2 h</div></div>
+<div style="background:var(--warnSoft);border-radius:18px;padding:14px;display:flex;flex-direction:column;gap:4px"><span style="font-size:14px;font-weight:600;color:var(--warn)">Sem conexão</span><span style="font-size:13px;line-height:1.4;color:var(--ink)">Usando a última cotação salva, de hoje às 7:40. Puxe a tela para atualizar.</span></div>
+<div style="background:var(--surf);border:1px solid var(--line);border-radius:20px;padding:14px;display:flex;flex-direction:column;gap:10px">
+<div style="font-size:12px;color:var(--ink3)">Link do produto</div>
+<span style="font-family:'Geist Mono',monospace;font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">bestbuy.com/site/6539…</span>
+<span style="font-size:12.5px;line-height:1.4;color:var(--ink2)">Não conseguimos ler o preço desta página. Digite abaixo — o link fica salvo com a simulação.</span>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+<div style="background:var(--surf);border:1.5px solid var(--ink);border-radius:20px;padding:14px;display:flex;flex-direction:column;gap:6px"><span style="font-size:12px;color:var(--ink3)">Lá fora</span><span style="font-family:'Geist Mono',monospace;font-size:21px;font-weight:600;color:var(--ink3)">US$ 0,00</span><span style="font-size:12px;color:var(--ink2)">+ frete</span></div>
+<div style="background:var(--surf);border:1px solid var(--line);border-radius:20px;padding:14px;display:flex;flex-direction:column;gap:6px"><span style="font-size:12px;color:var(--ink3)">No Brasil</span><span style="font-family:'Geist Mono',monospace;font-size:21px;font-weight:600;color:var(--ink3)">R$ 0,00</span><span style="font-size:12px;color:var(--ink2)">à vista ou parcelado</span></div>
+</div>
+</div>
+<div style="position:absolute;left:16px;right:16px;bottom:106px;display:flex;flex-direction:column;gap:8px;align-items:center"><span style="font-size:12px;color:var(--ink3)">Preencha os dois preços para comparar.</span><div style="width:100%;height:54px;border-radius:16px;background:var(--btn);color:var(--btnInk);opacity:0.35;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:600">Comparar</div></div>
+<div style="position:absolute;left:0;right:0;bottom:0;padding:10px 16px 30px;background:var(--surf);border-top:1px solid var(--line);display:flex;gap:6px">
+<div style="flex:1;text-align:center;padding:11px 0;border-radius:12px;background:var(--surf2);font-size:12.5px;font-weight:600">Comparar</div><div style="flex:1;text-align:center;padding:11px 0;font-size:12.5px;color:var(--ink3)">Histórico</div><div style="flex:1;text-align:center;padding:11px 0;font-size:12.5px;color:var(--ink3)">Câmbio</div>
+<div style="position:absolute;left:50%;bottom:9px;transform:translateX(-50%);width:120px;height:4px;border-radius:2px;background:var(--ink)"></div>
+</div>
+</div>
+</div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;tema&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;claro&quot;,&quot;escuro&quot;],&quot;default&quot;:&quot;claro&quot;,&quot;tsType&quot;:&quot;'claro'|'escuro'&quot;},&quot;plataforma&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;ios&quot;,&quot;android&quot;],&quot;default&quot;:&quot;ios&quot;,&quot;tsType&quot;:&quot;'ios'|'android'&quot;}}">
+class Component extends DCLogic {
+  root = React.createRef();
+  temas = {
+    claro: { '--bg': '#f4f3ef', '--surf': '#ffffff', '--surf2': '#ebeae5', '--ink': '#17181a', '--ink2': '#4f5155', '--ink3': '#7d7f83', '--line': '#e1e0db', '--br': 'oklch(0.52 0.14 155)', '--ext': 'oklch(0.52 0.14 255)', '--warn': 'oklch(0.52 0.14 65)', '--brSoft': 'oklch(0.95 0.035 155)', '--extSoft': 'oklch(0.95 0.035 255)', '--warnSoft': 'oklch(0.95 0.035 75)', '--btn': '#17181a', '--btnInk': '#f4f3ef' },
+    escuro: { '--bg': '#0e0f10', '--surf': '#18191b', '--surf2': '#232427', '--ink': '#eeede9', '--ink2': '#b0b1b4', '--ink3': '#7c7e82', '--line': '#2b2c2f', '--br': 'oklch(0.78 0.14 155)', '--ext': 'oklch(0.78 0.14 255)', '--warn': 'oklch(0.8 0.14 75)', '--brSoft': 'oklch(0.27 0.045 155)', '--extSoft': 'oklch(0.27 0.045 255)', '--warnSoft': 'oklch(0.28 0.045 75)', '--btn': '#eeede9', '--btnInk': '#0e0f10' },
+  };
+  aplicar() {
+    const el = this.root.current;
+    if (!el) return;
+    const t = this.temas[this.props.tema === 'escuro' ? 'escuro' : 'claro'];
+    for (const k in t) el.style.setProperty(k, t[k]);
+  }
+  componentDidMount() { this.aplicar(); }
+  componentDidUpdate() { this.aplicar(); }
+  renderVals() {
+    const ios = (this.props.plataforma ?? 'ios') !== 'android';
+    return { root: this.root, ios, android: !ios };
+  }
+}
+</script>
+</body>
+</html>

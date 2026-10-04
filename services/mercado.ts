@@ -1,8 +1,9 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import type { CurrencyCode } from '@/constants/currencies';
-import { CHAVES, lerComMigracao } from '@/services/armazenamento';
-import { buscarCotacoesRede } from '@/services/cambio';
+import type { PontoSerie } from '@/core/cambio';
+import { CHAVES, chaveSerie, lerComMigracao } from '@/services/armazenamento';
+import { buscarCotacoesRede, buscarSerieRede } from '@/services/cambio';
 import { buscarSelicRede, taxaMensalEquivalente } from '@/services/selic';
 
 export type OrigemDados = 'rede' | 'cache' | 'padrao';
@@ -72,4 +73,59 @@ export function descreverIdade(atualizadoEmISO: string): string {
   if (horas < 24) return `há ${horas} h`;
   const dias = Math.floor(horas / 24);
   return `há ${dias} dia${dias > 1 ? 's' : ''}`;
+}
+
+/** Depois disso, a cotação de rede também é tratada como velha (pill em âmbar). */
+export const IDADE_MAXIMA_COTACAO_MIN = 60;
+
+// A cotação em uso merece atenção: veio do cache ou da referência, ou é antiga.
+export function cotacaoDesatualizada(dados: DadosMercado, agora: Date = new Date()): boolean {
+  if (dados.origem !== 'rede') return true;
+  return agora.getTime() - new Date(dados.atualizadoEm).getTime() > IDADE_MAXIMA_COTACAO_MIN * 60000;
+}
+
+// "de hoje às 7:40", "de ontem às 22:05", "de 02/10 às 9:00" (horário do aparelho).
+export function descreverHorario(iso: string, agora: Date = new Date()): string {
+  const data = new Date(iso);
+  const hora = `${data.getHours()}:${String(data.getMinutes()).padStart(2, '0')}`;
+  const dia = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+  const dias = Math.round((dia(agora) - dia(data)) / 86400000);
+  if (dias === 0) return `de hoje às ${hora}`;
+  if (dias === 1) return `de ontem às ${hora}`;
+  const dd = String(data.getDate()).padStart(2, '0');
+  const mm = String(data.getMonth() + 1).padStart(2, '0');
+  return `de ${dd}/${mm} às ${hora}`;
+}
+
+export interface SerieMercado {
+  pontos: PontoSerie[];
+  atualizadoEm: string; // ISO 8601
+  origem: 'rede' | 'cache';
+}
+
+function mesmoDia(a: Date, b: Date): boolean {
+  return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+}
+
+// Série de 90 dias da moeda, com cache de um dia por moeda. Sem rede, devolve o último
+// cache (de qualquer idade); sem cache, null.
+export async function carregarSerie90d(moeda: CurrencyCode, agora: Date = new Date()): Promise<SerieMercado | null> {
+  let cache: Omit<SerieMercado, 'origem'> | null = null;
+  try {
+    const bruto = await AsyncStorage.getItem(chaveSerie(moeda));
+    cache = bruto ? JSON.parse(bruto) : null;
+  } catch {
+    cache = null;
+  }
+  if (cache && mesmoDia(new Date(cache.atualizadoEm), agora)) return { ...cache, origem: 'cache' };
+
+  try {
+    const pontos = await buscarSerieRede(moeda);
+    const fresca = { pontos, atualizadoEm: agora.toISOString() };
+    AsyncStorage.setItem(chaveSerie(moeda), JSON.stringify(fresca)).catch(() => {});
+    return { ...fresca, origem: 'rede' };
+  } catch (error) {
+    console.error('❌ Erro API Série:', error);
+    return cache ? { ...cache, origem: 'cache' } : null;
+  }
 }

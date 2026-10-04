@@ -55,11 +55,11 @@ O código já é multiplataforma; os builds saem da nuvem via **EAS Build** (`ea
 
 ### 4a. Pré-requisitos comuns (fazer uma vez)
 - [ ] **Projeto EAS `emporos`:** rodar `eas init` uma vez (o slug mudou de `vale-importar` para `emporos`, e o projeto EAS antigo foi desvinculado). O comando grava o novo `extra.eas.projectId` no `app.json`.
-- [ ] **Arte do ícone** — hoje é o placeholder do template. Direção: balança/avião minimalista em branco/verde-água sobre fundo petróleo `#0f6e56`, legível a 48px. Trocar `assets/images/icon.png`, `android-icon-*.png`, `splash-icon.png` e `favicon.png`.
-- [ ] **Ícone 1024×1024** (sem transparência, para as fichas das lojas).
-- [ ] **Screenshots** por dispositivo (telas claras e escuras; destacar o breakdown de impostos como diferencial).
-- [ ] **Textos da ficha:** nome ("Vale importar?"), descrição curta e longa, palavras-chave. PT-BR obrigatório; EN opcional.
-- [x] **Política de privacidade (URL)** — gist em `gist.github.com/luccas-amorim/b2fee294fdd1c734825f064f8cb2cc79`, com o mesmo texto de `docs/POLITICA-DE-PRIVACIDADE.md`. Ao alterar um, alterar o outro.
+- [x] **Arte do ícone** (v3.0) — quadrado de tinta com as duas barras do Resultado (verde = Brasil, azul = importar), gerado por `scripts/gerar-icones.js`. Ver [LANCAMENTO.md](LANCAMENTO.md).
+- [x] **Ícone 1024×1024** (sem transparência, para as fichas das lojas) — `assets/images/icon.png`.
+- [ ] **Screenshots** por dispositivo — lista das seis telas, temas e legendas em [LANCAMENTO.md](LANCAMENTO.md#2-capturas-das-lojas); falta capturar num development build.
+- [x] **Textos da ficha** — rascunho em PT-BR em [LANCAMENTO.md](LANCAMENTO.md#3-textos-da-ficha-pt-br). EN opcional.
+- [ ] **Política de privacidade (URL)** — gist em `gist.github.com/luccas-amorim/b2fee294fdd1c734825f064f8cb2cc79`, com o mesmo texto de `docs/POLITICA-DE-PRIVACIDADE.md`. Ao alterar um, alterar o outro. ⚠️ O texto mudou na v3.0 (leitura do link no aparelho): atualizar o gist.
 - [ ] **Links de doação fora do app:** README e página de apoio. Na ficha da App Store, preferir apontar só para o repositório — a Apple também revisa os textos da ficha.
 - [ ] **Classificação etária** (questionário) — o app não tem conteúdo sensível.
 
@@ -94,7 +94,9 @@ Requisitos e ordem:
 - [x] **Notificações de alertas** — locais, com verificação em segundo plano (`expo-background-task`), sem servidor nem credenciais de push (v2.2.0).
 - [ ] **Testar os alertas num build de desenvolvimento** (`eas build --profile development`): a verificação em segundo plano não roda no Expo Go. Para disparar na hora em debug: `BackgroundTask.triggerTaskWorkerForTestingAsync()`.
 - [ ] **Mais moedas** — `constants/currencies.ts` + bandeira em `components/flag-icon.tsx`.
-- [ ] **Histórico de cotação com gráfico** ("melhor momento para comprar").
+- [x] **Histórico de cotação com gráfico** — aba Câmbio com 90 dias e comparação com a média (v3.0). Nunca "melhor momento para comprar": só comparação com o passado.
+- [ ] **Receber o link pelo menu de compartilhar do navegador** (`expo-share-intent`, exige development build).
+- [ ] **Notificação quando uma simulação salva muda de lado** (opcional; hoje o Histórico mostra ao abrir).
 - [ ] **Backup opcional** do histórico no iCloud/Google Drive do próprio usuário (sem servidor seu).
 
 ## Ideias avaliadas e adiadas

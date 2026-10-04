@@ -3,6 +3,8 @@ import {
   type CamposFormulario,
   camposDoPrefill,
   montarSimulacao,
+  premissasDe,
+  premissasSalvas,
   valoresNumericos,
 } from '@/hooks/use-formulario-calculo';
 import type { DadosMercado } from '@/services/mercado';
@@ -104,5 +106,25 @@ describe('camposDoPrefill', () => {
     const campos = camposDoPrefill({ icms: '0.2', certificado: 'nao' }, atual);
     expect(campos.icms).toBe(0.2);
     expect(campos.siteCertificado).toBe(false);
+  });
+});
+
+describe('premissasSalvas', () => {
+  it('lê as premissas válidas e descarta o resto', () => {
+    expect(premissasSalvas('{"cenario":"Viagem","siteCertificado":false,"pgto":"Dinheiro","spread":1.5}')).toEqual({
+      cenario: 'Viagem',
+      siteCertificado: false,
+      pgto: 'Dinheiro',
+      spread: 1.5,
+    });
+    expect(premissasSalvas('{"cenario":"Navio","pgto":"Pix","spread":-3}')).toEqual({});
+    expect(premissasSalvas('não é json')).toEqual({});
+    expect(premissasSalvas(null)).toEqual({});
+  });
+});
+
+describe('premissasDe', () => {
+  it('converte o spread digitado em número', () => {
+    expect(premissasDe({ ...CAMPOS_INICIAIS, spread: '1,5' })).toMatchObject({ spread: 1.5, cenario: 'Encomenda' });
   });
 });
