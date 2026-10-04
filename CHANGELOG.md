@@ -3,6 +3,7 @@
 Histórico das entregas por rodada de desenvolvimento (branches mergeadas em `main`). A partir da 2.1.0, cada entrada traz também a versão (SemVer).
 
 ## 2026-10-03 — v2.2.0 · Infraestrutura, regras fiscais e alertas
+- **Alertas de câmbio com notificação:** o aparelho verifica de tempos em tempos, em segundo plano, a cotação das moedas com alerta e manda uma notificação local quando o alvo é atingido (`expo-background-task`, `expo-notifications`, `expo-task-manager`; sem servidor nem push). Cada alerta avisa uma vez e é rearmado quando a cotação sai do alvo. A permissão é pedida ao criar o primeiro alerta, e o card explica que o momento da verificação é do sistema (pode levar horas; no iPhone, costuma ser de madrugada). Com o app aberto, o aviso continua aparecendo na hora. A política de privacidade ganhou a seção sobre notificações.
 - **CI no GitHub Actions** (`.github/workflows/ci.yml`): lint, TypeScript, testes e `expo-doctor` em todo PR e push na `main`. Dependabot mantém as actions atualizadas.
 - Novo script `npm run typecheck`; `expo`, `expo-constants` e `jest-expo` atualizados para os patches esperados pelo SDK 54.
 - **Projeto renomeado para Empóros** (`emporos`): nome do pacote, slug do Expo, identificador das lojas (`io.github.luccasamorim.emporos`) e documentação. "Vale importar?" segue como nome exibido ao usuário. O slug novo exige um projeto EAS novo (`eas init`).

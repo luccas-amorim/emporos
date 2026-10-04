@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 import { FlagIcon } from '@/components/flag-icon';
@@ -9,17 +9,36 @@ import { formatarCotacaoBR } from '@/core/formato';
 import { useAlertasCambio } from '@/hooks/use-alertas-cambio';
 import { useTema } from '@/hooks/use-tema';
 import { type DirecaoAlerta, verificarAlertas } from '@/services/alertas';
+import type { StatusPermissao } from '@/services/notificacoes';
 
 interface AlertasCambioProps {
   cotacoes: Partial<Record<CurrencyCode, number>> | null;
 }
 
-// Card de alertas de câmbio, exibido na Home enquanto ALERTAS_CAMBIO_ATIVO estiver ligado.
-// O disparo acontece em foreground; o push via EAS entra numa etapa futura sem mudar esta UI.
+// Avisa por notificação quando a cotação chega ao alvo, sem servidor: o próprio aparelho
+// verifica de tempos em tempos (services/tarefa-alertas). Com o app aberto, o aviso
+// aparece aqui na hora.
+const EXPLICACAO: Record<StatusPermissao, string> = {
+  concedida:
+    '🔔 Verificamos a cotação em segundo plano de tempos em tempos. O celular decide o momento: pode levar algumas horas, e no iPhone costuma ser de madrugada. Com o app aberto, o aviso aparece aqui na hora.',
+  negada:
+    '🔕 Notificações desativadas: o aviso só aparece com o app aberto. Para receber notificações, ative-as nas configurações do celular.',
+  pendente: 'Ao criar o primeiro alerta, vamos pedir permissão para avisar você por notificação.',
+  indisponivel: 'Nesta versão, o aviso aparece aqui com o app aberto.',
+};
+
 export function AlertasCambio({ cotacoes }: AlertasCambioProps) {
   const { cores } = useTema();
   const styles = useMemo(() => criarStyles(cores), [cores]);
-  const { alertas, adicionarAlerta, removerAlerta } = useAlertasCambio();
+  const {
+    alertas,
+    carregando,
+    permissao,
+    adicionarAlerta,
+    removerAlerta,
+    sincronizarComCotacoes,
+    pedirPermissaoNotificacao,
+  } = useAlertasCambio();
 
   const [moeda, setMoeda] = useState<CurrencyCode>('USD');
   const [alvo, setAlvo] = useState('');
@@ -27,6 +46,16 @@ export function AlertasCambio({ cotacoes }: AlertasCambioProps) {
 
   const valAlvo = parseNumeroLocal(alvo);
   const disparados = cotacoes ? verificarAlertas(alertas, cotacoes) : [];
+
+  useEffect(() => {
+    if (!carregando && cotacoes) sincronizarComCotacoes(cotacoes);
+  }, [carregando, cotacoes, alertas.length, sincronizarComCotacoes]);
+
+  const criar = () => {
+    adicionarAlerta(moeda, valAlvo, direcao);
+    setAlvo('');
+    if (permissao === 'pendente') pedirPermissaoNotificacao();
+  };
 
   return (
     <View style={styles.card}>
@@ -84,10 +113,7 @@ export function AlertasCambio({ cotacoes }: AlertasCambioProps) {
         />
         <TouchableOpacity
           style={[styles.botaoAdd, valAlvo <= 0 && styles.botaoAddDesabilitado]}
-          onPress={() => {
-            adicionarAlerta(moeda, valAlvo, direcao);
-            setAlvo('');
-          }}
+          onPress={criar}
           disabled={valAlvo <= 0}
           accessibilityRole="button"
           accessibilityLabel="Criar alerta"
@@ -112,6 +138,7 @@ export function AlertasCambio({ cotacoes }: AlertasCambioProps) {
         </View>
       ))}
       {alertas.length === 0 && <Text style={styles.vazio}>Nenhum alerta criado ainda.</Text>}
+      <Text style={styles.explicacao}>{EXPLICACAO[permissao]}</Text>
     </View>
   );
 }
@@ -138,6 +165,7 @@ function criarStyles(cores: Paleta) {
     alertaLinha: { flexDirection: 'row', alignItems: 'center', paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: cores.borderSoft },
     alertaTexto: { flex: 1, fontSize: 13, color: cores.text },
     alertaRemover: { color: cores.danger, fontSize: 14, fontWeight: 'bold', paddingHorizontal: 6 },
+    explicacao: { fontSize: 11, color: cores.muted, marginTop: 10, lineHeight: 16 },
     vazio: { fontSize: 12, color: cores.muted, fontStyle: 'italic' },
   });
 }

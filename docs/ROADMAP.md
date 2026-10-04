@@ -91,7 +91,8 @@ Requisitos e ordem:
 
 ## 5. Pós-lançamento
 - [ ] **Revisar as regras fiscais a cada trimestre** (e sempre que sair notícia de IOF, Remessa Conforme ou ICMS) — `constants/regras-fiscais.ts`, com fonte e `revisadoEm`.
-- [ ] **Push notifications** de alertas via EAS (`expo-notifications` + credenciais).
+- [x] **Notificações de alertas** — locais, com verificação em segundo plano (`expo-background-task`), sem servidor nem credenciais de push (v2.2.0).
+- [ ] **Testar os alertas num build de desenvolvimento** (`eas build --profile development`): a verificação em segundo plano não roda no Expo Go. Para disparar na hora em debug: `BackgroundTask.triggerTaskWorkerForTestingAsync()`.
 - [ ] **Mais moedas** — `constants/currencies.ts` + bandeira em `components/flag-icon.tsx`.
 - [ ] **Histórico de cotação com gráfico** ("melhor momento para comprar").
 - [ ] **Backup opcional** do histórico no iCloud/Google Drive do próprio usuário (sem servidor seu).
