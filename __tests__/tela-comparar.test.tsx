@@ -4,6 +4,7 @@ import { useLocalSearchParams } from 'expo-router';
 
 import Comparar from '@/app/(tabs)/index';
 import Resultado from '@/app/resultado';
+import { recarregarAlertas } from '@/hooks/use-alertas-cambio';
 import { recarregarHistorico } from '@/hooks/use-historico-simulacoes';
 import { definirSimulacaoAtual } from '@/hooks/use-simulacao-atual';
 import { CHAVES } from '@/services/armazenamento';
@@ -30,6 +31,7 @@ const paramsMock = useLocalSearchParams as jest.Mock;
 beforeEach(async () => {
   await AsyncStorage.clear();
   await recarregarHistorico();
+  await recarregarAlertas();
   definirSimulacaoAtual(null);
   paramsMock.mockReturnValue({});
   mockPush.mockClear();
@@ -147,6 +149,26 @@ describe('Comparar', () => {
       expect(salvo[0]).toMatchObject({ nomeProduto: 'Fone', precoBR: 1000, precoExt: 100, icms: 0.17, siteCertificado: true });
     });
     expect(screen.getByLabelText('Simulação salva no histórico')).toBeTruthy();
+  });
+
+  it('cria um alerta no ponto de virada a partir do Resultado da encomenda', async () => {
+    const tela = await abrirComparar();
+    await fireEvent.changeText(screen.getByLabelText('Nome do produto (opcional)'), 'Fone');
+    await preencherEComparar('500', '100');
+    await abrirResultado(tela);
+    expect(screen.getByText('Compre no Brasil.')).toBeTruthy();
+
+    await fireEvent.press(screen.getByLabelText('Criar alerta para quando o dólar cair'));
+    expect(screen.getByText(/É o ponto de virada do Fone/)).toBeTruthy();
+    await fireEvent.press(screen.getByLabelText('Criar alerta'));
+
+    await waitFor(async () => {
+      const alertas = JSON.parse((await AsyncStorage.getItem(CHAVES.alertas)) ?? '[]');
+      expect(alertas).toHaveLength(1);
+      expect(alertas[0]).toMatchObject({ moeda: 'USD', direcao: 'abaixo' });
+      expect(alertas[0].alvo).toBeLessThan(5);
+    });
+    expect(screen.getByLabelText('Alerta do dólar criado')).toBeTruthy();
   });
 
   it('em viagem, mostra a cota e avisa quando o preço passa dela', async () => {

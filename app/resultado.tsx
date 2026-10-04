@@ -3,6 +3,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { AccessibilityInfo, Pressable, ScrollView, Share, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { SheetNovoAlerta } from '@/components/cambio/sheet-novo-alerta';
 import { BarrasComparacao } from '@/components/resultado/barras-comparacao';
 import { Recibo } from '@/components/resultado/recibo';
 import { SheetFontes } from '@/components/resultado/sheet-fontes';
@@ -11,6 +12,7 @@ import { Cartao } from '@/components/ui/cartao';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { Texto } from '@/components/ui/texto';
 import { moedaPorCodigo } from '@/constants/currencies';
+import { ALERTAS_CAMBIO_ATIVO } from '@/constants/feature-flags';
 import { REGRAS_FISCAIS, rotuloRevisao } from '@/constants/regras-fiscais';
 import { AVISO_LEGAL } from '@/constants/textos';
 import type { Paleta } from '@/constants/theme';
@@ -61,6 +63,8 @@ export default function Resultado() {
   const simulacao = useSimulacaoAtual();
   const { adicionarSimulacao } = useHistoricoSimulacoes();
   const [fontesVisiveis, setFontesVisiveis] = useState(false);
+  const [alertaVisivel, setAlertaVisivel] = useState(false);
+  const [alertaCriado, setAlertaCriado] = useState(false);
 
   const resultado = simulacao?.resultado;
 
@@ -80,6 +84,10 @@ export default function Resultado() {
   const vp = explicacaoValorPresente(entrada.precoBR, entrada.parcelasBR, entrada.selicMensal, resultado.custoBR);
   const virada = textoPontoDeVirada(resultado, entrada.cotacao, moeda);
   const salva = !!simulacao.salvaComo;
+  // Em Viagem a compra é presencial e próxima: o primário é compartilhar. Na encomenda,
+  // dá para esperar o câmbio, e o primário cria um alerta no ponto de virada.
+  const oferecerAlerta = ALERTAS_CAMBIO_ATIVO && !viagem;
+  const nomeMoeda = moeda.nomeFrase.replace(/^(o|a) /, '');
 
   const compartilhar = async () => {
     try {
@@ -202,10 +210,33 @@ export default function Resultado() {
           accessibilityLabel={salva ? 'Simulação salva no histórico' : 'Salvar no histórico'}
           style={{ flex: 1 }}
         />
-        <Botao titulo="Compartilhar" altura={50} aoTocar={compartilhar} style={{ flex: 1.4 }} />
+        {oferecerAlerta ? (
+          <Botao
+            titulo={alertaCriado ? 'Alerta criado' : `Avisar se ${moeda.nomeFrase} cair`}
+            icone={alertaCriado ? 'checkmark' : undefined}
+            altura={50}
+            desabilitado={alertaCriado}
+            aoTocar={() => setAlertaVisivel(true)}
+            accessibilityLabel={alertaCriado ? `Alerta do ${nomeMoeda} criado` : `Criar alerta para quando ${moeda.nomeFrase} cair`}
+            style={{ flex: 1.4 }}
+          />
+        ) : (
+          <Botao titulo="Compartilhar" altura={50} aoTocar={compartilhar} style={{ flex: 1.4 }} />
+        )}
       </View>
 
       <SheetFontes visivel={fontesVisiveis} aoFechar={() => setFontesVisiveis(false)} dados={dados} />
+      {oferecerAlerta ? (
+        <SheetNovoAlerta
+          visivel={alertaVisivel}
+          aoFechar={() => setAlertaVisivel(false)}
+          moeda={simulacao.moeda}
+          cotacaoHoje={entrada.cotacao}
+          sugestao={{ valor: resultado.pontoDeVirada, nomeProduto: registro.nomeProduto }}
+          origem={simulacao.salvaComo}
+          aoCriar={() => setAlertaCriado(true)}
+        />
+      ) : null}
     </View>
   );
 }

@@ -1,8 +1,9 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import type { CurrencyCode } from '@/constants/currencies';
-import { CHAVES, lerComMigracao } from '@/services/armazenamento';
-import { buscarCotacoesRede } from '@/services/cambio';
+import type { PontoSerie } from '@/core/cambio';
+import { CHAVES, chaveSerie, lerComMigracao } from '@/services/armazenamento';
+import { buscarCotacoesRede, buscarSerieRede } from '@/services/cambio';
 import { buscarSelicRede, taxaMensalEquivalente } from '@/services/selic';
 
 export type OrigemDados = 'rede' | 'cache' | 'padrao';
@@ -94,4 +95,37 @@ export function descreverHorario(iso: string, agora: Date = new Date()): string 
   const dd = String(data.getDate()).padStart(2, '0');
   const mm = String(data.getMonth() + 1).padStart(2, '0');
   return `de ${dd}/${mm} às ${hora}`;
+}
+
+export interface SerieMercado {
+  pontos: PontoSerie[];
+  atualizadoEm: string; // ISO 8601
+  origem: 'rede' | 'cache';
+}
+
+function mesmoDia(a: Date, b: Date): boolean {
+  return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+}
+
+// Série de 90 dias da moeda, com cache de um dia por moeda. Sem rede, devolve o último
+// cache (de qualquer idade); sem cache, null.
+export async function carregarSerie90d(moeda: CurrencyCode, agora: Date = new Date()): Promise<SerieMercado | null> {
+  let cache: Omit<SerieMercado, 'origem'> | null = null;
+  try {
+    const bruto = await AsyncStorage.getItem(chaveSerie(moeda));
+    cache = bruto ? JSON.parse(bruto) : null;
+  } catch {
+    cache = null;
+  }
+  if (cache && mesmoDia(new Date(cache.atualizadoEm), agora)) return { ...cache, origem: 'cache' };
+
+  try {
+    const pontos = await buscarSerieRede(moeda);
+    const fresca = { pontos, atualizadoEm: agora.toISOString() };
+    AsyncStorage.setItem(chaveSerie(moeda), JSON.stringify(fresca)).catch(() => {});
+    return { ...fresca, origem: 'rede' };
+  } catch (error) {
+    console.error('❌ Erro API Série:', error);
+    return cache ? { ...cache, origem: 'cache' } : null;
+  }
 }

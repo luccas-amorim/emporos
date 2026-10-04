@@ -10,6 +10,7 @@ export const CHAVES = {
   dadosMercado: '@emporos:dados_mercado',
   icms: '@emporos:icms_estado',
   premissas: '@emporos:premissas',
+  serie90d: '@emporos:serie_90d',
 } as const;
 
 export type Chave = (typeof CHAVES)[keyof typeof CHAVES];
@@ -39,4 +40,9 @@ export async function lerComMigracao(chave: Chave): Promise<string | null> {
   await AsyncStorage.setItem(chave, valorAntigo);
   await AsyncStorage.removeItem(antiga);
   return valorAntigo;
+}
+
+/** Chave da série de 90 dias de uma moeda (uma por moeda, sob CHAVES.serie90d). */
+export function chaveSerie(moeda: string): string {
+  return `${CHAVES.serie90d}:${moeda}`;
 }

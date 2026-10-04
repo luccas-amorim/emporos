@@ -54,6 +54,18 @@ export function paramsRecalculo(item: SimulacaoSalva): Record<string, string> {
   };
 }
 
+/** Simulação mais recente salva na moeda, com a cotação da época (para o insight do Câmbio). */
+export function ultimaSimulacaoNaMoeda(historico: SimulacaoSalva[], moeda: CurrencyCode): SimulacaoSalva | null {
+  return historico.find((item) => item.moeda === moeda && !!item.cotacao && item.custoExt > 0) ?? null;
+}
+
+// Ponto de virada de uma simulação salva: o custo de importar é linear na cotação, então
+// basta a cotação e os dois custos da época (ver calcularPontoDeVirada).
+export function pontoDeViradaSalvo(item: SimulacaoSalva): number | null {
+  if (!item.cotacao || item.custoExt <= 0) return null;
+  return (item.cotacao * item.custoBR) / item.custoExt;
+}
+
 const LIMITE_HISTORICO = 50;
 
 // O histórico é um só para o app inteiro: Comparar, Resultado e Histórico leem e

@@ -12,7 +12,6 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { AlertasCambio } from '@/components/alertas-cambio';
 import { BannerSemConexao } from '@/components/comparar/banner-sem-conexao';
 import { CampoLink } from '@/components/comparar/campo-link';
 import { CartaoPreco } from '@/components/comparar/cartao-preco';
@@ -27,7 +26,6 @@ import { Botao } from '@/components/ui/botao';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { Texto } from '@/components/ui/texto';
 import { CODIGOS_MOEDA, moedaPorCodigo } from '@/constants/currencies';
-import { ALERTAS_CAMBIO_ATIVO } from '@/constants/feature-flags';
 import type { Paleta } from '@/constants/theme';
 import { calcularParidade, parseNumeroLocal } from '@/core/calculadora';
 import { formatarBRL, formatarMoeda } from '@/core/formato';
@@ -178,7 +176,6 @@ export default function Comparar() {
 
           <ChipsPremissas premissas={premissas} cota={cota} aoAjustar={() => setSheet('premissas')} />
 
-          {ALERTAS_CAMBIO_ATIVO && <AlertasCambio cotacoes={dados?.cotacoes ?? null} />}
         </ScrollView>
 
         <View style={styles.rodape}>

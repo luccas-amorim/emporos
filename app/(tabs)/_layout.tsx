@@ -8,6 +8,7 @@ export default function TabLayout() {
     <Tabs tabBar={(props) => <BarraAbas {...props} />} screenOptions={{ headerShown: false }}>
       <Tabs.Screen name="index" options={{ title: 'Comparar' }} />
       <Tabs.Screen name="historico" options={{ title: 'Histórico' }} />
+      <Tabs.Screen name="cambio" options={{ title: 'Câmbio' }} />
     </Tabs>
   );
 }

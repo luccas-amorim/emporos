@@ -50,7 +50,7 @@ export function ControleSegmentado<T extends string | number>({
               mono={mono}
               peso={ativo ? 600 : 400}
               cor={ativo ? 'text' : compacto ? 'textSubtle' : 'textMuted'}
-              numberOfLines={1}>
+              numberOfLines={compacto ? undefined : 1}>
               {opcao.rotulo}
             </Texto>
           </Pressable>
@@ -65,7 +65,7 @@ function criarStyles(cores: Paleta) {
     trilho: { flexDirection: 'row', gap: 3, padding: 3, borderRadius: 13, backgroundColor: cores.surface2 },
     trilhoCompacto: { gap: 2, borderRadius: 12 },
     item: { flex: 1, minHeight: 38, paddingHorizontal: 8, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
-    itemCompacto: { flex: 0, minHeight: 30, paddingHorizontal: 9, borderRadius: 9 },
+    itemCompacto: { flexGrow: 0, flexShrink: 0, flexBasis: 'auto', minHeight: 30, paddingHorizontal: 9, borderRadius: 9 },
     itemAtivo: { backgroundColor: cores.card },
   });
 }
