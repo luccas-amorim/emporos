@@ -1,0 +1,8 @@
+version: 2
+updates:
+  # Só as actions do CI. As dependências npm do Expo devem ser atualizadas com
+  # `npx expo install --fix`, que respeita as versões compatíveis com o SDK.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly

@@ -2,6 +2,10 @@
 
 Histórico das entregas por rodada de desenvolvimento (branches mergeadas em `main`). A partir da 2.1.0, cada entrada traz também a versão (SemVer).
 
+## 2026-10-03 — v2.2.0 · Infraestrutura, regras fiscais e alertas
+- **CI no GitHub Actions** (`.github/workflows/ci.yml`): lint, TypeScript, testes e `expo-doctor` em todo PR e push na `main`. Dependabot mantém as actions atualizadas.
+- Novo script `npm run typecheck`; `expo`, `expo-constants` e `jest-expo` atualizados para os patches esperados pelo SDK 54.
+
 ## 2026-10-02 — v2.1.0 · App gratuito e código aberto (`feature/app-gratuito-mit`)
 - **Fim do modelo freemium:** o app passa a ser publicado de graça, financiado por doações. Removidos a paywall, a camada de compras (`services/compras.ts`), o contexto premium (`hooks/use-premium.tsx`) e a cota de 5 cálculos (`hooks/use-contador-calculos.ts`).
 - **Tudo liberado para todos:** cálculos ilimitados, histórico de simulações, todas as moedas (GBP, JPY, ARS e CLP sem cadeado) e **alertas de câmbio ativados** (`ALERTAS_CAMBIO_ATIVO = true`), com aviso em foreground na Home.
