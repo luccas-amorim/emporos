@@ -9,31 +9,32 @@ import {
   View,
 } from 'react-native';
 
-import { useTema } from '@/hooks/use-tema';
+import { IconSymbol, type IconSymbolName } from '@/components/ui/icon-symbol';
 import type { Paleta } from '@/constants/theme';
+import { useTema } from '@/hooks/use-tema';
 import { CHAVES, lerComMigracao } from '@/services/armazenamento';
 
 interface Slide {
-  emoji: string;
+  icone: IconSymbolName;
   titulo: string;
   texto: string;
 }
 
 const SLIDES: Slide[] = [
   {
-    emoji: '⚖️',
+    icone: 'scalemass',
     titulo: 'Compare o custo real',
     texto:
       'O Vale importar? compara o preço de comprar no Brasil parcelado com o de comprar no exterior — considerando câmbio, spread, IOF e os impostos de importação.',
   },
   {
-    emoji: '📐',
+    icone: 'function',
     titulo: 'Matemática honesta',
     texto:
       'Parcelas no Brasil são trazidas a valor de hoje usando a taxa Selic: se o seu dinheiro pode render enquanto você parcela, isso conta a favor do Brasil. A cotação vem de fontes oficiais, em tempo real.',
   },
   {
-    emoji: '🧾',
+    icone: 'doc.text',
     titulo: 'Viagem ou encomenda?',
     texto:
       'Encomendas internacionais pagam Imposto de Importação e ICMS; compras em viagem, não. Escolha o cenário certo e veja cada custo detalhado antes de decidir.',
@@ -98,7 +99,9 @@ export function Onboarding({ visivel, aoConcluir }: { visivel: boolean; aoConclu
           onMomentumScrollEnd={(e) => setIndice(Math.round(e.nativeEvent.contentOffset.x / width))}
           renderItem={({ item }) => (
             <View style={[styles.slide, { width }]}>
-              <Text style={styles.emoji}>{item.emoji}</Text>
+              <View style={styles.icone}>
+                <IconSymbol name={item.icone} size={36} color={cores.text} />
+              </View>
               <Text style={styles.titulo}>{item.titulo}</Text>
               <Text style={styles.texto}>{item.texto}</Text>
             </View>
@@ -144,22 +147,22 @@ function criarStyles(cores: Paleta) {
     },
     container: { flex: 1, backgroundColor: cores.background },
     slide: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 40 },
-    emoji: { fontSize: 64, marginBottom: 24 },
+    icone: { width: 72, height: 72, borderRadius: 20, borderWidth: 1, borderColor: cores.border, backgroundColor: cores.card, alignItems: 'center', justifyContent: 'center', marginBottom: 24 },
     titulo: { fontSize: 24, fontWeight: 'bold', color: cores.text, marginBottom: 16, textAlign: 'center' },
     texto: { fontSize: 16, color: cores.subtext, textAlign: 'center', lineHeight: 24 },
     rodape: { padding: 30, alignItems: 'center', gap: 16 },
-    dots: { flexDirection: 'row', gap: 8 },
-    dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: cores.border },
-    dotAtivo: { backgroundColor: cores.primary, width: 20 },
+    dots: { flexDirection: 'row', gap: 6 },
+    dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: cores.border },
+    dotAtivo: { backgroundColor: cores.text, width: 18 },
     botao: {
-      backgroundColor: cores.primary,
-      paddingVertical: 14,
-      paddingHorizontal: 60,
-      borderRadius: 10,
-      minWidth: 220,
+      backgroundColor: cores.action,
+      height: 54,
+      borderRadius: 16,
+      alignSelf: 'stretch',
       alignItems: 'center',
+      justifyContent: 'center',
     },
-    botaoTexto: { color: cores.card, fontSize: 16, fontWeight: 'bold' },
+    botaoTexto: { color: cores.actionText, fontSize: 16, fontWeight: '600' },
     pular: { color: cores.muted, fontSize: 14 },
   });
 }

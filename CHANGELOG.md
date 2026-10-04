@@ -2,6 +2,17 @@
 
 Histórico das entregas por rodada de desenvolvimento (branches mergeadas em `main`). A partir da 2.1.0, cada entrada traz também a versão (SemVer).
 
+## Em desenvolvimento — v3.0.0 · Revamp do Vale importar?
+Redesign completo, feito em fases (uma branch por fase). Especificação e protótipos em `docs/design_handoff_revamp_vale_importar/`.
+
+### Fase A — Fundação visual (`feature/revamp-a-fundacao-visual`)
+- **Paleta nova "tinta e papel"** em `constants/theme.ts`, no lugar da "Petróleo": interface neutra, verde = comprar no Brasil, azul = importar, âmbar = atenção. Chaves novas `surface2`, `textMuted`, `textSubtle`, `brasil`/`brasilSoft`, `exterior`/`exteriorSoft`, `warn`/`warnSoft`, `action`/`actionText`; as chaves antigas continuam na `Paleta`, marcadas como obsoletas e apontando para as novas, até a última tela migrar. O `textSubtle` ficou um pouco mais escuro que no protótipo (#68696d / #8a8c90) para passar de 4,5:1 de contraste.
+- **Fontes Geist e Geist Mono** (OFL), via `@expo-google-fonts/geist` e `@expo-google-fonts/geist-mono`, carregadas em `app/_layout.tsx` com a splash segura até o fim do carregamento. Só os pesos 400, 500 e 600 entram no bundle.
+- **Primitivos de interface** em `components/ui/`: `Texto` (escala tipográfica, Mono com números tabulares, fonte dinâmica até 130%), `ControleSegmentado`, `Cartao`, `Chip` e `Sheet` (bottom sheet sem dependência nova), com testes em `__tests__/primitivos.test.tsx`.
+- **Emojis trocados por `IconSymbol`** (SF Symbols no iOS, Material no Android) em todas as telas; o `FlagIcon` fica só onde há moeda ou país.
+- Tab bar nova, só com texto: a aba ativa é uma pill. Cards com borda de 1px no lugar de sombra.
+- Nenhuma mudança de comportamento.
+
 ## 2026-10-03 — v2.2.0 · Infraestrutura, regras fiscais e alertas
 - **Alertas de câmbio com notificação:** o aparelho verifica de tempos em tempos, em segundo plano, a cotação das moedas com alerta e manda uma notificação local quando o alvo é atingido (`expo-background-task`, `expo-notifications`, `expo-task-manager`; sem servidor nem push). Cada alerta avisa uma vez e é rearmado quando a cotação sai do alvo. A permissão é pedida ao criar o primeiro alerta, e o card explica que o momento da verificação é do sistema (pode levar horas; no iPhone, costuma ser de madrugada). Com o app aberto, o aviso continua aparecendo na hora. A política de privacidade ganhou a seção sobre notificações.
 - **CI no GitHub Actions** (`.github/workflows/ci.yml`): lint, TypeScript, testes e `expo-doctor` em todo PR e push na `main`. Dependabot mantém as actions atualizadas.

@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 import { FlagIcon } from '@/components/flag-icon';
+import { IconSymbol } from '@/components/ui/icon-symbol';
 import { MOEDAS, moedaPorCodigo, type CurrencyCode } from '@/constants/currencies';
 import type { Paleta } from '@/constants/theme';
 import { parseNumeroLocal } from '@/core/calculadora';
@@ -20,9 +21,9 @@ interface AlertasCambioProps {
 // aparece aqui na hora.
 const EXPLICACAO: Record<StatusPermissao, string> = {
   concedida:
-    '🔔 Verificamos a cotação em segundo plano de tempos em tempos. O celular decide o momento: pode levar algumas horas, e no iPhone costuma ser de madrugada. Com o app aberto, o aviso aparece aqui na hora.',
+    'Verificamos a cotação em segundo plano de tempos em tempos. O celular decide o momento: pode levar algumas horas, e no iPhone costuma ser de madrugada. Com o app aberto, o aviso aparece aqui na hora.',
   negada:
-    '🔕 Notificações desativadas: o aviso só aparece com o app aberto. Para receber notificações, ative-as nas configurações do celular.',
+    'Notificações desativadas: o aviso só aparece com o app aberto. Para receber notificações, ative-as nas configurações do celular.',
   pendente: 'Ao criar o primeiro alerta, vamos pedir permissão para avisar você por notificação.',
   indisponivel: 'Nesta versão, o aviso aparece aqui com o app aberto.',
 };
@@ -59,13 +60,19 @@ export function AlertasCambio({ cotacoes }: AlertasCambioProps) {
 
   return (
     <View style={styles.card}>
-      <Text style={styles.sectionTitle}>🎯 Alertas de câmbio</Text>
+      <View style={styles.tituloLinha}>
+        <IconSymbol name="scope" size={16} color={cores.text} />
+        <Text style={styles.sectionTitle}>Alertas de câmbio</Text>
+      </View>
 
       {disparados.map((alerta) => (
-        <Text key={alerta.id} style={styles.disparado}>
-          🎯 {alerta.moeda} {alerta.direcao === 'abaixo' ? 'caiu até' : 'subiu até'} seu alvo de{' '}
-          {formatarCotacaoBR(alerta.alvo)}!
-        </Text>
+        <View key={alerta.id} style={styles.disparado}>
+          <IconSymbol name="scope" size={14} color={cores.brasil} />
+          <Text style={styles.disparadoTexto}>
+            {alerta.moeda} {alerta.direcao === 'abaixo' ? 'caiu até' : 'subiu até'} seu alvo de{' '}
+            {formatarCotacaoBR(alerta.alvo)}!
+          </Text>
+        </View>
       ))}
 
       <View style={styles.formRow}>
@@ -92,7 +99,8 @@ export function AlertasCambio({ cotacoes }: AlertasCambioProps) {
           accessibilityRole="button"
           accessibilityLabel="Avisar quando cair até o alvo"
           accessibilityState={{ selected: direcao === 'abaixo' }}>
-          <Text style={[styles.direcaoTexto, direcao === 'abaixo' && styles.direcaoTextoAtivo]}>↓ Cair até</Text>
+          <IconSymbol name="arrow.down" size={13} color={direcao === 'abaixo' ? cores.text : cores.textMuted} />
+          <Text style={[styles.direcaoTexto, direcao === 'abaixo' && styles.direcaoTextoAtivo]}>Cair até</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.direcaoBtn, direcao === 'acima' && styles.direcaoAtiva]}
@@ -100,7 +108,8 @@ export function AlertasCambio({ cotacoes }: AlertasCambioProps) {
           accessibilityRole="button"
           accessibilityLabel="Avisar quando subir até o alvo"
           accessibilityState={{ selected: direcao === 'acima' }}>
-          <Text style={[styles.direcaoTexto, direcao === 'acima' && styles.direcaoTextoAtivo]}>↑ Subir até</Text>
+          <IconSymbol name="arrow.up" size={13} color={direcao === 'acima' ? cores.text : cores.textMuted} />
+          <Text style={[styles.direcaoTexto, direcao === 'acima' && styles.direcaoTextoAtivo]}>Subir até</Text>
         </TouchableOpacity>
         <TextInput
           style={styles.inputAlvo}
@@ -118,54 +127,61 @@ export function AlertasCambio({ cotacoes }: AlertasCambioProps) {
           accessibilityRole="button"
           accessibilityLabel="Criar alerta"
           accessibilityState={{ disabled: valAlvo <= 0 }}>
-          <Text style={styles.botaoAddTexto}>+</Text>
+          <IconSymbol name="plus" size={20} color={cores.actionText} />
         </TouchableOpacity>
       </View>
 
       {alertas.map((alerta) => (
         <View key={alerta.id} style={styles.alertaLinha}>
           <FlagIcon code={moedaPorCodigo(alerta.moeda).bandeira} size={12} />
-          <Text style={styles.alertaTexto}>
-            {' '}
-            {alerta.moeda} {alerta.direcao === 'abaixo' ? '↓' : '↑'} {formatarCotacaoBR(alerta.alvo)}
-          </Text>
+          <Text style={styles.alertaTexto}> {alerta.moeda}</Text>
+          <IconSymbol name={alerta.direcao === 'abaixo' ? 'arrow.down' : 'arrow.up'} size={13} color={cores.textMuted} />
+          <Text style={[styles.alertaTexto, { flex: 1 }]}> {formatarCotacaoBR(alerta.alvo)}</Text>
           <TouchableOpacity
+            style={styles.alertaRemover}
             onPress={() => removerAlerta(alerta.id)}
             accessibilityRole="button"
             accessibilityLabel="Remover alerta">
-            <Text style={styles.alertaRemover}>✕</Text>
+            <IconSymbol name="xmark" size={16} color={cores.danger} />
           </TouchableOpacity>
         </View>
       ))}
       {alertas.length === 0 && <Text style={styles.vazio}>Nenhum alerta criado ainda.</Text>}
-      <Text style={styles.explicacao}>{EXPLICACAO[permissao]}</Text>
+      <View style={styles.explicacaoLinha}>
+        {permissao === 'concedida' || permissao === 'negada' ? (
+          <IconSymbol name={permissao === 'concedida' ? 'bell' : 'bell.slash'} size={13} color={cores.textSubtle} />
+        ) : null}
+        <Text style={styles.explicacao}>{EXPLICACAO[permissao]}</Text>
+      </View>
     </View>
   );
 }
 
 function criarStyles(cores: Paleta) {
   return StyleSheet.create({
-    card: { backgroundColor: cores.card, width: '100%', padding: 15, borderRadius: 12, marginBottom: 15, shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 5, elevation: 2 },
-    sectionTitle: { fontSize: 16, fontWeight: 'bold', color: cores.text, marginBottom: 10, borderBottomWidth: 1, borderBottomColor: cores.borderSoft, paddingBottom: 5 },
-    disparado: { fontSize: 13, color: cores.success, backgroundColor: cores.successBg, padding: 10, borderRadius: 8, marginBottom: 8, fontWeight: '600' },
+    card: { backgroundColor: cores.card, width: '100%', padding: 14, borderRadius: 20, marginBottom: 15, borderWidth: 1, borderColor: cores.border },
+    tituloLinha: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 10, borderBottomWidth: 1, borderBottomColor: cores.border, paddingBottom: 5 },
+    sectionTitle: { fontSize: 16, fontWeight: '600', color: cores.text },
+    disparado: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: cores.brasilSoft, padding: 10, borderRadius: 12, marginBottom: 8 },
+    disparadoTexto: { flex: 1, fontSize: 13, color: cores.brasil, fontWeight: '600' },
     formRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 10, flexWrap: 'wrap' },
     moedasRow: { flexDirection: 'row', gap: 6, flexWrap: 'wrap' },
     moedaChip: { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: cores.border, borderRadius: 14, paddingHorizontal: 10, paddingVertical: 5, backgroundColor: cores.optionBg },
     moedaChipAtiva: { backgroundColor: cores.primarySoft, borderColor: cores.primary },
     moedaChipTexto: { fontSize: 12, color: cores.subtext, fontWeight: '600' },
     moedaChipTextoAtivo: { color: cores.primary },
-    direcaoBtn: { borderWidth: 1, borderColor: cores.border, borderRadius: 8, paddingHorizontal: 10, paddingVertical: 10, backgroundColor: cores.optionBg },
+    direcaoBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, borderWidth: 1, borderColor: cores.border, borderRadius: 8, paddingHorizontal: 10, paddingVertical: 10, backgroundColor: cores.optionBg },
     direcaoAtiva: { backgroundColor: cores.primarySoft, borderColor: cores.primary },
     direcaoTexto: { fontSize: 12, color: cores.subtext, fontWeight: '600' },
     direcaoTextoAtivo: { color: cores.primary },
     inputAlvo: { flex: 1, minWidth: 70, borderWidth: 1, borderColor: cores.border, borderRadius: 8, padding: 8, fontSize: 14, backgroundColor: cores.inputBg, color: cores.text, height: 40 },
-    botaoAdd: { backgroundColor: cores.primary, borderRadius: 8, width: 40, height: 40, alignItems: 'center', justifyContent: 'center' },
+    botaoAdd: { backgroundColor: cores.action, borderRadius: 10, width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
     botaoAddDesabilitado: { opacity: 0.4 },
-    botaoAddTexto: { color: cores.card, fontSize: 20, fontWeight: 'bold' },
-    alertaLinha: { flexDirection: 'row', alignItems: 'center', paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: cores.borderSoft },
-    alertaTexto: { flex: 1, fontSize: 13, color: cores.text },
-    alertaRemover: { color: cores.danger, fontSize: 14, fontWeight: 'bold', paddingHorizontal: 6 },
-    explicacao: { fontSize: 11, color: cores.muted, marginTop: 10, lineHeight: 16 },
+    alertaLinha: { flexDirection: 'row', alignItems: 'center', borderBottomWidth: 1, borderBottomColor: cores.borderSoft },
+    alertaTexto: { fontSize: 13, color: cores.text },
+    alertaRemover: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
+    explicacaoLinha: { flexDirection: 'row', gap: 6, marginTop: 10 },
+    explicacao: { flex: 1, fontSize: 11, color: cores.muted, lineHeight: 16 },
     vazio: { fontSize: 12, color: cores.muted, fontStyle: 'italic' },
   });
 }

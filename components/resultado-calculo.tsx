@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { Linking, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 import { FlagIcon } from '@/components/flag-icon';
+import { IconSymbol } from '@/components/ui/icon-symbol';
 import { FONTES_FISCAIS, rotuloRevisao } from '@/constants/regras-fiscais';
 import type { Paleta } from '@/constants/theme';
 import type { CalculoResultado } from '@/core/calculadora';
@@ -46,9 +47,10 @@ export function ResultadoCalculo({ resultado, parcelas, aoCompartilhar }: Result
       ))}
 
       {resultado.avisos.map((aviso) => (
-        <Text key={aviso} style={styles.aviso}>
-          ⚠️ {aviso}
-        </Text>
+        <View key={aviso} style={styles.aviso}>
+          <IconSymbol name="exclamationmark.triangle" size={14} color={cores.warn} />
+          <Text style={styles.avisoTexto}>{aviso}</Text>
+        </View>
       ))}
 
       {parcelas > 1 && (
@@ -84,7 +86,8 @@ export function ResultadoCalculo({ resultado, parcelas, aoCompartilhar }: Result
         onPress={aoCompartilhar}
         accessibilityRole="button"
         accessibilityLabel="Compartilhar resultado">
-        <Text style={styles.compartilharTexto}>📤 Compartilhar resultado</Text>
+        <IconSymbol name="square.and.arrow.up" size={14} color={cores.text} />
+        <Text style={styles.compartilharTexto}>Compartilhar resultado</Text>
       </TouchableOpacity>
     </View>
   );
@@ -92,7 +95,7 @@ export function ResultadoCalculo({ resultado, parcelas, aoCompartilhar }: Result
 
 function criarStyles(cores: Paleta) {
   return StyleSheet.create({
-    box: { width: '100%', padding: 20, borderRadius: 12, marginTop: 12, marginBottom: 10, borderWidth: 1 },
+    box: { width: '100%', padding: 20, borderRadius: 20, marginTop: 12, marginBottom: 10, borderWidth: 1 },
     boxBrasil: { backgroundColor: cores.successBg, borderColor: cores.successBorder },
     boxExterior: { backgroundColor: cores.infoBg, borderColor: cores.infoBorder },
     tituloLinha: { flexDirection: 'row', alignItems: 'center', marginBottom: 5 },
@@ -104,12 +107,13 @@ function criarStyles(cores: Paleta) {
     detalhamentoLinha: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 2 },
     detalhamentoRotulo: { fontSize: 13, color: cores.subtext, flexShrink: 1, marginRight: 10 },
     detalhamentoValor: { fontSize: 13, color: cores.text, fontWeight: '600', flexShrink: 0 },
-    aviso: { fontSize: 12, color: cores.warnText, backgroundColor: cores.warnBg, padding: 10, borderRadius: 8, marginTop: 10, lineHeight: 17 },
+    aviso: { flexDirection: 'row', gap: 6, backgroundColor: cores.warnSoft, padding: 10, borderRadius: 12, marginTop: 10 },
+    avisoTexto: { flex: 1, fontSize: 12, color: cores.text, lineHeight: 17 },
     observacao: { fontSize: 11, color: cores.muted, fontStyle: 'italic', marginTop: 8 },
     regras: { fontSize: 11, color: cores.muted, marginTop: 12, textAlign: 'center' },
     fonte: { fontSize: 11, color: cores.subtext, marginTop: 6, lineHeight: 16 },
-    fonteLink: { color: cores.primary, textDecorationLine: 'underline' },
-    compartilhar: { marginTop: 14, alignSelf: 'center', paddingVertical: 8, paddingHorizontal: 16, borderRadius: 20, borderWidth: 1, borderColor: cores.border, backgroundColor: cores.card },
+    fonteLink: { color: cores.text, textDecorationLine: 'underline' },
+    compartilhar: { flexDirection: 'row', alignItems: 'center', gap: 6, minHeight: 44, marginTop: 14, alignSelf: 'center', paddingVertical: 8, paddingHorizontal: 16, borderRadius: 20, borderWidth: 1, borderColor: cores.border, backgroundColor: cores.card },
     compartilharTexto: { fontSize: 13, color: cores.text, fontWeight: '600' },
   });
 }

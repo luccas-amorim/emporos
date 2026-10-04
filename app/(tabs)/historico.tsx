@@ -3,6 +3,7 @@ import React, { useMemo } from 'react';
 import { FlatList, Linking, Share, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 import { FlagIcon } from '@/components/flag-icon';
+import { IconSymbol } from '@/components/ui/icon-symbol';
 import { moedaPorCodigo } from '@/constants/currencies';
 import type { Paleta } from '@/constants/theme';
 import { textoCompartilhamento } from '@/core/compartilhamento';
@@ -38,7 +39,7 @@ function ItemHistorico({
   aoRemover: (id: string) => void;
   aoRecalcular: (item: SimulacaoSalva) => void;
 }) {
-  const veredito = item.valeImportar ? '✈️ Exterior venceu' : 'Brasil venceu';
+  const veredito = item.valeImportar ? 'Exterior venceu' : 'Brasil venceu';
 
   const compartilhar = async () => {
     try {
@@ -52,7 +53,11 @@ function ItemHistorico({
     <View style={[styles.card, item.valeImportar ? styles.cardExt : styles.cardBr]}>
       <View style={styles.cardHeader}>
         <View style={styles.cardMsgRow}>
-          {!item.valeImportar && <FlagIcon code="BR" size={12} style={{ marginRight: 4 }} />}
+          {item.valeImportar ? (
+            <IconSymbol name="airplane" size={13} color={cores.exterior} style={{ marginRight: 4 }} />
+          ) : (
+            <FlagIcon code="BR" size={12} style={{ marginRight: 4 }} />
+          )}
           <Text style={styles.cardMsg} numberOfLines={1}>
             {item.nomeProduto || veredito}
           </Text>
@@ -62,9 +67,12 @@ function ItemHistorico({
 
       {item.nomeProduto && <Text style={styles.cardSubMsg}>{veredito}</Text>}
       {item.cenario && (
-        <Text style={styles.cardSubMsg}>
-          {item.cenario === 'Encomenda' ? '📦 Encomenda (com II + ICMS)' : '🧳 Compra em viagem'}
-        </Text>
+        <View style={styles.linhaIcone}>
+          <IconSymbol name={item.cenario === 'Encomenda' ? 'shippingbox' : 'suitcase'} size={13} color={cores.textMuted} />
+          <Text style={styles.cardSubMsg}>
+            {item.cenario === 'Encomenda' ? 'Encomenda (com II + ICMS)' : 'Compra em viagem'}
+          </Text>
+        </View>
       )}
 
       {item.link && (
@@ -72,12 +80,20 @@ function ItemHistorico({
           onPress={() => Linking.openURL(item.link!)}
           accessibilityRole="link"
           accessibilityLabel="Abrir link do produto">
-          <Text style={styles.cardLink} numberOfLines={1}>
-            🔗 {item.link}
-          </Text>
+          <View style={styles.linhaIcone}>
+            <IconSymbol name="link" size={13} color={cores.text} />
+            <Text style={styles.cardLink} numberOfLines={1}>
+              {item.link}
+            </Text>
+          </View>
         </TouchableOpacity>
       )}
-      {item.observacao && <Text style={styles.cardObs}>📝 {item.observacao}</Text>}
+      {item.observacao && (
+        <View style={styles.linhaIcone}>
+          <IconSymbol name="note.text" size={13} color={cores.textMuted} />
+          <Text style={styles.cardObs}>{item.observacao}</Text>
+        </View>
+      )}
 
       <View style={styles.cardLineRow}>
         <Text style={styles.cardLine}>
@@ -109,21 +125,24 @@ function ItemHistorico({
           onPress={() => aoRecalcular(item)}
           accessibilityRole="button"
           accessibilityLabel="Recalcular esta simulação com a cotação de hoje">
-          <Text style={styles.acaoTexto}>🔄 Recalcular hoje</Text>
+          <IconSymbol name="arrow.clockwise" size={14} color={cores.text} />
+          <Text style={styles.acaoTexto}>Recalcular hoje</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.acaoBtn}
           onPress={compartilhar}
           accessibilityRole="button"
           accessibilityLabel="Compartilhar esta simulação">
-          <Text style={styles.acaoTexto}>📤 Compartilhar</Text>
+          <IconSymbol name="square.and.arrow.up" size={14} color={cores.text} />
+          <Text style={styles.acaoTexto}>Compartilhar</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.acaoBtn}
           onPress={() => aoRemover(item.id)}
           accessibilityRole="button"
           accessibilityLabel="Excluir esta simulação">
-          <Text style={[styles.acaoTexto, { color: cores.danger }]}>🗑️ Excluir</Text>
+          <IconSymbol name="trash" size={14} color={cores.danger} />
+          <Text style={[styles.acaoTexto, { color: cores.danger }]}>Excluir</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -146,7 +165,7 @@ export default function HistoricoScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.headerRow}>
-        <Text style={styles.titulo}>📊 Histórico</Text>
+        <Text style={styles.titulo}>Histórico</Text>
         {historico.length > 0 && (
           <TouchableOpacity
             onPress={limparHistorico}
@@ -183,7 +202,7 @@ function criarStyles(cores: Paleta) {
   return StyleSheet.create({
     container: { flex: 1, backgroundColor: cores.background, paddingTop: 60, paddingHorizontal: 20 },
     headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 },
-    titulo: { fontSize: 26, fontWeight: 'bold', color: cores.primary },
+    titulo: { fontSize: 30, fontWeight: '600', letterSpacing: -0.9, color: cores.text },
     limparTexto: { color: cores.danger, fontWeight: '600' },
     vazio: { color: cores.subtext, fontSize: 14, textAlign: 'center', marginTop: 40 },
     lista: { paddingBottom: 40 },
@@ -194,6 +213,7 @@ function criarStyles(cores: Paleta) {
     cardMsgRow: { flexDirection: 'row', alignItems: 'center', flexShrink: 1, marginRight: 8 },
     cardMsg: { fontSize: 15, fontWeight: 'bold', color: cores.text },
     cardSubMsg: { fontSize: 12, color: cores.subtext, marginBottom: 2 },
+    linhaIcone: { flexDirection: 'row', alignItems: 'center', gap: 5, flexShrink: 1 },
     cardData: { fontSize: 11, color: cores.muted },
     cardLink: { fontSize: 12, color: cores.primary, marginVertical: 2 },
     cardObs: { fontSize: 12, color: cores.subtext, fontStyle: 'italic', marginVertical: 2 },
@@ -211,6 +231,10 @@ function criarStyles(cores: Paleta) {
       borderColor: cores.border,
       backgroundColor: cores.optionBg,
       alignItems: 'center',
+      justifyContent: 'center',
+      flexDirection: 'row',
+      gap: 5,
+      minHeight: 44,
     },
     acaoTexto: { fontSize: 11, color: cores.text, fontWeight: '600' },
   });

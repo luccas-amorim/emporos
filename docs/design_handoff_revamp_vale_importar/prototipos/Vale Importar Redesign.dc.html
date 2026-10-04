@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>body{margin:0;background:#dcdbd6}a{color:#17181a}a:hover{color:#4f5155}</style>
+</helmet>
+<section id="2a" style="padding:64px 64px 0;display:flex;flex-direction:column;gap:32px;font-family:'Geist',system-ui,sans-serif;color:#17181a">
+<div style="display:flex;gap:16px;align-items:flex-start;max-width:1100px">
+<span style="font-family:'Geist Mono',monospace;font-size:13px;font-weight:600;background:#17181a;color:#f4f3ef;padding:5px 10px;border-radius:8px">2a</span>
+<div style="display:flex;flex-direction:column;gap:10px">
+<span style="font-size:32px;font-weight:600;letter-spacing:-0.03em">Estados e fluxos</span>
+<span style="font-size:16px;line-height:1.5;color:#4f5155;text-wrap:pretty">Complementa a <a href="#1a">1a</a>: sheet de premissas, cenário Viagem, veredito "vale importar" com ponto de virada, fontes, criação de alerta, sem conexão e link que não deu para ler. Plano completo em <a href="Plano de Revamp.dc.html">Plano de Revamp</a>.</span>
+</div>
+</div>
+<div style="display:flex;flex-direction:column;gap:12px">
+<span style="font-family:'Geist Mono',monospace;font-size:12px;color:#4f5155">iOS · claro</span>
+<dc-import name="Telas Vale Importar Estados" tema="claro" plataforma="ios" hint-size="2440px,900px"></dc-import>
+</div>
+<div style="display:flex;flex-direction:column;gap:12px">
+<span style="font-family:'Geist Mono',monospace;font-size:12px;color:#4f5155">Android · escuro</span>
+<dc-import name="Telas Vale Importar Estados" tema="escuro" plataforma="android" hint-size="2440px,900px"></dc-import>
+</div>
+</section>
+<section id="1a" style="padding:64px;display:flex;flex-direction:column;gap:32px;font-family:'Geist',system-ui,sans-serif;color:#17181a">
+<div style="display:flex;gap:16px;align-items:flex-start;max-width:1100px">
+<span style="font-family:'Geist Mono',monospace;font-size:13px;font-weight:600;background:#17181a;color:#f4f3ef;padding:5px 10px;border-radius:8px">1a</span>
+<div style="display:flex;flex-direction:column;gap:10px">
+<span style="font-size:32px;font-weight:600;letter-spacing:-0.03em">Vale importar? — nova direção</span>
+<span style="font-size:16px;line-height:1.5;color:#4f5155;text-wrap:pretty">Tinta e papel, sem cor de marca: verde quer dizer Brasil, azul quer dizer importar, e cada número vem com a origem. O link preenche o formulário, o veredito ocupa a tela toda e o câmbio vira uma aba própria, com gráfico e alertas.</span>
+</div>
+</div>
+<div style="display:flex;flex-direction:column;gap:12px">
+<span style="font-family:'Geist Mono',monospace;font-size:12px;color:#4f5155">iOS · claro</span>
+<dc-import name="Telas Vale Importar" tema="claro" plataforma="ios" hint-size="2040px,900px"></dc-import>
+</div>
+<div style="display:flex;flex-direction:column;gap:12px">
+<span style="font-family:'Geist Mono',monospace;font-size:12px;color:#4f5155">Android · escuro</span>
+<dc-import name="Telas Vale Importar" tema="escuro" plataforma="android" hint-size="2040px,900px"></dc-import>
+</div>
+</section>
+</x-dc>
+</body>
+</html>

@@ -26,3 +26,6 @@ jest.mock('expo-background-task', () => ({
   BackgroundTaskStatus: { Restricted: 1, Available: 2 },
   BackgroundTaskResult: { Success: 1, Failed: 2 },
 }));
+
+// Fora do app não há SafeAreaProvider; o mock oficial devolve insets zerados.
+jest.mock('react-native-safe-area-context', () => require('react-native-safe-area-context/jest/mock').default);

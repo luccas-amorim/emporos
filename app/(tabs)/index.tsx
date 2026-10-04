@@ -20,6 +20,7 @@ import { SecaoExterior } from '@/components/formulario/secao-exterior';
 import { SecaoIdentificacao } from '@/components/formulario/secao-identificacao';
 import { ResultadoCalculo } from '@/components/resultado-calculo';
 import { StatusMercado } from '@/components/status-mercado';
+import { IconSymbol } from '@/components/ui/icon-symbol';
 import { CODIGOS_MOEDA } from '@/constants/currencies';
 import { ALERTAS_CAMBIO_ATIVO } from '@/constants/feature-flags';
 import type { Paleta } from '@/constants/theme';
@@ -30,7 +31,8 @@ import { useHistoricoSimulacoes } from '@/hooks/use-historico-simulacoes';
 import { useTema } from '@/hooks/use-tema';
 import { carregarDadosMercado, type DadosMercado } from '@/services/mercado';
 
-const ROTULO_TEMA: Record<string, string> = { auto: '◐ Auto', claro: '☀️ Claro', escuro: '🌙 Escuro' };
+const ROTULO_TEMA: Record<string, string> = { auto: 'Auto', claro: 'Claro', escuro: 'Escuro' };
+const ICONE_TEMA = { auto: 'circle.lefthalf.filled', claro: 'sun.max', escuro: 'moon' } as const;
 const PROXIMO_TEMA: Record<string, 'auto' | 'claro' | 'escuro'> = {
   auto: 'claro',
   claro: 'escuro',
@@ -100,12 +102,13 @@ export default function Home() {
         keyboardShouldPersistTaps="handled"
         refreshControl={<RefreshControl refreshing={atualizando} onRefresh={aoAtualizar} tintColor={cores.primary} />}>
         <View style={styles.cabecalho}>
-          <Text style={styles.titulo}>✈️ Vale importar?</Text>
+          <Text style={styles.titulo}>Vale importar?</Text>
           <TouchableOpacity
             style={styles.temaChip}
             onPress={() => definirPreferencia(PROXIMO_TEMA[preferencia])}
             accessibilityRole="button"
             accessibilityLabel={`Tema atual: ${preferencia}. Toque para alternar.`}>
+            <IconSymbol name={ICONE_TEMA[preferencia]} size={14} color={cores.textMuted} />
             <Text style={styles.temaChipTexto}>{ROTULO_TEMA[preferencia]}</Text>
           </TouchableOpacity>
         </View>
@@ -157,12 +160,12 @@ function criarStyles(cores: Paleta) {
   return StyleSheet.create({
     container: { padding: 20, paddingTop: 60, backgroundColor: cores.background, flexGrow: 1, alignItems: 'center' },
     cabecalho: { width: '100%', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 15 },
-    titulo: { fontSize: 26, fontWeight: 'bold', color: cores.primary },
-    temaChip: { borderWidth: 1, borderColor: cores.border, borderRadius: 16, paddingHorizontal: 12, paddingVertical: 6, backgroundColor: cores.card },
+    titulo: { fontSize: 30, fontWeight: '600', letterSpacing: -0.9, color: cores.text },
+    temaChip: { flexDirection: 'row', alignItems: 'center', gap: 5, minHeight: 32, borderWidth: 1, borderColor: cores.border, borderRadius: 16, paddingHorizontal: 12, paddingVertical: 6, backgroundColor: cores.card },
     temaChipTexto: { fontSize: 12, color: cores.subtext, fontWeight: '600' },
-    botaoCalcular: { backgroundColor: cores.primary, width: '100%', padding: 15, borderRadius: 10, alignItems: 'center', marginTop: 10, marginBottom: 8, shadowColor: cores.primary, shadowOpacity: 0.3, shadowRadius: 5, elevation: 4 },
-    botaoCalcularDesabilitado: { opacity: 0.4 },
-    botaoCalcularTexto: { color: cores.card, fontSize: 18, fontWeight: 'bold' },
+    botaoCalcular: { backgroundColor: cores.action, width: '100%', height: 54, borderRadius: 16, alignItems: 'center', justifyContent: 'center', marginTop: 10, marginBottom: 8 },
+    botaoCalcularDesabilitado: { opacity: 0.35 },
+    botaoCalcularTexto: { color: cores.actionText, fontSize: 16, fontWeight: '600' },
     dicaValidacao: { fontSize: 12, color: cores.muted, marginBottom: 12, textAlign: 'center' },
     aviso: { fontSize: 10, color: cores.muted, textAlign: 'center', marginTop: 6, marginBottom: 30, lineHeight: 15 },
   });

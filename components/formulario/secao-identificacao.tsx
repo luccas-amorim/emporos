@@ -2,6 +2,7 @@ import React from 'react';
 import { Text, TextInput, View } from 'react-native';
 
 import { useEstilosFormulario } from '@/components/formulario/estilos';
+import { IconSymbol } from '@/components/ui/icon-symbol';
 import type { CamposFormulario, DefinirCampo } from '@/hooks/use-formulario-calculo';
 import { useTema } from '@/hooks/use-tema';
 
@@ -16,7 +17,10 @@ export function SecaoIdentificacao({ campos, definir }: SecaoProps) {
 
   return (
     <View style={styles.card}>
-      <Text style={styles.sectionTitle}>🏷️ Identificação (opcional)</Text>
+      <View style={styles.sectionTitleRow}>
+        <IconSymbol name="tag" size={16} color={cores.text} />
+        <Text style={styles.sectionTitleInline}>Identificação (opcional)</Text>
+      </View>
       <Text style={styles.label}>Nome do produto</Text>
       <TextInput
         style={styles.input}

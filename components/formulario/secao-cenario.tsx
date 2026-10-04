@@ -3,10 +3,12 @@ import { Text, View } from 'react-native';
 
 import { BotaoOpcao } from '@/components/botao-opcao';
 import { useEstilosFormulario } from '@/components/formulario/estilos';
+import { IconSymbol } from '@/components/ui/icon-symbol';
 import { REGRAS_FISCAIS } from '@/constants/regras-fiscais';
 import { rotuloAliquota } from '@/core/calculadora';
 import { formatarNumeroBR } from '@/core/formato';
 import type { CamposFormulario, DefinirCampo } from '@/hooks/use-formulario-calculo';
+import { useTema } from '@/hooks/use-tema';
 
 interface SecaoProps {
   campos: CamposFormulario;
@@ -14,12 +16,16 @@ interface SecaoProps {
 }
 
 export function SecaoCenario({ campos, definir }: SecaoProps) {
+  const { cores } = useTema();
   const styles = useEstilosFormulario();
   const { bagagem } = REGRAS_FISCAIS;
 
   return (
     <View style={styles.card}>
-      <Text style={styles.sectionTitle}>📦 Como você compraria lá fora?</Text>
+      <View style={styles.sectionTitleRow}>
+        <IconSymbol name="shippingbox" size={16} color={cores.text} />
+        <Text style={styles.sectionTitleInline}>Como você compraria lá fora?</Text>
+      </View>
       <View style={styles.row}>
         <BotaoOpcao
           titulo="Encomenda"

@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>body{margin:0;background:#f4f3ef}a{color:#17181a;text-underline-offset:3px}a:hover{color:#4f5155}</style>
+</helmet>
+<main style="max-width:860px;margin:0 auto;padding:72px 28px 120px;font-family:'Geist',system-ui,sans-serif;color:#17181a;display:flex;flex-direction:column;gap:56px;line-height:1.55;font-size:16px">
+
+<header style="display:flex;flex-direction:column;gap:14px">
+<span style="font-family:'Geist Mono',monospace;font-size:12px;color:#7d7f83">Empóros · v2.2.0 → v3.0 · out/2026</span>
+<h1 style="margin:0;font-size:44px;line-height:1.05;letter-spacing:-0.035em;font-weight:600;text-wrap:pretty">Plano de revamp do Vale importar?</h1>
+<p style="margin:0;font-size:18px;color:#4f5155;text-wrap:pretty">O motor de cálculo já é sólido: lógica pura, testada, regras com data e fonte. O que falta é a experiência mostrar isso. O plano mexe na forma, encurta o caminho até a resposta e acrescenta três recursos que dão motivo para voltar ao app: câmbio com histórico, ponto de virada e histórico que se recalcula sozinho.</p>
+<div style="display:flex;gap:12px;flex-wrap:wrap;font-size:14px"><a href="Vale Importar Redesign.dc.html">Ver as telas (1a e 2a)</a><span style="color:#7d7f83">·</span><a href="https://github.com/luccas-amorim/emporos">luccas-amorim/emporos</a></div>
+</header>
+
+<section style="display:flex;flex-direction:column;gap:16px">
+<h2 style="margin:0;font-size:26px;letter-spacing:-0.02em;font-weight:600">1. Diagnóstico</h2>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px">
+<div style="background:#fff;border:1px solid #e1e0db;border-radius:18px;padding:18px;display:flex;flex-direction:column;gap:6px"><span style="font-weight:600">Formulário longo demais</span><span style="font-size:14px;color:#4f5155">Quatro cards e até 14 campos antes do botão CALCULAR (<code style="font-family:'Geist Mono',monospace;font-size:12.5px">index.tsx</code>). Premissas que raramente mudam ocupam o mesmo espaço que os preços.</span></div>
+<div style="background:#fff;border:1px solid #e1e0db;border-radius:18px;padding:18px;display:flex;flex-direction:column;gap:6px"><span style="font-weight:600">Resultado sem impacto</span><span style="font-size:14px;color:#4f5155">Veredito em 18px no meio de texto corrido; os dois custos aparecem só como frases (<code style="font-family:'Geist Mono',monospace;font-size:12.5px">resultado-calculo.tsx</code>).</span></div>
+<div style="background:#fff;border:1px solid #e1e0db;border-radius:18px;padding:18px;display:flex;flex-direction:column;gap:6px"><span style="font-weight:600">Credibilidade escondida</span><span style="font-size:14px;color:#4f5155">Fontes atrás de um link em 11px; emojis fazem papel de ícone; a explicação da Selic aparece em itálico, quase como uma nota de rodapé.</span></div>
+</div>
+</section>
+
+<section style="display:flex;flex-direction:column;gap:16px">
+<h2 style="margin:0;font-size:26px;letter-spacing:-0.02em;font-weight:600">2. Princípios</h2>
+<ol style="margin:0;padding-left:22px;display:flex;flex-direction:column;gap:10px">
+<li><strong>A resposta vem primeiro.</strong> O veredito é a maior coisa da tela; o resto explica.</li>
+<li><strong>Todo número tem origem.</strong> Cada linha de custo mostra a regra; cada regra, a norma e a data.</li>
+<li><strong>Padrão sensato, ajuste opcional.</strong> Premissas viram chips com valor padrão; só abre o sheet quem quer mudar.</li>
+<li><strong>Nada sai do aparelho.</strong> Os recursos novos usam o celular e APIs públicas; nenhum servidor próprio.</li>
+<li><strong>Cor quer dizer alguma coisa.</strong> Verde = Brasil, azul = importar, âmbar = atenção. A interface em si é neutra. O texto sempre diz o veredito, nunca só a cor.</li>
+</ol>
+</section>
+
+<section style="display:flex;flex-direction:column;gap:16px">
+<h2 style="margin:0;font-size:26px;letter-spacing:-0.02em;font-weight:600">3. Arquitetura</h2>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;font-size:14px">
+<div style="background:#fff;border:1px solid #e1e0db;border-radius:18px;padding:18px;display:flex;flex-direction:column;gap:8px"><span style="font-family:'Geist Mono',monospace;font-size:12px;color:#7d7f83">ABAS</span><span><strong>Comparar</strong>: link, dois preços, premissas</span><span><strong>Histórico</strong>: recalculado, com "mudou"</span><span><strong>Câmbio</strong>: gráfico, insight, alertas</span></div>
+<div style="background:#fff;border:1px solid #e1e0db;border-radius:18px;padding:18px;display:flex;flex-direction:column;gap:8px"><span style="font-family:'Geist Mono',monospace;font-size:12px;color:#7d7f83">TELAS EMPILHADAS</span><span>Resultado (push a partir de Comparar ou do Histórico)</span><span>Onboarding (3 passos, primeira abertura)</span></div>
+<div style="background:#fff;border:1px solid #e1e0db;border-radius:18px;padding:18px;display:flex;flex-direction:column;gap:8px"><span style="font-family:'Geist Mono',monospace;font-size:12px;color:#7d7f83">SHEETS</span><span>Premissas · Fontes · Novo alerta · Ajustes (tema, moeda padrão, ICMS do estado)</span></div>
+</div>
+<p style="margin:0;font-size:15px;color:#4f5155">Fluxo principal: <strong>colar link → conferir os dois preços → Comparar → veredito → salvar ou criar alerta</strong>. O chip de tema sai do cabeçalho e vai para Ajustes; por padrão, o app segue o sistema.</p>
+</section>
+
+<section style="display:flex;flex-direction:column;gap:16px">
+<h2 style="margin:0;font-size:26px;letter-spacing:-0.02em;font-weight:600">4. Sistema visual</h2>
+<p style="margin:0;font-size:15px;color:#4f5155">Substitui a paleta "Petróleo" em <code style="font-family:'Geist Mono',monospace;font-size:13px">constants/theme.ts</code>. A interface <code style="font-family:'Geist Mono',monospace;font-size:13px">Paleta</code> continua igual; mudam os valores e entram quatro chaves novas (<code style="font-family:'Geist Mono',monospace;font-size:13px">surface2</code>, <code style="font-family:'Geist Mono',monospace;font-size:13px">brasil</code>, <code style="font-family:'Geist Mono',monospace;font-size:13px">exterior</code>, <code style="font-family:'Geist Mono',monospace;font-size:13px">action</code>).</p>
+<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;font-size:13px">
+<div style="display:flex;flex-direction:column;gap:6px"><div style="height:56px;border-radius:14px;background:#f4f3ef;border:1px solid #e1e0db"></div><span><strong>background</strong> <span style="font-family:'Geist Mono',monospace;color:#7d7f83">#f4f3ef / #0e0f10</span></span></div>
+<div style="display:flex;flex-direction:column;gap:6px"><div style="height:56px;border-radius:14px;background:#fff;border:1px solid #e1e0db"></div><span><strong>card</strong> <span style="font-family:'Geist Mono',monospace;color:#7d7f83">#ffffff / #18191b</span></span></div>
+<div style="display:flex;flex-direction:column;gap:6px"><div style="height:56px;border-radius:14px;background:#17181a"></div><span><strong>text · action</strong> <span style="font-family:'Geist Mono',monospace;color:#7d7f83">#17181a / #eeede9</span></span></div>
+<div style="display:flex;flex-direction:column;gap:6px"><div style="height:56px;border-radius:14px;background:oklch(0.52 0.14 155)"></div><span><strong>brasil</strong> <span style="font-family:'Geist Mono',monospace;color:#7d7f83">oklch .52 .14 155</span></span></div>
+<div style="display:flex;flex-direction:column;gap:6px"><div style="height:56px;border-radius:14px;background:oklch(0.52 0.14 255)"></div><span><strong>exterior</strong> <span style="font-family:'Geist Mono',monospace;color:#7d7f83">oklch .52 .14 255</span></span></div>
+<div style="display:flex;flex-direction:column;gap:6px"><div style="height:56px;border-radius:14px;background:oklch(0.52 0.14 65)"></div><span><strong>warn</strong> <span style="font-family:'Geist Mono',monospace;color:#7d7f83">oklch .52 .14 65</span></span></div>
+</div>
+<ul style="margin:0;padding-left:22px;display:flex;flex-direction:column;gap:8px;font-size:15px">
+<li><strong>Tipografia:</strong> Geist (texto) e Geist Mono (todo valor monetário e cotação), licença OFL, carregadas com <code style="font-family:'Geist Mono',monospace;font-size:13px">expo-font</code>. Escala: 38 / 30 / 22 / 15 / 13 / 11. Números com <code style="font-family:'Geist Mono',monospace;font-size:13px">tabular-nums</code>.</li>
+<li><strong>Forma:</strong> raios 10 / 16 / 20 / 28 (sheet); espaçamento em múltiplos de 4; bordas de 1px em vez de sombra.</li>
+<li><strong>Ícones:</strong> trocar todos os emojis pelo <code style="font-family:'Geist Mono',monospace;font-size:13px">IconSymbol</code> que já existe (SF Symbols no iOS, Material no Android). Manter <code style="font-family:'Geist Mono',monospace;font-size:13px">FlagIcon</code> só no seletor de moeda.</li>
+<li><strong>Escuro:</strong> as mesmas chaves, com os acentos em L 0.78 para manter o contraste.</li>
+</ul>
+</section>
+
+<section style="display:flex;flex-direction:column;gap:16px">
+<h2 style="margin:0;font-size:26px;letter-spacing:-0.02em;font-weight:600">5. Telas e arquivos</h2>
+<div style="background:#fff;border:1px solid #e1e0db;border-radius:18px;overflow:hidden;font-size:14px">
+<div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr) minmax(0,1.4fr);gap:12px;padding:12px 16px;background:#ebeae5;font-weight:600"><span>Tela</span><span>Muda</span><span>Arquivos</span></div>
+<div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr) minmax(0,1.4fr);gap:12px;padding:12px 16px;border-top:1px solid #e1e0db"><span>01 Onboarding</span><span>Um recibo explica o problema em vez de três slides com emoji</span><span style="font-family:'Geist Mono',monospace;font-size:12px">components/onboarding.tsx</span></div>
+<div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr) minmax(0,1.4fr);gap:12px;padding:12px 16px;border-top:1px solid #e1e0db"><span>02 · 07 · 11 Comparar</span><span>Campo de link, dois cards de preço, chips de premissa, botão fixo</span><span style="font-family:'Geist Mono',monospace;font-size:12px">app/(tabs)/index.tsx, components/formulario/* → novo campo-link.tsx, cartao-preco.tsx, chips-premissas.tsx</span></div>
+<div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr) minmax(0,1.4fr);gap:12px;padding:12px 16px;border-top:1px solid #e1e0db"><span>06 Premissas</span><span>Controles segmentados em sheet; "Restaurar padrão"</span><span style="font-family:'Geist Mono',monospace;font-size:12px">botao-opcao.tsx → controle-segmentado.tsx; novo sheet-premissas.tsx</span></div>
+<div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr) minmax(0,1.4fr);gap:12px;padding:12px 16px;border-top:1px solid #e1e0db"><span>03 · 08 Resultado</span><span>Vira tela própria; veredito grande, barras, recibo, VP explicado, ponto de virada</span><span style="font-family:'Geist Mono',monospace;font-size:12px">resultado-calculo.tsx → app/resultado.tsx</span></div>
+<div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr) minmax(0,1.4fr);gap:12px;padding:12px 16px;border-top:1px solid #e1e0db"><span>09 Fontes</span><span>Sheet com normas, data de revisão, câmbio e Selic</span><span style="font-family:'Geist Mono',monospace;font-size:12px">constants/regras-fiscais.ts (FONTES_FISCAIS)</span></div>
+<div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr) minmax(0,1.4fr);gap:12px;padding:12px 16px;border-top:1px solid #e1e0db"><span>04 Histórico</span><span>Recalcula ao abrir; destaca o que mudou</span><span style="font-family:'Geist Mono',monospace;font-size:12px">app/(tabs)/historico.tsx, hooks/use-historico-simulacoes.ts</span></div>
+<div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr) minmax(0,1.4fr);gap:12px;padding:12px 16px;border-top:1px solid #e1e0db"><span>05 · 10 Câmbio</span><span>Nova aba; gráfico 90 dias, insight, alertas saem da Home</span><span style="font-family:'Geist Mono',monospace;font-size:12px">novo app/(tabs)/cambio.tsx; components/alertas-cambio.tsx; services/mercado.ts</span></div>
+</div>
+</section>
+
+<section style="display:flex;flex-direction:column;gap:20px">
+<h2 style="margin:0;font-size:26px;letter-spacing:-0.02em;font-weight:600">6. Recursos novos</h2>
+<div style="display:flex;flex-direction:column;gap:8px">
+<h3 style="margin:0;font-size:18px;font-weight:600">6.1 Ponto de virada</h3>
+<p style="margin:0;font-size:15px;color:#4f5155">O custo de importar é linear na cotação (o II, o IOF, o ICMS por dentro e o tax free são proporcionais ao valor convertido), então a cotação em que as duas opções empatam é <code style="font-family:'Geist Mono',monospace;font-size:13px">taxa × custoBR ÷ custoExt</code>. É uma função pura nova em <code style="font-family:'Geist Mono',monospace;font-size:13px">core/calculadora.ts</code>, com teste. A faixa do Remessa Conforme é definida em US$, então não muda com o câmbio. Aparece no resultado e serve de sugestão de alvo no alerta. É o recurso que liga o cálculo ao câmbio.</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:8px">
+<h3 style="margin:0;font-size:18px;font-weight:600">6.2 Gráfico do câmbio e "melhor momento"</h3>
+<p style="margin:0;font-size:15px;color:#4f5155">O histórico diário vem da própria AwesomeAPI (endpoint <code style="font-family:'Geist Mono',monospace;font-size:13px">/json/daily/USD-BRL/90</code>), com cache por dia em <code style="font-family:'Geist Mono',monospace;font-size:13px">services/mercado.ts</code>. O gráfico usa <code style="font-family:'Geist Mono',monospace;font-size:13px">react-native-svg</code>. O insight só compara com a média de 90 dias e diz isso com todas as letras: "comparação com o passado, não previsão". Nunca dizer "compre agora".</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:8px">
+<h3 style="margin:0;font-size:18px;font-weight:600">6.3 Colar link</h3>
+<p style="margin:0;font-size:15px;color:#4f5155">Ler o link no próprio aparelho, sem servidor: o celular baixa a página e lê, nesta ordem, o JSON-LD <code style="font-family:'Geist Mono',monospace;font-size:13px">Product.offers</code>, as metas <code style="font-family:'Geist Mono',monospace;font-size:13px">og:price:amount</code> / <code style="font-family:'Geist Mono',monospace;font-size:13px">product:price:amount</code> e o <code style="font-family:'Geist Mono',monospace;font-size:13px">/products/*.json</code> de lojas Shopify. A moeda sai da meta ou do domínio. Se nada funcionar, cai para o preenchimento manual (tela 11), sem erro assustador. Fase 2: receber o link pelo menu de compartilhar do navegador (<code style="font-family:'Geist Mono',monospace;font-size:13px">expo-share-intent</code>, exige development build).</p>
+<p style="margin:0;font-size:14px;color:#7d7f83">Risco: lojas grandes bloqueiam ou mudam o HTML. Tratar como "atalho que às vezes funciona", nunca como requisito. Atualizar a política de privacidade: a requisição sai do celular direto para a loja.</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:8px">
+<h3 style="margin:0;font-size:18px;font-weight:600">6.4 Histórico vivo</h3>
+<p style="margin:0;font-size:15px;color:#4f5155">Ao abrir a aba, recalcular todas as simulações com a cotação atual (reaproveita <code style="font-family:'Geist Mono',monospace;font-size:13px">montarSimulacao</code> e o prefill de "Recalcular hoje"). Se o veredito inverteu, mostrar o card "Mudou" e um aviso no topo. Opcional: notificação local quando uma simulação salva vira.</p>
+</div>
+</section>
+
+<section style="display:flex;flex-direction:column;gap:16px">
+<h2 style="margin:0;font-size:26px;letter-spacing:-0.02em;font-weight:600">7. Texto e acessibilidade</h2>
+<ul style="margin:0;padding-left:22px;display:flex;flex-direction:column;gap:8px;font-size:15px">
+<li>Veredito como frase com ponto final: "Compre no Brasil." / "Vale importar." Nada de CAIXA ALTA nos botões.</li>
+<li>Verbos de ação concretos: "Comparar", "Avisar se o dólar cair", "Restaurar padrão".</li>
+<li>Manter todos os <code style="font-family:'Geist Mono',monospace;font-size:13px">accessibilityLabel</code> atuais; no Resultado, o leitor de tela anuncia o veredito primeiro.</li>
+<li>Contraste mínimo de 4,5:1; alvos de toque de 44pt ou mais; respeitar o tamanho de fonte do sistema (Dynamic Type) até 130% sem cortar valores.</li>
+<li>Aviso legal atual mantido, no rodapé do Resultado e em Ajustes, não em todas as telas.</li>
+</ul>
+</section>
+
+<section style="display:flex;flex-direction:column;gap:16px">
+<h2 style="margin:0;font-size:26px;letter-spacing:-0.02em;font-weight:600">8. Fases</h2>
+<div style="display:flex;flex-direction:column;gap:10px">
+<div style="background:#fff;border:1px solid #e1e0db;border-radius:18px;padding:18px;display:grid;grid-template-columns:72px minmax(0,1fr);gap:14px"><span style="font-family:'Geist Mono',monospace;font-size:13px;color:#7d7f83">A · 1 sem</span><div style="display:flex;flex-direction:column;gap:4px"><strong>Fundação visual</strong><span style="font-size:14px;color:#4f5155">Novos valores em theme.ts, Geist via expo-font, IconSymbol no lugar dos emojis, controle-segmentado, cartao, chip, sheet. Sem mudar comportamento: o CI e os testes atuais seguem verdes.</span></div></div>
+<div style="background:#fff;border:1px solid #e1e0db;border-radius:18px;padding:18px;display:grid;grid-template-columns:72px minmax(0,1fr);gap:14px"><span style="font-family:'Geist Mono',monospace;font-size:13px;color:#7d7f83">B · 2 sem</span><div style="display:flex;flex-direction:column;gap:4px"><strong>Comparar + Resultado</strong><span style="font-size:14px;color:#4f5155">Dois cards de preço, chips e sheet de premissas, Resultado como rota própria, recibo, explicação do VP, ponto de virada (core + testes), sheet de fontes, onboarding novo.</span></div></div>
+<div style="background:#fff;border:1px solid #e1e0db;border-radius:18px;padding:18px;display:grid;grid-template-columns:72px minmax(0,1fr);gap:14px"><span style="font-family:'Geist Mono',monospace;font-size:13px;color:#7d7f83">C · 1 sem</span><div style="display:flex;flex-direction:column;gap:4px"><strong>Aba Câmbio</strong><span style="font-size:14px;color:#4f5155">Histórico de 90 dias com cache, gráfico, insight, alertas migrados da Home e sugestão de alvo pelo ponto de virada.</span></div></div>
+<div style="background:#fff;border:1px solid #e1e0db;border-radius:18px;padding:18px;display:grid;grid-template-columns:72px minmax(0,1fr);gap:14px"><span style="font-family:'Geist Mono',monospace;font-size:13px;color:#7d7f83">D · 1 sem</span><div style="display:flex;flex-direction:column;gap:4px"><strong>Histórico vivo</strong><span style="font-size:14px;color:#4f5155">Recálculo ao abrir, estado "mudou", migração dos registros salvos (AsyncStorage) sem perda.</span></div></div>
+<div style="background:#fff;border:1px solid #e1e0db;border-radius:18px;padding:18px;display:grid;grid-template-columns:72px minmax(0,1fr);gap:14px"><span style="font-family:'Geist Mono',monospace;font-size:13px;color:#7d7f83">E · 1–2 sem</span><div style="display:flex;flex-direction:column;gap:4px"><strong>Colar link</strong><span style="font-size:14px;color:#4f5155">Parser no aparelho com testes por loja, estado de falha, revisão da política de privacidade. Compartilhar a partir do navegador fica para depois do lançamento.</span></div></div>
+<div style="background:#17181a;color:#f4f3ef;border-radius:18px;padding:18px;display:grid;grid-template-columns:72px minmax(0,1fr);gap:14px"><span style="font-family:'Geist Mono',monospace;font-size:13px;color:#b0b1b4">F</span><div style="display:flex;flex-direction:column;gap:4px"><strong>Lançamento</strong><span style="font-size:14px;color:#d6d5d1">Itens 4a–4d do ROADMAP: ícone novo na linguagem do redesign, capturas das lojas a partir destas telas (claro e escuro, com o recibo em destaque), ficha e teste fechado de 14 dias no Android, iniciado assim que a meta de US$ 125 for batida.</span></div></div>
+</div>
+</section>
+
+<section style="display:flex;flex-direction:column;gap:16px">
+<h2 style="margin:0;font-size:26px;letter-spacing:-0.02em;font-weight:600">9. Como medir sem coletar dados</h2>
+<ul style="margin:0;padding-left:22px;display:flex;flex-direction:column;gap:8px;font-size:15px">
+<li>Nota e comentários nas lojas, e as issues dos modelos "bug", "sugestão" e "regra fiscal".</li>
+<li>Teste de usabilidade com os 12 testadores do teste fechado: tempo até o primeiro veredito (meta: menos de 30 s com link, menos de 60 s sem).</li>
+<li>Sponsors e PIX como sinal de valor percebido, nunca pedidos dentro do app (diretriz 3.2 da Apple, já registrada no ROADMAP).</li>
+</ul>
+</section>
+
+<section style="display:flex;flex-direction:column;gap:16px">
+<h2 style="margin:0;font-size:26px;letter-spacing:-0.02em;font-weight:600">10. Riscos</h2>
+<ul style="margin:0;padding-left:22px;display:flex;flex-direction:column;gap:8px;font-size:15px">
+<li><strong>Regra fiscal muda:</strong> mantém-se a revisão trimestral; a data visível no resultado passa a ser a proteção principal.</li>
+<li><strong>"Melhor momento" lido como conselho:</strong> o texto é sempre comparativo, com aviso fixo; nada de vermelho/verde de bolsa.</li>
+<li><strong>Parser de link quebra:</strong> o preenchimento manual continua sendo o caminho de primeira classe.</li>
+<li><strong>AwesomeAPI fora do ar:</strong> o cache atual e a idade visível já cobrem; estender ao histórico de 90 dias.</li>
+</ul>
+</section>
+
+</main>
+</x-dc>
+</body>
+</html>

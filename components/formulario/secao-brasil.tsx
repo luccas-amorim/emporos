@@ -24,7 +24,7 @@ export function SecaoBrasil({ campos, definir, selicMensal }: SecaoBrasilProps) 
     <View style={styles.card}>
       <View style={styles.sectionTitleRow}>
         <FlagIcon code="BR" size={14} />
-        <Text style={styles.sectionTitleInline}> Opção Brasil</Text>
+        <Text style={styles.sectionTitleInline}>Opção Brasil</Text>
       </View>
 
       <View style={styles.row}>

@@ -4,6 +4,7 @@ import { Text, TextInput, View } from 'react-native';
 import { BotaoOpcao } from '@/components/botao-opcao';
 import { CurrencySelect } from '@/components/currency-select';
 import { useEstilosFormulario } from '@/components/formulario/estilos';
+import { IconSymbol } from '@/components/ui/icon-symbol';
 import { moedaPorCodigo } from '@/constants/currencies';
 import { REGRAS_FISCAIS } from '@/constants/regras-fiscais';
 import { rotuloAliquota } from '@/core/calculadora';
@@ -24,7 +25,10 @@ export function SecaoExterior({ campos, definir }: SecaoProps) {
 
   return (
     <View style={styles.card}>
-      <Text style={styles.sectionTitle}>🌎 Opção Exterior</Text>
+      <View style={styles.sectionTitleRow}>
+        <IconSymbol name="globe" size={16} color={cores.text} />
+        <Text style={styles.sectionTitleInline}>Opção Exterior</Text>
+      </View>
 
       <View style={styles.row}>
         <View style={{ flex: 1 }}>
