@@ -6,7 +6,7 @@
 
 Nas lojas e na tela do celular, o app se chama **✈️ Vale importar?**. Empóros é o nome do projeto e de tudo que fica no código: pacote, identificadores e chaves de armazenamento.
 
-![Status](https://img.shields.io/badge/Status-MVP_Mobile-green) ![License](https://img.shields.io/badge/Licença-MIT-yellow) ![Version](https://img.shields.io/badge/Versão-2.1.0-blue) ![Stack](https://img.shields.io/badge/Tech-React_Native-violet) [![CI](https://github.com/luccas-amorim/emporos/actions/workflows/ci.yml/badge.svg)](https://github.com/luccas-amorim/emporos/actions/workflows/ci.yml)
+![Status](https://img.shields.io/badge/Status-MVP_Mobile-green) ![License](https://img.shields.io/badge/Licença-MIT-yellow) ![Version](https://img.shields.io/badge/Versão-2.2.0-blue) ![Stack](https://img.shields.io/badge/Tech-React_Native-violet) [![CI](https://github.com/luccas-amorim/emporos/actions/workflows/ci.yml/badge.svg)](https://github.com/luccas-amorim/emporos/actions/workflows/ci.yml)
 
 > ⚠️ **Aviso:** os resultados são estimativas para comparação e não constituem aconselhamento financeiro, tributário ou de investimento. Câmbio, alíquotas e regras de importação mudam; confirme as condições reais antes de comprar.
 
@@ -22,6 +22,7 @@ Esta calculadora não faz apenas conversão de moeda: ela coloca as duas opçõe
 * **Regras fiscais com data:** IOF (3,5% no cartão e em espécie), Remessa Conforme, ICMS e cota de bagagem ficam em [`constants/regras-fiscais.ts`](constants/regras-fiscais.ts), com a data da última revisão e a fonte oficial de cada regra. O app mostra essa data e as fontes junto do resultado.
 * **Fallback de Segurança:** Cache local da última cotação real, com idade exibida ao usuário — o app segue funcional offline sem inventar números.
 * **Histórico de Simulações:** Persistência local com nome do produto, link, cotação da época, recálculo com taxas atuais e compartilhamento.
+* **Alertas de câmbio:** o usuário define um alvo (ex.: dólar abaixo de R$ 5,10) e recebe uma notificação local quando a cotação chega lá. A verificação roda no próprio aparelho, em segundo plano, sem servidor (`expo-background-task` + `expo-notifications`).
 
 O app é **gratuito e completo**: todas as moedas e recursos para todo mundo, sem anúncios, sem compras dentro do app e sem cadastro.
 

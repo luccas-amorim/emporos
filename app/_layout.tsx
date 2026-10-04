@@ -6,6 +6,11 @@ import 'react-native-reanimated';
 
 import { Onboarding, useOnboarding } from '@/components/onboarding';
 import { TemaProvider, useTema } from '@/hooks/use-tema';
+import { configurarNotificacoes } from '@/services/notificacoes';
+// Define a tarefa de verificação de alertas no carregamento, antes de o sistema acordar o app.
+import '@/services/tarefa-alertas';
+
+configurarNotificacoes();
 
 export const unstable_settings = {
   anchor: '(tabs)',
