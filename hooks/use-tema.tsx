@@ -3,6 +3,7 @@ import React, { createContext, useCallback, useContext, useEffect, useState } fr
 
 import { Colors, type Paleta } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { CHAVES, lerComMigracao } from '@/services/armazenamento';
 
 export type PreferenciaTema = 'auto' | 'claro' | 'escuro';
 
@@ -13,7 +14,6 @@ interface TemaContexto {
   definirPreferencia: (p: PreferenciaTema) => void;
 }
 
-const STORAGE_KEY = '@paridade:tema';
 const Contexto = createContext<TemaContexto | null>(null);
 
 export function TemaProvider({ children }: { children: React.ReactNode }) {
@@ -21,7 +21,7 @@ export function TemaProvider({ children }: { children: React.ReactNode }) {
   const [preferencia, setPreferencia] = useState<PreferenciaTema>('auto');
 
   useEffect(() => {
-    AsyncStorage.getItem(STORAGE_KEY)
+    lerComMigracao(CHAVES.tema)
       .then((salva) => {
         if (salva === 'claro' || salva === 'escuro' || salva === 'auto') setPreferencia(salva);
       })
@@ -30,7 +30,7 @@ export function TemaProvider({ children }: { children: React.ReactNode }) {
 
   const definirPreferencia = useCallback((p: PreferenciaTema) => {
     setPreferencia(p);
-    AsyncStorage.setItem(STORAGE_KEY, p).catch(() => {});
+    AsyncStorage.setItem(CHAVES.tema, p).catch(() => {});
   }, []);
 
   const escuro = preferencia === 'auto' ? sistema === 'dark' : preferencia === 'escuro';

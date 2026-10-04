@@ -1,10 +1,12 @@
-# Changelog — Vale importar?
+# Changelog — Empóros
 
 Histórico das entregas por rodada de desenvolvimento (branches mergeadas em `main`). A partir da 2.1.0, cada entrada traz também a versão (SemVer).
 
 ## 2026-10-03 — v2.2.0 · Infraestrutura, regras fiscais e alertas
 - **CI no GitHub Actions** (`.github/workflows/ci.yml`): lint, TypeScript, testes e `expo-doctor` em todo PR e push na `main`. Dependabot mantém as actions atualizadas.
 - Novo script `npm run typecheck`; `expo`, `expo-constants` e `jest-expo` atualizados para os patches esperados pelo SDK 54.
+- **Projeto renomeado para Empóros** (`emporos`): nome do pacote, slug do Expo, identificador das lojas (`io.github.luccasamorim.emporos`) e documentação. "Vale importar?" segue como nome exibido ao usuário. O slug novo exige um projeto EAS novo (`eas init`).
+- Chaves do AsyncStorage unificadas em `services/armazenamento.ts` sob o prefixo `@emporos:`, com migração automática das chaves antigas (`@paridade:*`, `@vale_importar:*`) na primeira leitura — nada se perde.
 
 ## 2026-10-02 — v2.1.0 · App gratuito e código aberto (`feature/app-gratuito-mit`)
 - **Fim do modelo freemium:** o app passa a ser publicado de graça, financiado por doações. Removidos a paywall, a camada de compras (`services/compras.ts`), o contexto premium (`hooks/use-premium.tsx`) e a cota de 5 cálculos (`hooks/use-contador-calculos.ts`).

@@ -1,8 +1,10 @@
-# ✈️ Vale importar? — Importar ou Comprar no Brasil?
+# Empóros
 
-<sub>Repositório Empóros: o nome vem de émporos, o mercador grego que fazia a conta de importar. [Por quê?](MITO.md)</sub>
+<sub>O nome vem de émporos, o mercador grego que fazia a conta de importar. [Por quê?](MITO.md)</sub>
 
 > Uma calculadora de decisão de compra que usa Valor Presente para comparar o custo real de importar um produto com o de comprá-lo no Brasil, inclusive parcelado.
+
+Nas lojas e na tela do celular, o app se chama **✈️ Vale importar?**. Empóros é o nome do projeto e de tudo que fica no código: pacote, identificadores e chaves de armazenamento.
 
 ![Status](https://img.shields.io/badge/Status-MVP_Mobile-green) ![License](https://img.shields.io/badge/Licença-MIT-yellow) ![Version](https://img.shields.io/badge/Versão-2.1.0-blue) ![Stack](https://img.shields.io/badge/Tech-React_Native-violet) [![CI](https://github.com/luccas-amorim/emporos/actions/workflows/ci.yml/badge.svg)](https://github.com/luccas-amorim/emporos/actions/workflows/ci.yml)
 
@@ -51,7 +53,7 @@ O plano de evolução e os próximos passos rumo à publicação estão em **[do
 Para detalhes sobre a fórmula de Valor Presente, a tributação de encomendas (Remessa Conforme) e a lógica fiscal, consulte o [Whitepaper Técnico](docs/WHITEPAPER.md).
 
 ## 💚 Apoie
-O Vale importar? vai ser publicado **de graça** no Google Play e na App Store, sem anúncios e sem compras dentro do app. Para isso, a meta é juntar **cerca de US$ 125**: US$ 99 da conta de desenvolvedor da Apple (renovada todo ano) + US$ 25 da taxa única do Google Play.
+O app vai ser publicado **de graça** no Google Play e na App Store, sem anúncios e sem compras dentro do app. Para isso, a meta é juntar **cerca de US$ 125**: US$ 99 da conta de desenvolvedor da Apple (renovada todo ano) + US$ 25 da taxa única do Google Play.
 
 Se o app te ajudou a decidir uma compra, considere apoiar:
 

@@ -33,12 +33,12 @@ import {
 import { formatarBRL, formatarCotacaoBR, formatarPct } from '@/core/formato';
 import { useHistoricoSimulacoes } from '@/hooks/use-historico-simulacoes';
 import { useTema } from '@/hooks/use-tema';
+import { CHAVES, lerComMigracao } from '@/services/armazenamento';
 import { carregarDadosMercado, type DadosMercado, descreverIdade } from '@/services/mercado';
 
 const IOF_CARTAO_ATUAL = getIOFPorAno();
 const IOF_DINHEIRO = 0.011;
 const CODIGOS_MOEDA: CurrencyCode[] = ['USD', 'EUR', 'GBP', 'JPY', 'ARS', 'CLP'];
-const CHAVE_MOEDA = '@paridade:moeda_selecionada';
 
 type ModoEntradaBR = 'total' | 'parcela';
 
@@ -89,7 +89,7 @@ export default function App() {
 
   // Restaura a última moeda escolhida e passa a persistir as trocas seguintes.
   useEffect(() => {
-    AsyncStorage.getItem(CHAVE_MOEDA)
+    lerComMigracao(CHAVES.moeda)
       .then((salva) => {
         if (salva && CODIGOS_MOEDA.includes(salva as CurrencyCode)) {
           setMoeda(salva as CurrencyCode);
@@ -103,7 +103,7 @@ export default function App() {
 
   useEffect(() => {
     if (!moedaRestaurada.current) return;
-    AsyncStorage.setItem(CHAVE_MOEDA, moeda).catch(() => {});
+    AsyncStorage.setItem(CHAVES.moeda, moeda).catch(() => {});
   }, [moeda]);
 
   // Prefill vindo do Histórico ("Recalcular hoje"). Os campos opcionais são aplicados

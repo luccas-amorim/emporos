@@ -1,4 +1,4 @@
-# 🗺️ Roadmap — Vale importar?
+# 🗺️ Roadmap — Empóros
 
 Documento vivo de acompanhamento. Marque os checkboxes conforme avançar. O que já foi entregue está no [CHANGELOG.md](../CHANGELOG.md).
 
@@ -54,6 +54,7 @@ Para reativar: ampliar o catálogo.
 O código já é multiplataforma; os builds saem da nuvem via **EAS Build** (`eas build`), sem necessidade de Mac. Submissão via `eas submit`.
 
 ### 4a. Pré-requisitos comuns (fazer uma vez)
+- [ ] **Projeto EAS `emporos`:** rodar `eas init` uma vez (o slug mudou de `vale-importar` para `emporos`, e o projeto EAS antigo foi desvinculado). O comando grava o novo `extra.eas.projectId` no `app.json`.
 - [ ] **Arte do ícone** — hoje é o placeholder do template. Direção: balança/avião minimalista em branco/verde-água sobre fundo petróleo `#0f6e56`, legível a 48px. Trocar `assets/images/icon.png`, `android-icon-*.png`, `splash-icon.png` e `favicon.png`.
 - [ ] **Ícone 1024×1024** (sem transparência, para as fichas das lojas).
 - [ ] **Screenshots** por dispositivo (telas claras e escuras; destacar o breakdown de impostos como diferencial).

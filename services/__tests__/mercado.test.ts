@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+import { CHAVES } from '@/services/armazenamento';
 import { buscarCotacoesRede } from '@/services/cambio';
 import { carregarDadosMercado, descreverIdade } from '@/services/mercado';
 import { buscarSelicRede } from '@/services/selic';
@@ -66,7 +67,7 @@ describe('carregarDadosMercado', () => {
     expect(dados.origem).toBe('rede');
     expect(dados.cotacoes.USD).toBeCloseTo(5.05, 5);
 
-    const cache = JSON.parse((await AsyncStorage.getItem('@paridade:dados_mercado'))!);
+    const cache = JSON.parse((await AsyncStorage.getItem(CHAVES.dadosMercado))!);
     expect(cache.cotacoes.USD).toBeCloseTo(5.05, 5);
   });
 
