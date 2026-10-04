@@ -5,6 +5,13 @@ Histórico das entregas por rodada de desenvolvimento (branches mergeadas em `ma
 ## Em desenvolvimento — v3.0.0 · Revamp do Vale importar?
 Redesign completo, feito em fases (uma branch por fase). Especificação e protótipos em `docs/design_handoff_revamp_vale_importar/`.
 
+### Fase E — Colar link (`feature/revamp-e-colar-link`)
+- **"Colar" no card do link**: o app lê a área de transferência (`expo-clipboard`, instalado com `npx expo install`), acha o link mesmo no meio de um texto compartilhado e **o próprio celular baixa a página da loja** para ler nome, preço, moeda e imagem. Também lê o link digitado, ao confirmar ou sair do campo. Sem servidor: a requisição vai do aparelho direto para a loja.
+- **Parser puro** em `core/parser-produto.ts`, nesta ordem: JSON-LD `Product.offers` (inclusive `@graph` e `AggregateOffer`) → metas `og:price:amount` / `product:price:amount` / `og:price:currency` → `/products/<handle>.json` das lojas Shopify. O nome sai do `og:title`; a moeda, da página ou, sem ambiguidade, do domínio (`.co.uk` → GBP, `.de` → EUR…). Testado com HTML de exemplo em `core/__tests__/fixtures/`. A busca (`services/produto.ts`) tem tempo limite de 8 s e nunca lança.
+- Lido o link, o card mostra a linha do produto (miniatura, nome editável, loja e a pill "do link") e preenche o preço e a moeda de "Lá fora". **Se não der para ler** (loja que bloqueia, página sem preço, sem rede), aparece em silêncio a tela 11: "Não conseguimos ler o preço desta página. Digite abaixo — o link fica salvo com a simulação.", e o foco vai para o card "Lá fora", destacado.
+- **Política de privacidade** atualizada: a leitura do link é feita pelo aparelho, direto com a loja; o link é opcional. Também cita o histórico de 90 dias e as premissas salvas no aparelho.
+- No Expo web, a leitura do link costuma falhar por CORS e cai no preenchimento manual; no Android e no iOS, a requisição é feita sem essa restrição. Receber o link pelo menu de compartilhar do navegador (`expo-share-intent`) fica para depois do lançamento.
+
 ### Fase D — Histórico vivo (`feature/revamp-d-historico-vivo`)
 - **O Histórico se recalcula ao abrir a aba**, com a cotação e a Selic do dia (e as regras fiscais vigentes), reaproveitando a mesma montagem do "Recalcular hoje". Cada card mostra o veredito e a diferença de hoje ("Brasil · R$ 716"), e o subtítulo diz se a conta usou o câmbio de hoje ou a última cotação salva.
 - **"Mudou"**: quando o veredito inverteu desde o dia em que a simulação foi salva, o card ganha borda na cor do novo veredito, a pill "Mudou" e as colunas "Na época" × "Hoje", e o topo mostra "1 decisão mudou" com uma frase sobre o caso. Empate não conta como inversão.

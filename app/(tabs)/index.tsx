@@ -1,5 +1,6 @@
+import * as Clipboard from 'expo-clipboard';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -13,7 +14,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BannerSemConexao } from '@/components/comparar/banner-sem-conexao';
-import { CampoLink } from '@/components/comparar/campo-link';
+import { CampoLink, type StatusLink } from '@/components/comparar/campo-link';
 import { CartaoPreco } from '@/components/comparar/cartao-preco';
 import { CartaoProduto } from '@/components/comparar/cartao-produto';
 import { CartaoTaxFree } from '@/components/comparar/cartao-tax-free';
@@ -29,6 +30,7 @@ import { CODIGOS_MOEDA, moedaPorCodigo } from '@/constants/currencies';
 import type { Paleta } from '@/constants/theme';
 import { calcularParidade, parseNumeroLocal } from '@/core/calculadora';
 import { formatarBRL, formatarMoeda } from '@/core/formato';
+import { normalizarUrl, type ProdutoLido } from '@/core/parser-produto';
 import { situacaoCota } from '@/core/premissas';
 import {
   type CamposFormulario,
@@ -40,6 +42,7 @@ import {
 import { definirSimulacaoAtual } from '@/hooks/use-simulacao-atual';
 import { useTema } from '@/hooks/use-tema';
 import { carregarDadosMercado, type DadosMercado } from '@/services/mercado';
+import { lerProduto } from '@/services/produto';
 
 type SheetAberto = 'premissas' | 'exterior' | 'brasil' | 'ajustes' | null;
 
@@ -68,6 +71,11 @@ export default function Comparar() {
   const [dados, setDados] = useState<DadosMercado | null>(null);
   const [atualizando, setAtualizando] = useState(false);
   const [sheet, setSheet] = useState<SheetAberto>(null);
+  const [statusLink, setStatusLink] = useState<StatusLink>('idle');
+  const [produtoLido, setProdutoLido] = useState<ProdutoLido | null>(null);
+  // Link da leitura em curso: se o usuário trocar o link no meio, a resposta antiga é ignorada.
+  const lendo = useRef<string | null>(null);
+  const lidoPorUltimo = useRef<string | null>(null);
 
   const buscarDados = useCallback(async () => {
     setDados(await carregarDadosMercado(CODIGOS_MOEDA));
@@ -112,6 +120,46 @@ export default function Comparar() {
 
   const fechar = () => setSheet(null);
 
+  // Lê a página no aparelho e preenche o que achar. Falhou: segue para o manual.
+  const lerLink = async (texto: string) => {
+    const url = normalizarUrl(texto);
+    if (!url || url === lidoPorUltimo.current || lendo.current === url) return;
+    lendo.current = url;
+    lidoPorUltimo.current = url;
+    setStatusLink('lendo');
+    const leitura = await lerProduto(url);
+    if (lendo.current !== url) return;
+    lendo.current = null;
+    const produto = leitura.produto ?? null;
+    setProdutoLido(produto);
+    if (produto?.nome) definir('nomeProduto', produto.nome);
+    if (leitura.status === 'ok') {
+      definir('precoExt', String(leitura.produto.preco));
+      if (leitura.produto.moeda) definir('moeda', leitura.produto.moeda);
+      setStatusLink('ok');
+    } else {
+      setStatusLink('falhou');
+    }
+  };
+
+  const colar = async () => {
+    const texto = (await Clipboard.getStringAsync().catch(() => '')).trim();
+    if (!texto) return;
+    const url = normalizarUrl(texto);
+    definir('link', url ?? texto);
+    if (url) lerLink(url);
+  };
+
+  const mudarLink = (texto: string) => {
+    definir('link', texto);
+    if (statusLink !== 'idle' && normalizarUrl(texto) !== lidoPorUltimo.current) {
+      lendo.current = null;
+      lidoPorUltimo.current = null;
+      setStatusLink('idle');
+      setProdutoLido(null);
+    }
+  };
+
   return (
     <View style={styles.tela}>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={styles.tela}>
@@ -137,8 +185,19 @@ export default function Comparar() {
 
           {dados ? <BannerSemConexao dados={dados} /> : null}
 
-          <CampoLink link={campos.link} aoMudar={(t) => definir('link', t)} />
+          <CampoLink
+            link={campos.link}
+            status={statusLink}
+            produto={produtoLido}
+            nome={campos.nomeProduto}
+            siteCertificado={campos.siteCertificado && campos.cenario === 'Encomenda'}
+            aoMudarLink={mudarLink}
+            aoMudarNome={(t) => definir('nomeProduto', t)}
+            aoColar={colar}
+            aoLer={() => lerLink(campos.link)}
+          />
           <CartaoProduto
+            mostrarNome={statusLink !== 'ok'}
             nome={campos.nomeProduto}
             observacao={campos.observacao}
             aoMudarNome={(t) => definir('nomeProduto', t)}
@@ -156,6 +215,7 @@ export default function Comparar() {
               aoEditar={() => setSheet('exterior')}
               accessibilityLabel={`Preço no exterior em ${moeda.nome}`}
               rotuloEdicao="Editar moeda e frete"
+              destacado={statusLink === 'falhou' && !campos.precoExt.trim()}
             />
             <CartaoPreco
               rotulo={campos.modoBR === 'parcela' ? 'No Brasil · parcela' : 'No Brasil'}

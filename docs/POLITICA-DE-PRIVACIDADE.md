@@ -1,6 +1,6 @@
 # Política de Privacidade - Vale Importar?
 
-*Última atualização: 3 de outubro de 2026*
+*Última atualização: 4 de outubro de 2026*
 
 ## 1. Resumo da Privacidade
 O aplicativo **"Vale Importar?"** foi desenvolvido com foco total na privacidade do usuário. Nós **não coletamos nem transmitimos** nenhum dado pessoal, financeiro ou bancário. Todo o processamento ocorre localmente no seu dispositivo. O app não tem cadastro, anúncios, ferramentas de análise (analytics) nem compras dentro do aplicativo.
@@ -9,11 +9,13 @@ O aplicativo **"Vale Importar?"** foi desenvolvido com foco total na privacidade
 
 * **Dados Pessoais:** Não coletamos nomes, e-mails, telefones ou documentos.
 * **Simulações:** Os valores informados e o histórico de simulações (incluindo nome do produto, link e observação, quando preenchidos) ficam salvos **somente no armazenamento local do seu dispositivo**. Nada é enviado a servidores, nossos ou de terceiros.
-* **Preferências e cache:** O tema escolhido, a última moeda e a alíquota de ICMS selecionadas, os alertas de câmbio que você criar e a última cotação obtida também ficam salvos localmente, para o app funcionar sem conexão.
-* **Como apagar:** Use "Limpar tudo" na aba Histórico, ou desinstale o app — todos os dados locais são removidos junto.
+* **Preferências e cache:** O tema escolhido, a moeda padrão, a alíquota de ICMS e as premissas da comparação (cenário, forma de pagamento e spread), os alertas de câmbio que você criar, a última cotação obtida e o histórico de 90 dias das moedas também ficam salvos localmente, para o app funcionar sem conexão.
+* **Como apagar:** Use "Limpar" na aba Histórico, ou desinstale o app — todos os dados locais são removidos junto.
 
 ## 3. Conexões com serviços externos
-Para obter cotações e a taxa Selic, o app consulta APIs públicas: a **AwesomeAPI** (economia.awesomeapi.com.br) e o **Banco Central do Brasil**. Essas requisições não contêm nenhum dado seu, apenas os metadados técnicos padrão da internet (como o endereço IP), que não são armazenados por nós. Consulte as políticas desses serviços para saber como tratam esses metadados.
+Para obter cotações, o histórico de 90 dias das moedas e a taxa Selic, o app consulta APIs públicas: a **AwesomeAPI** (economia.awesomeapi.com.br) e o **Banco Central do Brasil**. Essas requisições não contêm nenhum dado seu, apenas os metadados técnicos padrão da internet (como o endereço IP), que não são armazenados por nós. Consulte as políticas desses serviços para saber como tratam esses metadados.
+
+**Leitura do link do produto.** Quando você cola ou digita o link de um produto, o **seu celular** baixa a página dessa loja, diretamente, para tentar ler o nome e o preço; nas lojas Shopify, também consulta o endereço público de dados do produto na mesma loja. A requisição vai do aparelho para a loja sem passar por nenhum servidor nosso, e nós não recebemos o link nem o conteúdo da página. Como em qualquer visita a um site, a loja recebe os metadados técnicos da conexão (como o endereço IP) e trata esses dados conforme a política dela. O app não envia cookies nem dados de login para a loja. Se preferir que a loja não seja contatada, digite os preços à mão: o link é opcional.
 
 ## 4. Notificações e verificação em segundo plano
 Se você criar um alerta de câmbio e permitir notificações, o app consulta de tempos em tempos, mesmo fechado, a cotação das moedas dos seus alertas na AwesomeAPI e mostra uma notificação gerada **no próprio aparelho** quando o alvo é atingido. Não usamos servidor de notificações nem identificador do aparelho, e a consulta não leva nenhum dado seu, só as siglas das moedas. Para desligar, remova os alertas ou desative as notificações do app nas configurações do celular.

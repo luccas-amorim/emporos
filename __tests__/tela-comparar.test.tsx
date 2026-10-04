@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
+import * as Clipboard from 'expo-clipboard';
 import { useLocalSearchParams } from 'expo-router';
 
 import Comparar from '@/app/(tabs)/index';
@@ -8,6 +9,10 @@ import { recarregarAlertas } from '@/hooks/use-alertas-cambio';
 import { recarregarHistorico } from '@/hooks/use-historico-simulacoes';
 import { definirSimulacaoAtual } from '@/hooks/use-simulacao-atual';
 import { CHAVES } from '@/services/armazenamento';
+import { lerProduto } from '@/services/produto';
+
+jest.mock('expo-clipboard', () => ({ getStringAsync: jest.fn(async () => '') }));
+jest.mock('@/services/produto', () => ({ lerProduto: jest.fn() }));
 
 const mockPush = jest.fn();
 jest.mock('expo-router', () => ({
@@ -35,6 +40,7 @@ beforeEach(async () => {
   definirSimulacaoAtual(null);
   paramsMock.mockReturnValue({});
   mockPush.mockClear();
+  (lerProduto as jest.Mock).mockReset();
 });
 
 async function abrirComparar() {
@@ -60,6 +66,55 @@ async function abrirResultado(tela: Awaited<ReturnType<typeof render>>) {
   expect(mockPush).toHaveBeenCalledWith('/resultado');
   await tela.unmount();
   await render(<Resultado />);
+}
+
+describe('Colar link', () => {
+  const colar = (texto: string) => (Clipboard.getStringAsync as jest.Mock).mockResolvedValueOnce(texto);
+
+  it('cola o link, lê a página e preenche nome, preço e moeda', async () => {
+    colar('Olha: https://www.loja.de/p/asics');
+    (lerProduto as jest.Mock).mockResolvedValueOnce({
+      status: 'ok',
+      url: 'https://www.loja.de/p/asics',
+      produto: { nome: 'Asics Gel-Kayano 31', preco: 160, moeda: 'EUR', loja: 'loja.de', fonte: 'jsonld' },
+    });
+    await abrirComparar();
+
+    await fireEvent.press(screen.getByLabelText('Colar link do produto'));
+
+    expect(await screen.findByText('do link')).toBeTruthy();
+    expect(lerProduto).toHaveBeenCalledWith('https://www.loja.de/p/asics');
+    expect(screen.getByLabelText('Link do produto (opcional)').props.value).toBe('https://www.loja.de/p/asics');
+    expect(screen.getByLabelText('Nome do produto (opcional)').props.value).toBe('Asics Gel-Kayano 31');
+    expect(screen.getByLabelText('Preço no exterior em Euro').props.value).toBe('160');
+    expect(screen.getByText('loja.de · Remessa Conforme')).toBeTruthy();
+  });
+
+  it('quando não dá para ler o preço, avisa sem bloquear e mantém o link', async () => {
+    colar('https://www.bestbuy.com/site/6539');
+    (lerProduto as jest.Mock).mockResolvedValueOnce({ status: 'falhou', url: 'https://www.bestbuy.com/site/6539' });
+    await abrirComparar();
+
+    await fireEvent.press(screen.getByLabelText('Colar link do produto'));
+
+    expect(await screen.findByText(/Não conseguimos ler o preço desta página/)).toBeTruthy();
+    expect(screen.getByLabelText('Link do produto (opcional)').props.value).toBe('https://www.bestbuy.com/site/6539');
+
+    await preencherEComparar('1000', '100');
+    expect(abriuResultado()).toBeTruthy();
+  });
+
+  it('texto que não é link vai para o campo, sem buscar nada', async () => {
+    colar('fone sony');
+    await abrirComparar();
+    await fireEvent.press(screen.getByLabelText('Colar link do produto'));
+    await waitFor(() => expect(screen.getByLabelText('Link do produto (opcional)').props.value).toBe('fone sony'));
+    expect(lerProduto).not.toHaveBeenCalled();
+  });
+});
+
+function abriuResultado() {
+  return mockPush.mock.calls.some(([rota]) => rota === '/resultado');
 }
 
 describe('Comparar', () => {

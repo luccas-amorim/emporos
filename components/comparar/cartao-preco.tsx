@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, StyleSheet, TextInput, View } from 'react-native';
 
 import { estiloCampo } from '@/components/comparar/estilos-campo';
@@ -43,6 +43,11 @@ export function CartaoPreco({
   const campo = useRef<TextInput>(null);
   const estiloValor = useMemo(() => estiloCampo(cores, true, 21, 600), [cores]);
   const vazio = !valor.trim();
+
+  // Destacado (link que não deu para ler): o foco vem para cá, para digitar o preço.
+  useEffect(() => {
+    if (destacado) campo.current?.focus();
+  }, [destacado]);
 
   return (
     <Pressable

@@ -7,6 +7,8 @@ import { LIMITE_ESCALA_FONTE, Texto } from '@/components/ui/texto';
 import { useTema } from '@/hooks/use-tema';
 
 interface CartaoProdutoProps {
+  /** Falso quando o nome já aparece (editável) no card do link lido. */
+  mostrarNome?: boolean;
   nome: string;
   observacao: string;
   aoMudarNome: (nome: string) => void;
@@ -14,24 +16,28 @@ interface CartaoProdutoProps {
 }
 
 // Nome do produto (opcional) e uma observação curta, que vão junto para o histórico.
-export function CartaoProduto({ nome, observacao, aoMudarNome, aoMudarObservacao }: CartaoProdutoProps) {
+export function CartaoProduto({ mostrarNome = true, nome, observacao, aoMudarNome, aoMudarObservacao }: CartaoProdutoProps) {
   const { cores } = useTema();
   const estiloNome = useMemo(() => estiloCampo(cores, false, 15, 600), [cores]);
   const estiloObs = useMemo(() => estiloCampo(cores, false, 13), [cores]);
 
   return (
     <Cartao style={{ gap: 4 }}>
-      <Texto variante="rotulo">Produto</Texto>
-      <TextInput
-        style={[estiloNome, styles.campo]}
-        value={nome}
-        onChangeText={aoMudarNome}
-        placeholder="Nome do produto (opcional)"
-        placeholderTextColor={cores.textSubtle}
-        maxFontSizeMultiplier={LIMITE_ESCALA_FONTE}
-        accessibilityLabel="Nome do produto (opcional)"
-      />
-      <View style={[styles.divisor, { backgroundColor: cores.border }]} />
+      <Texto variante="rotulo">{mostrarNome ? 'Produto' : 'Observação'}</Texto>
+      {mostrarNome ? (
+        <>
+          <TextInput
+            style={[estiloNome, styles.campo]}
+            value={nome}
+            onChangeText={aoMudarNome}
+            placeholder="Nome do produto (opcional)"
+            placeholderTextColor={cores.textSubtle}
+            maxFontSizeMultiplier={LIMITE_ESCALA_FONTE}
+            accessibilityLabel="Nome do produto (opcional)"
+          />
+          <View style={[styles.divisor, { backgroundColor: cores.border }]} />
+        </>
+      ) : null}
       <TextInput
         style={[estiloObs, styles.campo]}
         value={observacao}
